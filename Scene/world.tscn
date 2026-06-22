@@ -1,0 +1,30 @@
+[gd_scene format=3 uid="uid://d0afamvphkkj0"]
+
+[ext_resource type="PackedScene" uid="uid://cy3xtew4p1b33" path="res://Scene/Player.tscn" id="1_emx41"]
+[ext_resource type="Script" uid="uid://tba8dydlexog" path="res://Scripts/crowd_manager.gd" id="2_crowd"]
+[ext_resource type="PackedScene" uid="uid://beplx2gmqpvh3" path="res://Scene/hud.tscn" id="3_hud"]
+[ext_resource type="PackedScene" path="res://Scene/food_source.tscn" id="4_food_source"]
+
+[node name="World" type="Node2D" unique_id=2048086502]
+
+[node name="Player" parent="." unique_id=2093694816 instance=ExtResource("1_emx41")]
+position = Vector2(83, 114)
+scale = Vector2(3, 3)
+walk_speed = 300.0
+run_speed = 400.0
+
+[node name="Camera2D" type="Camera2D" parent="Player" unique_id=1040013179]
+
+[node name="CrowdManager" type="Node2D" parent="." unique_id=1218005740]
+scale = Vector2(3, 3)
+script = ExtResource("2_crowd")
+npc_count = 1000
+promote_radius = 120.0
+demote_radius = 160.0
+max_idle_time = 10.0
+
+[node name="HUD" parent="." unique_id=992694139 instance=ExtResource("3_hud")]
+
+[node name="FoodSource" parent="." unique_id=2110058877 instance=ExtResource("4_food_source")]
+position = Vector2(291, 257)
+scale = Vector2(3, 3)

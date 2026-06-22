@@ -1,0 +1,99 @@
+[gd_scene load_steps=8 format=3 uid="uid://beplx2gmqpvh3"]
+
+[ext_resource type="Script" path="res://Scripts/hud.gd" id="1_hud_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bar_bg"]
+bg_color = Color(0.1, 0.1, 0.1, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stamina_fill"]
+bg_color = Color(0.180392, 0.8, 0.443137, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stress_fill"]
+bg_color = Color(0.901961, 0.298039, 0.235294, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="LabelSettings" id="LabelSettings_hud"]
+font_size = 12
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+
+[node name="HUD" type="CanvasLayer"]
+script = ExtResource("1_hud_script")
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 260.0
+offset_bottom = 70.0
+theme_override_constants/separation = 6
+
+[node name="StaminaContainer" type="HBoxContainer" parent="Control/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="Control/VBoxContainer/StaminaContainer"]
+custom_minimum_size = Vector2(30, 0)
+layout_mode = 2
+text = "STM"
+label_settings = SubResource("LabelSettings_hud")
+
+[node name="StaminaBar" type="ProgressBar" parent="Control/VBoxContainer/StaminaContainer"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_styles/background = SubResource("StyleBoxFlat_bar_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_stamina_fill")
+value = 100.0
+show_percentage = false
+
+[node name="StressContainer" type="HBoxContainer" parent="Control/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="Control/VBoxContainer/StressContainer"]
+custom_minimum_size = Vector2(30, 0)
+layout_mode = 2
+text = "STR"
+label_settings = SubResource("LabelSettings_hud")
+
+[node name="StressBar" type="ProgressBar" parent="Control/VBoxContainer/StressContainer"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_styles/background = SubResource("StyleBoxFlat_bar_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_stress_fill")
+show_percentage = false
+
+[node name="QuestListContainer" type="VBoxContainer" parent="Control"]
+layout_mode = 0
+offset_right = -20.0
+offset_top = 20.0
+offset_left = -240.0
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+grow_horizontal = 0
+theme_override_constants/separation = 8
