@@ -1,0 +1,74 @@
+[gd_scene load_steps=6 format=3 uid="uid://d3dialoguebox"]
+
+[ext_resource type="Script" path="res://Scripts/dialogue_box.gd" id="1_dialogue_script"]
+[ext_resource type="FontFile" path="res://0307-LNTH-TwistyPixel.ttf" id="2_pixel_font"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_speaker"]
+font = ExtResource("2_pixel_font")
+font_size = 30
+font_color = Color(1, 0.88, 0.15, 1)
+outline_size = 6
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_text"]
+font = ExtResource("2_pixel_font")
+font_size = 24
+font_color = Color(1, 1, 1, 1)
+outline_size = 4
+outline_color = Color(0, 0, 0, 1)
+line_spacing = 6
+
+[node name="DialogueBox" type="CanvasLayer"]
+layer = 15
+script = ExtResource("1_dialogue_script")
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Control"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -360.0
+offset_top = -175.0
+offset_right = 360.0
+offset_bottom = -15.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="DialoguePanel" type="PanelContainer" parent="Control/MarginContainer"]
+custom_minimum_size = Vector2(720, 160)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Margin" type="MarginContainer" parent="Control/MarginContainer/DialoguePanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="Control/MarginContainer/DialoguePanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="SpeakerNameLabel" type="Label" parent="Control/MarginContainer/DialoguePanel/Margin/VBox"]
+layout_mode = 2
+text = "Player (Bảo Vệ)"
+label_settings = SubResource("LabelSettings_speaker")
+
+[node name="TextLabel" type="Label" parent="Control/MarginContainer/DialoguePanel/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+text = "Tôi là Bảo Vệ đêm nhạc. Tôi sẽ hỗ trợ khán giả và giữ gìn an ninh!"
+label_settings = SubResource("LabelSettings_text")
+autowrap_mode = 3

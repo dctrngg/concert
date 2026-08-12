@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://dceb7q28v7eh2"
+path="res://.godot/imported/Coconut Mall - Mario Kart Wii OST - No Copyright Nintendo Music [TubeRipper.click].ogg-ed9b8c2213f3373b271a2ebda5a69fa6.oggvorbisstr"
+
+[deps]
+
+source_file="res://sound/Coconut Mall - Mario Kart Wii OST - No Copyright Nintendo Music [TubeRipper.click].ogg"
+dest_files=["res://.godot/imported/Coconut Mall - Mario Kart Wii OST - No Copyright Nintendo Music [TubeRipper.click].ogg-ed9b8c2213f3373b271a2ebda5a69fa6.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

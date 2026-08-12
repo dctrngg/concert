@@ -1,62 +1,67 @@
-[gd_scene format=3 uid="uid://bg883vddo6o7d"]
+[gd_scene load_steps=11 format=3 uid="uid://bg883vddo6o7d"]
 
 [ext_resource type="Script" uid="uid://dhmksw8wkd2cs" path="res://Scripts/quest_hud_item.gd" id="1_item_script"]
+[ext_resource type="Texture2D" path="res://Sprites/UI_Flat_Frame03a.png" id="2_frame_tex"]
+[ext_resource type="Texture2D" uid="uid://bb0t2gvhpx4g8" path="res://Sprites/UI_Flat_Bar01a.png" id="3_bar_bg_tex"]
+[ext_resource type="Texture2D" uid="uid://cw2s7a5j3s11e" path="res://Sprites/UI_Flat_BarFill01g.png" id="4_bar_fill_tex"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.08, 0.08, 0.12, 0.82)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.25, 0.25, 0.35, 0.9)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+[ext_resource type="FontFile" path="res://0307-LNTH-TwistyPixel.ttf" id="5_pixel_font"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_panel"]
+texture = ExtResource("2_frame_tex")
+texture_margin_left = 12.0
+texture_margin_top = 12.0
+texture_margin_right = 12.0
+texture_margin_bottom = 12.0
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 1
 
 [sub_resource type="LabelSettings" id="LabelSettings_title"]
-font_size = 13
-font_color = Color(0.95, 0.95, 1, 1)
-outline_size = 2
-outline_color = Color(0, 0, 0, 0.8)
+font = ExtResource("5_pixel_font")
+font_size = 18
+font_color = Color(1, 0.98, 0.92, 1)
+outline_size = 4
+outline_color = Color(0, 0, 0, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_time"]
-font_size = 13
-font_color = Color(1, 0.85, 0.4, 1)
-outline_size = 2
-outline_color = Color(0, 0, 0, 0.8)
+font = ExtResource("5_pixel_font")
+font_size = 18
+font_color = Color(1, 0.85, 0.2, 1)
+outline_size = 4
+outline_color = Color(0, 0, 0, 1)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bar_bg"]
-bg_color = Color(0.12, 0.12, 0.16, 1)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bar_bg"]
+texture = ExtResource("3_bar_bg_tex")
+texture_margin_left = 3.0
+texture_margin_top = 3.0
+texture_margin_right = 3.0
+texture_margin_bottom = 3.0
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bar_fill"]
-bg_color = Color(0.180392, 0.8, 0.443137, 1)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bar_fill"]
+texture = ExtResource("4_bar_fill_tex")
+texture_margin_left = 2.0
+texture_margin_top = 2.0
+texture_margin_right = 2.0
+texture_margin_bottom = 2.0
 
 [sub_resource type="LabelSettings" id="LabelSettings_status"]
-font_size = 10
-font_color = Color(0.65, 0.65, 0.75, 1)
-outline_size = 1
-outline_color = Color(0, 0, 0, 0.6)
+font = ExtResource("5_pixel_font")
+font_size = 15
+font_color = Color(1, 0.85, 0.5, 1)
+outline_size = 3
+outline_color = Color(0, 0, 0, 1)
 
 [node name="QuestHudItem" type="PanelContainer" unique_id=2111814307]
-custom_minimum_size = Vector2(220, 0)
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+custom_minimum_size = Vector2(240, 0)
+theme_override_styles/panel = SubResource("StyleBoxTexture_panel")
 script = ExtResource("1_item_script")
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=1290496437]
 layout_mode = 2
-theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 7
-theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 7
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 4
 
 [node name="VBox" type="VBoxContainer" parent="MarginContainer" unique_id=459426012]
 layout_mode = 2
@@ -64,6 +69,12 @@ theme_override_constants/separation = 5
 
 [node name="TitleRow" type="HBoxContainer" parent="MarginContainer/VBox" unique_id=1710393732]
 layout_mode = 2
+
+[node name="QuestIcon" type="TextureRect" parent="MarginContainer/VBox/TitleRow" unique_id=987654321]
+custom_minimum_size = Vector2(22, 22)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
 
 [node name="QuestTitle" type="Label" parent="MarginContainer/VBox/TitleRow" unique_id=1169192100]
 layout_mode = 2
@@ -80,8 +91,8 @@ label_settings = SubResource("LabelSettings_time")
 [node name="TimeBar" type="ProgressBar" parent="MarginContainer/VBox" unique_id=706672536]
 custom_minimum_size = Vector2(0, 8)
 layout_mode = 2
-theme_override_styles/background = SubResource("StyleBoxFlat_bar_bg")
-theme_override_styles/fill = SubResource("StyleBoxFlat_bar_fill")
+theme_override_styles/background = SubResource("StyleBoxTexture_bar_bg")
+theme_override_styles/fill = SubResource("StyleBoxTexture_bar_fill")
 value = 100.0
 show_percentage = false
 

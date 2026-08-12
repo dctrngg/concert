@@ -1,0 +1,42 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Scripts/chair_source.gd" id="1_chair_script"]
+[ext_resource type="Texture2D" path="res://Sprites/UI_Flat_Frame01a.png" id="2_frame_tex"]
+[ext_resource type="Texture2D" path="res://Sprites/Pixel_Mart/paper_bag.png" id="3_bag_tex"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_chair"]
+size = Vector2(48, 48)
+
+[node name="ChairSource" type="Area2D"]
+script = ExtResource("1_chair_script")
+
+[node name="CounterFrame" type="NinePatchRect" parent="."]
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+texture = ExtResource("2_frame_tex")
+patch_margin_left = 6
+patch_margin_top = 6
+patch_margin_right = 6
+patch_margin_bottom = 6
+
+[node name="BagDisplay" type="Sprite2D" parent="."]
+position = Vector2(0, -2)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("3_bag_tex")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_chair")
+
+[node name="Label" type="Label" parent="."]
+offset_left = -80.0
+offset_top = -38.0
+offset_right = 80.0
+offset_bottom = -15.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 16
+text = "🪑 Kho Ghế Tập Trung"
+horizontal_alignment = 1
+vertical_alignment = 1

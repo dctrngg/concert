@@ -29,12 +29,37 @@ func accept_quest(quest: NPCQuestData) -> bool:
 		
 	quest.state = NPCQuestData.QuestState.ACTIVE
 	quest.time_remaining = quest.time_limit
-	quest.is_item_picked_up = false
+	quest.set_meta("just_accepted", true)
+	
+	# Nếu là quest bán Merchandise: Tự động cấp hàng (is_item_picked_up = true) và tạo khán giả mua 🛍️ ngay lập tức!
+	if quest.quest_type == NPCQuestData.QuestType.MERCH_SELLING:
+		quest.is_item_picked_up = true
+		var crowd_manager = get_node_or_null("/root/World/CrowdManager")
+		if not crowd_manager:
+			crowd_manager = get_tree().get_first_node_in_group("crowd_manager")
+		if crowd_manager and crowd_manager.has_method("assign_merch_buyers"):
+			crowd_manager.assign_merch_buyers(quest, 7)
+	else:
+		quest.is_item_picked_up = false
 	
 	active_quests.append(quest)
 	inventory.assign_slot(quest)
 	quest_accepted.emit(quest)
 	return true
+
+## Tạo và nhận ngay nhiệm vụ pop-up bán Merchandise trực tiếp (không cần qua quầy lấy đồ)
+func spawn_popup_merch_quest(target_count: int = 5, time_limit: float = 50.0) -> bool:
+	var merch_quest = NPCQuestData.new()
+	merch_quest.quest_id = "merch_popup_%d" % randi()
+	merch_quest.quest_type = NPCQuestData.QuestType.MERCH_SELLING
+	merch_quest.merch_target_count = target_count
+	merch_quest.merch_sold_count = 0
+	merch_quest.is_item_picked_up = true
+	merch_quest.title = "Bán %d Merchandise" % target_count
+	merch_quest.description = "Nhiệm vụ đột xuất! Hãy tìm các khán giả có biểu tượng (🛍️) trên đầu để bán hàng!"
+	merch_quest.time_limit = time_limit
+	
+	return accept_quest(merch_quest)
 
 func complete_quest(quest: NPCQuestData) -> void:
 	if not (quest in active_quests):
@@ -50,6 +75,10 @@ func complete_quest(quest: NPCQuestData) -> void:
 	var stats = get_player_stats()
 	if stats:
 		stats.reduce_stress(10.0) # stress_decay_on_success
+
+	var gm = get_node_or_null("/root/GameManager")
+	if gm:
+		gm.add_score(quest.reward_points)
 		
 	quest_completed.emit(quest)
 

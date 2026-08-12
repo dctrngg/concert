@@ -1,0 +1,89 @@
+[gd_scene format=3 uid="uid://cjad35gq7eeke"]
+
+[ext_resource type="Script" uid="uid://cu17nyca8jmgw" path="res://Scripts/stage.gd" id="1_stage_script"]
+[ext_resource type="Texture2D" uid="uid://berijf7f4or5" path="res://Spritesheets/stage2.png" id="2_hv6bi"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_main"]
+size = Vector2(1137, 763)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_left"]
+size = Vector2(398, 639)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_right"]
+size = Vector2(248, 745)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_audience"]
+size = Vector2(2901, 1456)
+
+[sub_resource type="Gradient" id="Gradient_stage_light"]
+colors = PackedColorArray(1, 1, 1, 1, 0, 0, 0, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_stage_light"]
+gradient = SubResource("Gradient_stage_light")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
+[node name="Stage" type="StaticBody2D" unique_id=757892573 groups=["concert_stage"]]
+collision_layer = 4
+collision_mask = 3
+script = ExtResource("1_stage_script")
+artist_offsets = Array[Vector2]([Vector2(0, -240), Vector2(-240, -360), Vector2(240, -360)])
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=700355137]
+texture = ExtResource("2_hv6bi")
+
+[node name="MainDeckCollision" type="CollisionShape2D" parent="." unique_id=372249485]
+position = Vector2(68.5, -478.5)
+shape = SubResource("RectangleShape2D_main")
+
+[node name="LeftWingCollision" type="CollisionShape2D" parent="." unique_id=165237547]
+position = Vector2(-704, -414.5)
+shape = SubResource("RectangleShape2D_left")
+
+[node name="RightWingCollision" type="CollisionShape2D" parent="." unique_id=211273829]
+position = Vector2(774, -471.5)
+shape = SubResource("RectangleShape2D_right")
+
+[node name="AudienceArea" type="Area2D" parent="." unique_id=1461237851]
+visible = false
+collision_layer = 0
+
+[node name="AudienceCollision" type="CollisionShape2D" parent="AudienceArea" unique_id=1636458922]
+position = Vector2(-2, 942)
+shape = SubResource("RectangleShape2D_audience")
+
+[node name="StageLights" type="Node2D" parent="." unique_id=85236887]
+
+[node name="LightSpot1" type="Sprite2D" parent="StageLights" unique_id=592125998]
+position = Vector2(-400, -350)
+scale = Vector2(2, 2)
+
+[node name="LightSpot2" type="Sprite2D" parent="StageLights" unique_id=1015818255]
+position = Vector2(0, -350)
+scale = Vector2(2, 2)
+
+[node name="LightSpot3" type="Sprite2D" parent="StageLights" unique_id=298974011]
+position = Vector2(400, -350)
+scale = Vector2(2, 2)
+
+[node name="StageLight1" type="PointLight2D" parent="StageLights" unique_id=389108701]
+position = Vector2(-400, -350)
+color = Color(1, 0.1, 0.6, 1)
+energy = 2.0
+texture = SubResource("GradientTexture2D_stage_light")
+texture_scale = 8.0
+
+[node name="StageLight2" type="PointLight2D" parent="StageLights" unique_id=1056371791]
+position = Vector2(0, -350)
+color = Color(0, 0.85, 1, 1)
+energy = 2.2
+texture = SubResource("GradientTexture2D_stage_light")
+texture_scale = 9.0
+
+[node name="StageLight3" type="PointLight2D" parent="StageLights" unique_id=749286703]
+position = Vector2(400, -350)
+color = Color(1, 0.8, 0.1, 1)
+energy = 2.0
+texture = SubResource("GradientTexture2D_stage_light")
+texture_scale = 8.0

@@ -1,9 +1,11 @@
 extends CanvasLayer
 class_name HUD
 
-@onready var stamina_bar: ProgressBar = $Control/VBoxContainer/StaminaContainer/StaminaBar
-@onready var stress_bar: ProgressBar = $Control/VBoxContainer/StressContainer/StressBar
+@onready var stamina_bar: ProgressBar = $Control/StatsPanel/VBoxContainer/StaminaContainer/StaminaBar
+@onready var stress_bar: ProgressBar = $Control/StatsPanel/VBoxContainer/StressContainer/StressBar
 @onready var quest_list_container: VBoxContainer = $Control/QuestListContainer
+@onready var timer_label: Label = $Control/TopCenterPanel/VBox/TimerLabel
+@onready var score_label: Label = $Control/TopCenterPanel/VBox/ScoreLabel
 
 var _quest_item_scene: PackedScene = preload("res://Scene/quest_hud_item.tscn")
 var _active_hud_items: Dictionary = {}  # quest_id -> QuestHudItem node
@@ -32,6 +34,17 @@ func _ready() -> void:
 	else:
 		push_warning("HUD: Không tìm thấy QuestManager Autoload!")
 
+	# Kết nối GameManager signals
+	var gm = get_node_or_null("/root/GameManager")
+	if gm:
+		gm.score_changed.connect(_on_score_changed)
+		gm.level_timer_updated.connect(_on_level_timer_updated)
+		var lvl_data = gm.get_current_level_data()
+		_on_score_changed(gm.current_score, lvl_data["star_thresholds"])
+		_on_level_timer_updated(gm.time_remaining, lvl_data["time_limit"])
+		if not gm.is_level_active:
+			gm.start_level(lvl_data["level_id"])
+
 	# Kết nối inventory_changed để cập nhật trạng thái mang vác
 	if player and player.get("inventory"):
 		player.inventory.inventory_changed.connect(_on_inventory_changed)
@@ -47,6 +60,25 @@ func _on_stress_changed(current: float, max_val: float) -> void:
 	if stress_bar:
 		stress_bar.max_value = max_val
 		stress_bar.value = current
+
+# ─── Level Timer & Score ───────────────────────────────────────────────────
+
+func _on_level_timer_updated(time_left: float, _limit: float) -> void:
+	if timer_label:
+		var mins = int(time_left) / 60
+		var secs = int(time_left) % 60
+		timer_label.text = "⏱️ %02d:%02d" % [mins, secs]
+
+func _on_score_changed(current: int, thresholds: Array) -> void:
+	if score_label:
+		var stars_str = "☆☆☆"
+		if current >= thresholds[2]:
+			stars_str = "★★★"
+		elif current >= thresholds[1]:
+			stars_str = "★★☆"
+		elif current >= thresholds[0]:
+			stars_str = "★☆☆"
+		score_label.text = "🏆 Điểm: %d (%s)" % [current, stars_str]
 
 # ─── Quest HUD Stack ─────────────────────────────────────────────────────────
 

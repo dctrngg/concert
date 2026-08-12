@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Scripts/target_pointer.gd" id="1_pointer_script"]
+[ext_resource type="Texture2D" path="res://Sprites/UI_Flat_IconArrow01a.png" id="2_arrow_tex"]
+
+[node name="TargetPointer" type="Node2D"]
+script = ExtResource("1_pointer_script")
+
+[node name="ArrowSprite" type="Sprite2D" parent="."]
+modulate = Color(1, 0.9, 0.2, 1)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("2_arrow_tex")

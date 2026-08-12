@@ -1,0 +1,169 @@
+[gd_scene format=3 uid="uid://c6v2n7x4k8q1j"]
+
+[ext_resource type="Script" uid="uid://c7wxach1qanvo" path="res://Scripts/level_result_dialog.gd" id="1_result_script"]
+[ext_resource type="Texture2D" uid="uid://bs77a46anxy6s" path="res://Sprites/UI_Flat_Frame03a.png" id="2_modal_frame"]
+[ext_resource type="Texture2D" uid="uid://d2ktul51stqwf" path="res://Sprites/UI_Flat_Button01a_1.png" id="3_btn_n"]
+[ext_resource type="Texture2D" uid="uid://b2rish7nyaydu" path="res://Sprites/UI_Flat_Button01a_2.png" id="4_btn_h"]
+[ext_resource type="Texture2D" uid="uid://mwao0jrf4i5c" path="res://Sprites/UI_Flat_Button01a_3.png" id="5_btn_p"]
+
+[ext_resource type="FontFile" path="res://0307-LNTH-TwistyPixel.ttf" id="6_pixel_font"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_modal_panel"]
+texture = ExtResource("2_modal_frame")
+texture_margin_left = 14.0
+texture_margin_top = 14.0
+texture_margin_right = 14.0
+texture_margin_bottom = 14.0
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 1
+
+[sub_resource type="LabelSettings" id="LabelSettings_title"]
+font = ExtResource("6_pixel_font")
+font_size = 26
+font_color = Color(1, 0.9, 0.4, 1)
+outline_size = 3
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_status"]
+font = ExtResource("6_pixel_font")
+font_size = 24
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_stars"]
+font = ExtResource("6_pixel_font")
+font_size = 32
+font_color = Color(1, 0.85, 0.2, 1)
+outline_size = 4
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_score"]
+font = ExtResource("6_pixel_font")
+font_size = 18
+font_color = Color(0.95, 0.92, 0.85, 1)
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_normal"]
+texture = ExtResource("3_btn_n")
+texture_margin_left = 8.0
+texture_margin_top = 8.0
+texture_margin_right = 8.0
+texture_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_pressed"]
+texture = ExtResource("5_btn_p")
+texture_margin_left = 8.0
+texture_margin_top = 8.0
+texture_margin_right = 8.0
+texture_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_hover"]
+texture = ExtResource("4_btn_h")
+texture_margin_left = 8.0
+texture_margin_top = 8.0
+texture_margin_right = 8.0
+texture_margin_bottom = 8.0
+
+[node name="LevelResultDialog" type="CanvasLayer" unique_id=1177145096]
+layer = 10
+script = ExtResource("1_result_script")
+
+[node name="Control" type="Control" parent="." unique_id=517556087]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorRect" type="ColorRect" parent="Control" unique_id=1334336216]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.72)
+
+[node name="Panel" type="PanelContainer" parent="Control" unique_id=1717596964]
+custom_minimum_size = Vector2(400, 320)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -160.0
+offset_right = 200.0
+offset_bottom = 160.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_modal_panel")
+
+[node name="VBox" type="VBoxContainer" parent="Control/Panel" unique_id=549007023]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="Control/Panel/VBox" unique_id=1719065864]
+layout_mode = 2
+text = "TỔNG KẾT MÀN CHƠI
+Cấp độ 1: Đêm Diễn Khởi Đầu"
+label_settings = SubResource("LabelSettings_title")
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="Control/Panel/VBox" unique_id=957007736]
+layout_mode = 2
+
+[node name="ResultStatusLabel" type="Label" parent="Control/Panel/VBox" unique_id=1829214140]
+layout_mode = 2
+text = "🎉 VƯỢT QUA VÒNG CHƠI! 🎉"
+label_settings = SubResource("LabelSettings_status")
+horizontal_alignment = 1
+
+[node name="StarsLabel" type="Label" parent="Control/Panel/VBox" unique_id=228198032]
+layout_mode = 2
+text = "★★★ (3/3 Sao)"
+label_settings = SubResource("LabelSettings_stars")
+horizontal_alignment = 1
+
+[node name="ScoreInfoLabel" type="Label" parent="Control/Panel/VBox" unique_id=512480827]
+layout_mode = 2
+text = "Tổng điểm đạt được: 450 điểm
+(Yêu cầu 1 Sao: 150 điểm)"
+label_settings = SubResource("LabelSettings_score")
+horizontal_alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="Control/Panel/VBox" unique_id=2018010467]
+layout_mode = 2
+
+[node name="ButtonHBox" type="HBoxContainer" parent="Control/Panel/VBox" unique_id=209506575]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="RetryButton" type="Button" parent="Control/Panel/VBox/ButtonHBox" unique_id=1096093301]
+custom_minimum_size = Vector2(96, 36)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+text = "🔄 Thử Lại"
+
+[node name="NextButton" type="Button" parent="Control/Panel/VBox/ButtonHBox" unique_id=1564639378]
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+text = "▶️ Màn Tiếp"
+
+[node name="SelectMenuButton" type="Button" parent="Control/Panel/VBox/ButtonHBox" unique_id=670832220]
+custom_minimum_size = Vector2(106, 36)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+text = "📋 Chọn Màn"

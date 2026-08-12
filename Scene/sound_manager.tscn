@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://d1vyh0ke7sn51"]
+
+[ext_resource type="Script" uid="uid://d3soundmgrscript" path="res://Scripts/sound_manager.gd" id="1_sound_script"]
+[ext_resource type="AudioStream" path="res://sound/job.mp3" id="2_job_sfx"]
+[ext_resource type="AudioStream" path="res://sound/done.mp3" id="3_done_sfx"]
+[ext_resource type="AudioStream" path="res://sound/pick.mp3" id="4_pick_sfx"]
+
+[node name="SoundManager" type="Node" unique_id=987123654]
+script = ExtResource("1_sound_script")
+shuffle_tracks = true
+quest_accept_sfx = ExtResource("2_job_sfx")
+quest_complete_sfx = ExtResource("3_done_sfx")
+food_pickup_sfx = ExtResource("4_pick_sfx")
+chair_pickup_sfx = ExtResource("4_pick_sfx")
+merch_sell_sfx = ExtResource("4_pick_sfx")

@@ -1,6 +1,9 @@
 [gd_scene format=3 uid="uid://ddk5xgbl5tt6u"]
 
 [ext_resource type="Script" uid="uid://cp74o4gutjukx" path="res://Scripts/food_source.gd" id="1_food_script"]
+[ext_resource type="Texture2D" path="res://Sprites/UI_Flat_Frame01a.png" id="2_frame_tex"]
+[ext_resource type="Texture2D" path="res://Sprites/Pixel_Mart/orange_juice.png" id="3_food1_tex"]
+[ext_resource type="Texture2D" path="res://Sprites/Pixel_Mart/cookies.png" id="4_food2_tex"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_source"]
 size = Vector2(48, 48)
@@ -8,12 +11,39 @@ size = Vector2(48, 48)
 [node name="FoodSource" type="Area2D" unique_id=574417680]
 script = ExtResource("1_food_script")
 
-[node name="ColorRect" type="ColorRect" parent="." unique_id=340180657]
-offset_left = -16.0
-offset_top = -16.0
-offset_right = 16.0
-offset_bottom = 16.0
-color = Color(0.9, 0.6, 0.2, 1)
+[node name="CounterFrame" type="NinePatchRect" parent="."]
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+texture = ExtResource("2_frame_tex")
+patch_margin_left = 6
+patch_margin_top = 6
+patch_margin_right = 6
+patch_margin_bottom = 6
+
+[node name="FoodDisplay1" type="Sprite2D" parent="."]
+position = Vector2(-8, -2)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("3_food1_tex")
+
+[node name="FoodDisplay2" type="Sprite2D" parent="."]
+position = Vector2(8, -2)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("4_food2_tex")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=89290713]
 shape = SubResource("RectangleShape2D_source")
+
+[node name="Label" type="Label" parent="."]
+visible = false
+offset_left = -80.0
+offset_top = -38.0
+offset_right = 80.0
+offset_bottom = -15.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 16
+text = "🍕 Quầy Đồ Ăn"
+horizontal_alignment = 1
+vertical_alignment = 1

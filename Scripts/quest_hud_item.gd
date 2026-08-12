@@ -3,6 +3,7 @@ class_name QuestHudItem
 
 @onready var quest_title_label: Label = $MarginContainer/VBox/TitleRow/QuestTitle
 @onready var time_label: Label = $MarginContainer/VBox/TitleRow/TimeLabel
+@onready var quest_icon: TextureRect = $MarginContainer/VBox/TitleRow/QuestIcon
 @onready var progress_bar: ProgressBar = $MarginContainer/VBox/TimeBar
 @onready var status_label: Label = $MarginContainer/VBox/StatusLabel
 
@@ -11,11 +12,20 @@ var _quest_data: NPCQuestData = null
 func setup(quest: NPCQuestData) -> void:
 	_quest_data = quest
 	quest_title_label.text = quest.title
+	
+	if quest_icon:
+		if quest.item_icon_path != "" and ResourceLoader.exists(quest.item_icon_path):
+			quest_icon.texture = load(quest.item_icon_path)
+			quest_icon.visible = true
+		else:
+			quest_icon.visible = false
+			
 	progress_bar.max_value = quest.time_limit
 	progress_bar.value = quest.time_limit
 	time_label.text = "%ds" % int(quest.time_limit)
-	status_label.text = "Chưa lấy hàng..."
+	update_status(quest.is_item_picked_up)
 	_update_bar_color(1.0)
+
 
 func update_timer(time_left: float) -> void:
 	if _quest_data == null:
@@ -27,12 +37,44 @@ func update_timer(time_left: float) -> void:
 	_update_bar_color(ratio)
 
 func update_status(is_picked_up: bool) -> void:
-	if is_picked_up:
-		status_label.text = "✓ Đã lấy hàng — Hãy giao ngay!"
-		status_label.add_theme_color_override("font_color", Color(0.180392, 0.8, 0.443137, 1))
-	else:
-		status_label.text = "Chưa lấy hàng..."
-		status_label.remove_theme_color_override("font_color")
+	if _quest_data == null:
+		return
+		
+	match _quest_data.quest_type:
+		NPCQuestData.QuestType.FOOD_DELIVERY:
+			if is_picked_up:
+				status_label.text = "✓ Đã lấy đồ ăn — Hãy giao ngay!"
+				status_label.add_theme_color_override("font_color", Color(0.18, 0.8, 0.44, 1))
+			else:
+				status_label.text = "Chưa lấy đồ ăn..."
+				status_label.remove_theme_color_override("font_color")
+				
+		NPCQuestData.QuestType.SEAT_FINDER:
+			if is_picked_up:
+				status_label.text = "✓ Đã lấy ghế — Hãy mang cho khán giả!"
+				status_label.add_theme_color_override("font_color", Color(0.18, 0.8, 0.44, 1))
+			else:
+				status_label.text = "Chưa lấy ghế từ kho..."
+				status_label.remove_theme_color_override("font_color")
+				
+		NPCQuestData.QuestType.MERCH_SELLING:
+			if is_picked_up:
+				status_label.text = "✓ Đã bán đủ chỉ tiêu!"
+				status_label.add_theme_color_override("font_color", Color(0.18, 0.8, 0.44, 1))
+			else:
+				status_label.text = "Đã bán: %d/%d sản phẩm" % [_quest_data.merch_sold_count, _quest_data.merch_target_count]
+				status_label.remove_theme_color_override("font_color")
+
+		NPCQuestData.QuestType.INTERVENTION:
+			if is_picked_up:
+				status_label.text = "✓ Đã dẹp xong cuộc đánh nhau!"
+				status_label.add_theme_color_override("font_color", Color(0.18, 0.8, 0.44, 1))
+			else:
+				status_label.text = "Ấn giữ [E] để cản đánh nhau!"
+				status_label.remove_theme_color_override("font_color")
+
+
+
 
 func _update_bar_color(ratio: float) -> void:
 	var fill_style = progress_bar.get_theme_stylebox("fill")
