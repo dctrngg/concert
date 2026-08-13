@@ -124,6 +124,11 @@ var outfit_sprite_frames: Array[SpriteFrames] = []
 # Map of npc_index -> NPCQuestData
 var quest_data_map: Dictionary = {}
 
+var merch_buyers_map: Dictionary = {}
+var lost_child_parents_map: Dictionary = {}
+var _lost_child_spawn_timer: float = 0.0
+@export var lost_child_interval: float = 45.0
+
 # Object pool of interactive NPCs
 var npc_pool: Array[CharacterBody2D] = []
 # Map of npc_index -> NPCInteractive node currently active
