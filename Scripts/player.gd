@@ -73,59 +73,52 @@ func _ready() -> void:
 		
 	inventory.inventory_changed.connect(update_carrying_visuals)
 
-	# Nạp tạm nhân vật Soldier cho Main Player
-	_load_soldier_character()
+	# Nạp nhân vật chính (main_cha.png) cho Main Player
+	_load_player_character()
 
 	# Khởi tạo Sprite placeholder cho vật phẩm mang vác để sau này User cấu hình
 	var carrying_sprite = Sprite2D.new()
 	carrying_sprite.name = "CarryingVisual"
+	carrying_sprite.position = Vector2(0, -22)
 	carrying_sprite.visible = false
-	carrying_sprite.position = Vector2(0, -20)
-	carrying_sprite.texture = load("res://icon.svg")
-	carrying_sprite.scale = Vector2(0.15, 0.15)
 	add_child(carrying_sprite)
+	
+	_start_camera_intro()
 
-	call_deferred("_play_intro_camera_zoom")
-
-var is_camera_intro_active: bool = false
-var _camera_zoom_finished: bool = false
-var _dialogue_intro_finished: bool = false
-
-func _play_intro_camera_zoom() -> void:
-	var cam: Camera2D = get_node_or_null("Camera2D") as Camera2D
+func _start_camera_intro() -> void:
+	is_camera_intro_active = true
+	var cam = get_node_or_null("Camera2D") as Camera2D
 	if not cam:
-		cam = get_viewport().get_camera_2d()
-	if not cam:
+		is_camera_intro_active = false
 		return
 		
-	# 🎥 Khóa di chuyển nhân vật ngắn trong lúc Camera Zoom
-	is_camera_intro_active = true
+	cam.enabled = true
+	cam.make_current()
 	cam.zoom = Vector2(intro_zoom_start, intro_zoom_start)
 	
-	# 🎬 Tween zoom-out mượt từ start -> end
 	var tween = create_tween()
-	tween.set_parallel(false)
-	if intro_zoom_delay > 0.0:
-		tween.tween_interval(intro_zoom_delay)
+	tween.tween_interval(intro_zoom_delay)
 	tween.tween_property(cam, "zoom", Vector2(intro_zoom_end, intro_zoom_end), intro_zoom_duration).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	# Mở khóa di chuyển ngay khi Camera Zoom kết thúc để người chơi tự do vừa chơi vừa xem hướng dẫn
 	tween.tween_callback(func():
 		is_camera_intro_active = false
 	)
 
-func _load_soldier_character() -> void:
-	var soldier_path = "res://Sprites/RPG Top Down Characters/Soldier/soldier.png"
-	if not ResourceLoader.exists(soldier_path):
-		return
+func _load_player_character() -> void:
+	var char_path = "res://Sprites/RPG Top Down Characters/main_cha.png"
+	if not ResourceLoader.exists(char_path):
+		char_path = "res://Sprites/RPG Top Down Characters/Soldier/soldier.png"
+		if not ResourceLoader.exists(char_path):
+			return
 		
-	var tex = load(soldier_path) as Texture2D
+	var tex = load(char_path) as Texture2D
 	if not tex or not animated_sprite:
 		return
 		
 	var sf = SpriteFrames.new()
 	sf.remove_animation("default")
 	
-	# soldier.png: 8 rows of 32x32 frames
+	# main_cha.png: 8 rows of 32x32 frames
 	var row_map = {
 		"idle_down": 0,
 		"idle_right": 32,
@@ -156,6 +149,10 @@ func _load_soldier_character() -> void:
 			
 	animated_sprite.sprite_frames = sf
 	animated_sprite.scale = Vector2(1.35, 1.35)
+
+var is_camera_intro_active: bool = false
+var _camera_zoom_finished: bool = false
+var _dialogue_intro_finished: bool = false
 
 # Map tên action di chuyển -> tên animation tương ứng + có cần flip_h hay không
 const DIRECTION_MAP := {
