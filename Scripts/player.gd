@@ -317,10 +317,10 @@ func _update_camera_shake(delta: float) -> void:
 	var is_climax = (stage_node != null and "is_climax_active" in stage_node and stage_node.is_climax_active)
 
 	if is_climax:
-		_shake_time += delta * 24.0
-		# Rung nhún nhảy mượt mà theo nhịp Bass sôi động khi cao trào
-		var bass_shake = sin(_shake_time) * 3.0
-		var random_shake = Vector2(randf_range(-2.2, 2.2), randf_range(-2.2, 2.2))
+		_shake_time += delta * 20.0
+		# Rung nhún nhảy nhẹ nhàng mượt mà theo nhịp Bass khi cao trào
+		var bass_shake = sin(_shake_time) * 1.2
+		var random_shake = Vector2(randf_range(-0.8, 0.8), randf_range(-0.8, 0.8))
 		cam.offset = random_shake + Vector2(0, bass_shake)
 	elif shake_amount > 0.0:
 		shake_amount = lerp(shake_amount, 0.0, delta * 10.0)
