@@ -882,32 +882,31 @@ func spawn_lost_child_event() -> void:
 	if not child_scene:
 		return
 		
-	var num_zones = max(1, get_audience_zones().size())
-	var rand_zone_idx = randi() % num_zones
-	var spawn_pos = get_random_position_in_zone(rand_zone_idx)
-	
-	var attempts = 0
-	while (enable_stage_obstacle and stage_obstacle_rect.has_point(spawn_pos)) \
-		or (enable_vip_area and _is_vip_area(spawn_pos)) \
-		or _is_barrier_tile(spawn_pos):
-		rand_zone_idx = randi() % num_zones
-		spawn_pos = get_random_position_in_zone(rand_zone_idx)
-		attempts += 1
-		if attempts >= 20:
-			break
+	var player = get_tree().get_first_node_in_group("player") as Node2D
+	var spawn_pos = get_random_position_in_zone(0)
+	if player:
+		var p_local = to_local(player.global_position)
+		var num_zones = max(1, get_audience_zones().size())
+		for attempt in range(30):
+			var rand_zone = randi() % num_zones
+			var pos = get_random_position_in_zone(rand_zone)
+			var d = pos.distance_to(p_local)
+			if d >= 180.0 and d <= 500.0 and not _is_barrier_tile(pos):
+				spawn_pos = pos
+				break
 
 	var child_instance = child_scene.instantiate() as LostChildNPC
 	var world_node = get_parent()
 	if world_node:
-		child_instance.position = to_global(spawn_pos)
 		child_instance.scale = Vector2(3, 3)
 		world_node.add_child(child_instance)
+		child_instance.global_position = to_global(spawn_pos)
 	else:
-		child_instance.position = spawn_pos
 		add_child(child_instance)
+		child_instance.global_position = to_global(spawn_pos)
 
 	setup_parents_for_child(child_instance)
-	print("[CrowdManager] Đã xuất hiện Trẻ Lạc ngẫu nhiên tại Zone %d, vị trí: %s" % [rand_zone_idx, child_instance.position])
+	print("[CrowdManager] Đã xuất hiện Trẻ Lạc ngẫu nhiên tại vị trí Global: ", child_instance.global_position)
 
 func assign_merch_buyers(quest: NPCQuestData, count: int) -> void:
 	merch_buyers_map.clear()
