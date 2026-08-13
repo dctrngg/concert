@@ -80,6 +80,7 @@ func receive_press(direction: Vector2) -> void:
 	_press_dir = direction
 
 var is_merch_buyer: bool = false
+var is_parent_npc: bool = false
 
 func setup(p_npc_index: int, p_outfit_id: int, p_has_quest: bool, p_quest_data: NPCQuestData, dir_str: String, flip_h: bool, p_sprite_frames: SpriteFrames = null) -> void:
 	npc_index = p_npc_index
@@ -89,6 +90,7 @@ func setup(p_npc_index: int, p_outfit_id: int, p_has_quest: bool, p_quest_data: 
 	is_interacted = (p_quest_data != null and p_quest_data.state == NPCQuestData.QuestState.ACTIVE)
 	is_player_nearby = false
 	is_merch_buyer = false
+	is_parent_npc = false
 
 	# Reset trạng thái "nhường nhẹ" mỗi lần được promote lại
 	base_position = position
