@@ -28,7 +28,7 @@ signal line_advanced(line_index: int)
 ]
 
 ## Tốc độ gõ chữ (ký tự / giây)
-@export var characters_per_second: float = 32.0
+@export var characters_per_second: float = 65.0
 ## Thời gian hiển thị mỗi câu thoại sau khi gõ xong (giây)
 @export var display_duration_per_line: float = 3.5
 @export var enable_typewriter_sound: bool = true
