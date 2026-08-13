@@ -86,6 +86,10 @@ func _setup_stage_artists() -> void:
 	for i in range(artist_offsets.size()):
 		var base_pos = artist_offsets[i]
 		_artist_base_positions.append(base_pos)
+		_artist_current_x.append(base_pos.x)
+		_artist_target_x.append(base_pos.x)
+		_artist_state_timer.append(randf_range(1.0, 4.0))
+		_artist_action_state.append(0)
 		
 		var artist = AnimatedSprite2D.new()
 		artist.name = "StageArtist_%d" % i
@@ -149,19 +153,52 @@ func _process(delta: float) -> void:
 		var speed_mult = 3.2 if is_climax_active else 1.0
 		_time_passed += delta * light_pulse_speed * speed_mult
 		
-		# Animate Stage Performers (Ca sĩ & Nhạc công trình diễn trên sân khấu)
+		# Animate Stage Performers (Ca sĩ & Nhạc công trình diễn cực sống động trên sân khấu)
 		for i in range(_stage_artist_sprites.size()):
 			var artist = _stage_artist_sprites[i]
-			if is_instance_valid(artist):
-				var base_pos = _artist_base_positions[i]
-				if is_climax_active:
-					# Biểu diễn cao trào bùng nổ theo nhịp điệu
-					var jump_y = -abs(sin(_time_passed * 4.0 + float(i) * 1.2)) * 8.0
-					artist.position = Vector2(base_pos.x, base_pos.y + jump_y)
+			if not is_instance_valid(artist):
+				continue
+				
+			var base_pos = _artist_base_positions[i]
+			
+			_artist_state_timer[i] -= delta
+			if _artist_state_timer[i] <= 0.0:
+				_artist_state_timer[i] = randf_range(2.5, 6.0)
+				_artist_action_state[i] = randi() % 4
+				if _artist_action_state[i] == 1:
+					_artist_target_x[i] = base_pos.x - randf_range(40.0, 110.0)
+				elif _artist_action_state[i] == 2:
+					_artist_target_x[i] = base_pos.x + randf_range(40.0, 110.0)
 				else:
-					# Nhún nhảy nhịp nhàng bình thường
-					var sway_y = sin(_time_passed * 1.5 + float(i) * 0.8) * 3.0
-					artist.position = Vector2(base_pos.x, base_pos.y + sway_y)
+					_artist_target_x[i] = base_pos.x
+
+			var move_speed = 65.0 * (2.2 if is_climax_active else 1.0)
+			_artist_current_x[i] = move_toward(_artist_current_x[i], _artist_target_x[i], move_speed * delta)
+
+			var sway_freq = 4.0 if is_climax_active else 2.0
+			var sway_amp = 10.0 if is_climax_active else 4.0
+			var jump_y = -abs(sin(_time_passed * sway_freq + float(i) * 1.5)) * sway_amp
+			
+			if _artist_action_state[i] == 3 or is_climax_active:
+				jump_y -= abs(sin(_time_passed * 6.0)) * 6.0
+
+			artist.position = Vector2(_artist_current_x[i], base_pos.y + jump_y)
+
+			var sf = artist.sprite_frames
+			if sf:
+				var is_moving = abs(_artist_current_x[i] - _artist_target_x[i]) > 2.0
+				if is_moving:
+					var moving_right = (_artist_target_x[i] > _artist_current_x[i])
+					var anim = "walk_right" if moving_right else "walk_left"
+					if sf.has_animation(anim) and artist.animation != anim:
+						artist.play(anim)
+				else:
+					var anim = "idle_down"
+					if sf.has_animation(anim) and artist.animation != anim:
+						artist.play(anim)
+
+			var tilt_angle = sin(_time_passed * 3.0 + float(i)) * (0.14 if is_climax_active else 0.06)
+			artist.rotation = tilt_angle
 		
 		if fmod(_time_passed, 6.0) < 0.12 or is_climax_active:
 			_strobe_intensity = lerp(_strobe_intensity, 0.95 if is_climax_active else 0.8, delta * 15.0)
