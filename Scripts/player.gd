@@ -31,6 +31,12 @@ extends CharacterBody2D
 @export_group("Intro Camera Config")
 ## Khóa di chuyển nhân vật khi camera đang chạy hiệu ứng Intro Zoom
 @export var lock_movement_during_intro: bool = true
+## Bật/tắt việc lia camera tới vùng mục tiêu chỉ định khi zoom out
+@export var use_target_region: bool = true
+## Node vùng/vị trí mục tiêu mà Camera sẽ lia tới khi Zoom Out toàn cảnh (Kéo thả Stage / Node bất kỳ trong Inspector)
+@export var intro_target_node: NodePath
+## Hoặc nhập trực tiếp tọa độ mục tiêu (Global Position) nếu không gán Node (Mặc định Vector2.ZERO)
+@export var intro_target_position: Vector2 = Vector2.ZERO
 ## Mức zoom ban đầu khi mới vào game (cận cảnh x5)
 @export var intro_zoom_start: float = 5.0
 ## Mức zoom trung gian (toàn cảnh x0.5)
@@ -97,6 +103,26 @@ func _ready() -> void:
 
 	call_deferred("_play_intro_camera_zoom")
 
+func get_intro_target_global_pos() -> Vector2:
+	if intro_target_node:
+		var node = get_node_or_null(intro_target_node) as Node2D
+		if node:
+			return node.global_position
+			
+	if intro_target_position != Vector2.ZERO:
+		return intro_target_position
+		
+	# Mặc định tự động tìm Sân Khấu (Stage) nếu có trong cảnh
+	var stage = get_tree().get_first_node_in_group("stage")
+	if stage:
+		return stage.global_position
+		
+	var stage_node = get_node_or_null("../Stage") as Node2D
+	if stage_node:
+		return stage_node.global_position
+		
+	return global_position
+
 func _play_intro_camera_zoom() -> void:
 	var cam: Camera2D = get_node_or_null("Camera2D") as Camera2D
 	if not cam:
@@ -111,10 +137,15 @@ func _play_intro_camera_zoom() -> void:
 		if animated_sprite:
 			animated_sprite.play("idle_down")
 
-	# 🎥 2. Bắt đầu ở mức Zoom cận cảnh x5
+	# 🎥 2. Bắt đầu ở mức Zoom cận cảnh x5 tại vị trí Player
+	cam.top_level = true
+	cam.global_position = global_position
 	cam.zoom = Vector2(intro_zoom_start, intro_zoom_start)
 	
-	# 🎬 3. Chuỗi Tween: Cận x5 (dừng) -> Toàn cảnh x0.5 (dừng) -> Chuẩn x1.0 (mở khóa)
+	var target_gpos: Vector2 = get_intro_target_global_pos() if use_target_region else global_position
+	var start_player_gpos: Vector2 = global_position
+
+	# 🎬 3. Chuỗi Tween: Cận x5 (dừng) -> Lia tới Vùng Mục Tiêu + Zoom Out x0.5 (dừng) -> Lia về Player + Zoom In x1.0 (mở khóa)
 	var tween = create_tween()
 	tween.set_parallel(false)
 	
@@ -122,8 +153,11 @@ func _play_intro_camera_zoom() -> void:
 	if intro_delay_close > 0.0:
 		tween.tween_interval(intro_delay_close)
 		
-	# Zoom-out từ cận cảnh (5.0) ra toàn cảnh (0.5)
+	# Zoom-out từ cận cảnh (5.0) ra toàn cảnh (0.5) ĐỒNG THỜI lia camera tới Vùng Mục Tiêu (Stage/Vùng chọn)
 	tween.tween_property(cam, "zoom", Vector2(intro_zoom_mid, intro_zoom_mid), intro_duration_out)\
+		.set_trans(Tween.TRANS_CUBIC)\
+		.set_ease(Tween.EASE_OUT)
+	tween.parallel().tween_property(cam, "global_position", target_gpos, intro_duration_out)\
 		.set_trans(Tween.TRANS_CUBIC)\
 		.set_ease(Tween.EASE_OUT)
 		
@@ -131,15 +165,20 @@ func _play_intro_camera_zoom() -> void:
 	if intro_delay_mid > 0.0:
 		tween.tween_interval(intro_delay_mid)
 		
-	# Zoom-in từ toàn cảnh (0.5) về chuẩn (1.0)
+	# Zoom-in từ toàn cảnh (0.5) về chuẩn (1.0) ĐỒNG THỜI lia camera quay trở lại nhân vật Player
 	tween.tween_property(cam, "zoom", Vector2(intro_zoom_end, intro_zoom_end), intro_duration_in)\
 		.set_trans(Tween.TRANS_CUBIC)\
 		.set_ease(Tween.EASE_IN_OUT)
+	tween.parallel().tween_property(cam, "global_position", start_player_gpos, intro_duration_in)\
+		.set_trans(Tween.TRANS_CUBIC)\
+		.set_ease(Tween.EASE_IN_OUT)
 		
-	# 🔓 4. Sau khi hoàn thành toàn bộ chuỗi zoom -> Mở khóa di chuyển nhân vật!
+	# 🔓 4. Sau khi hoàn thành toàn bộ chuỗi zoom & lia camera -> Gán lại Camera cho Player & Mở khóa di chuyển!
 	tween.tween_callback(func():
+		cam.top_level = false
+		cam.position = Vector2.ZERO
 		is_movement_locked = false
-		print("[Player] 🔓 Hoàn thành Intro Camera (x5 -> x0.5 -> x1.0)! Đã mở khóa di chuyển.")
+		print("[Player] 🔓 Hoàn thành Intro Camera (Lia vùng mục tiêu & Zoom x5 -> x0.5 -> x1.0)! Đã mở khóa di chuyển.")
 	)
 
 func _load_soldier_character() -> void:

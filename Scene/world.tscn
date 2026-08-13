@@ -48,7 +48,7 @@ size = Vector2(172.66666, 439.21875)
 size = Vector2(185.38545, 457.21875)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_cambounds"]
-size = Vector2(3570, 2779)
+size = Vector2(3107, 2779)
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_h7cfj"]
 texture = ExtResource("8_ddf65")
@@ -8057,12 +8057,12 @@ size = Vector2(68, 45)
 position = Vector2(-1223, 706)
 
 [node name="Player" parent="." unique_id=2093694816 instance=ExtResource("1_emx41")]
-position = Vector2(83, 114)
+position = Vector2(88.95, -100)
 scale = Vector2(3, 3)
 walk_speed = 300.0
 run_speed = 400.0
 intro_zoom_start = 3.0
-intro_zoom_delay = 10.0
+intro_delay_close = 10.0
 
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=1040013179]
 
@@ -8182,7 +8182,7 @@ pickup_volume_boost = 10.0
 script = ExtResource("17_cambounds_script")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CameraBounds" unique_id=778899113]
-position = Vector2(-423, 939)
+position = Vector2(-187, 870)
 shape = SubResource("RectangleShape2D_cambounds")
 
 [node name="FightSpawner" type="Node2D" parent="." unique_id=358235227]
