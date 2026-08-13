@@ -43,6 +43,10 @@ var _neon_colors: Array[Color] = [
 var _artists_container: Node2D = null
 var _stage_artist_sprites: Array[AnimatedSprite2D] = []
 var _artist_base_positions: Array[Vector2] = []
+var _artist_current_x: Array[float] = []
+var _artist_target_x: Array[float] = []
+var _artist_state_timer: Array[float] = []
+var _artist_action_state: Array[int] = []
 
 func _ready() -> void:
 	add_to_group("concert_stage")
