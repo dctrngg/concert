@@ -43,6 +43,17 @@ grow_vertical = 2
 expand_mode = 1
 stretch_mode = 5
 
+[node name="TextIcon" type="Label" parent="HBox/Slot1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 9
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="Slot2" type="TextureRect" parent="HBox"]
 custom_minimum_size = Vector2(16, 16)
 layout_mode = 2
@@ -64,6 +75,17 @@ grow_vertical = 2
 expand_mode = 1
 stretch_mode = 5
 
+[node name="TextIcon" type="Label" parent="HBox/Slot2"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 9
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="Slot3" type="TextureRect" parent="HBox"]
 custom_minimum_size = Vector2(16, 16)
 layout_mode = 2
@@ -84,3 +106,14 @@ grow_horizontal = 2
 grow_vertical = 2
 expand_mode = 1
 stretch_mode = 5
+
+[node name="TextIcon" type="Label" parent="HBox/Slot3"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 9
+horizontal_alignment = 1
+vertical_alignment = 1
