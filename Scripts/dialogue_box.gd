@@ -1,7 +1,7 @@
 extends CanvasLayer
 
 signal dialogue_started()
-signal intro_finished()
+signal tutorial_completed()
 signal line_advanced(line_index: int)
 
 @onready var control_root: Control = $Control
@@ -11,13 +11,11 @@ signal line_advanced(line_index: int)
 
 @export var player_name: String = "Player (Bảo Vệ)"
 
-@export_group("1. Intro / Tutorial Dialogue")
-## Danh sách câu thoại Giới thiệu & Hướng dẫn cách chơi (chạy lần lượt khi zoom camera mở đầu game)
-@export var intro_tutorial_dialogue_list: Array[String] = [
-	"Chào mừng bạn! Tôi là Bảo Vệ đêm đại nhạc hội hôm nay.",
-	"Sử dụng các phím A-W-S-D để di chuyển, giữ phím Shift để chạy nhanh.",
-	"Hãy qua Quầy Đồ Ăn / Kho Ghế để lấy đồ và hỗ trợ khán giả kịp thời nhé!"
-]
+@export_group("1. Dynamic Guided Tutorial Lines")
+@export var tutorial_greeting_text: String = "Chào mừng bạn! Dùng A-W-S-D để di chuyển. Hãy lại gần khán giả có dấu (!) để nhận nhiệm vụ nhé!"
+@export var tutorial_accepted_text: String = "Rất tốt! Hãy đi theo Mũi Tên Chỉ Đường đến quầy tương ứng để lấy món đồ khán giả cần nhé!"
+@export var tutorial_item_text: String = "Món đồ đã có trong túi! Hãy quay lại gặp vị khán giả đó và nhấn [E] / Click chuột để giao đồ nhé!"
+@export var tutorial_done_text: String = "Hoàn hảo! Bạn đã nắm vững cách làm Bảo Vệ. Đêm đại nhạc hội bùng nổ chính thức bắt đầu!"
 
 @export_group("2. Gameplay Dialogue (Random Loop)")
 ## Danh sách các câu thoại lặp lại NGẪU NHIÊN khi ĐANG CHƠI GAME
@@ -29,21 +27,24 @@ signal line_advanced(line_index: int)
 ]
 
 ## Tốc độ gõ chữ (ký tự / giây)
-@export var characters_per_second: float = 30.0
+@export var characters_per_second: float = 32.0
 ## Thời gian hiển thị mỗi câu thoại sau khi gõ xong (giây)
 @export var display_duration_per_line: float = 3.5
 @export var enable_typewriter_sound: bool = true
 
-enum DialoguePhase { INTRO_TUTORIAL, GAMEPLAY_RANDOM }
-var current_phase: DialoguePhase = DialoguePhase.INTRO_TUTORIAL
+enum DialoguePhase { TUTORIAL_GUIDE, GAMEPLAY_RANDOM }
+enum TutorialState { GREETING, QUEST_ACCEPTED, ITEM_PICKED_UP, COMPLETED }
+
+var current_phase: DialoguePhase = DialoguePhase.TUTORIAL_GUIDE
+var tutorial_state: TutorialState = TutorialState.GREETING
 
 var tex_frame_dialogue: Texture2D = preload("res://Sprites/UI_Flat_Frame01a.png")
 
-var _current_line_index: int = 0
 var _last_random_index: int = -1
 var _is_typing: bool = false
 var _visible_chars_float: float = 0.0
 var _read_timer: float = 0.0
+var _current_text: String = ""
 
 func _ready() -> void:
 	layer = 15 # Hiển thị trên cùng đè lên HUD
@@ -51,6 +52,7 @@ func _ready() -> void:
 	
 	_apply_styles()
 	call_deferred("_start_auto_dialogue")
+	call_deferred("_connect_quest_signals")
 
 func _apply_styles() -> void:
 	if dialogue_panel:
@@ -62,6 +64,21 @@ func _apply_styles() -> void:
 		style_d.texture_margin_bottom = 14
 		dialogue_panel.add_theme_stylebox_override("panel", style_d)
 
+func _connect_quest_signals() -> void:
+	var quest_mgr = get_node_or_null("/root/QuestManager")
+	if quest_mgr:
+		if not quest_mgr.quest_accepted.is_connected(_on_quest_accepted):
+			quest_mgr.quest_accepted.connect(_on_quest_accepted)
+		if not quest_mgr.quest_completed.is_connected(_on_quest_completed):
+			quest_mgr.quest_completed.connect(_on_quest_completed)
+			
+	var player = get_tree().get_first_node_in_group("player")
+	if player and player.get("inventory"):
+		var inv = player.get("inventory")
+		if inv and inv.has_signal("inventory_changed"):
+			if not inv.inventory_changed.is_connected(_on_inventory_changed):
+				inv.inventory_changed.connect(_on_inventory_changed)
+
 func _start_auto_dialogue() -> void:
 	if speaker_name_label:
 		speaker_name_label.text = player_name
@@ -69,36 +86,42 @@ func _start_auto_dialogue() -> void:
 	control_root.visible = true
 	dialogue_started.emit()
 	
-	current_phase = DialoguePhase.INTRO_TUTORIAL
-	_current_line_index = 0
-	_display_current_line()
+	current_phase = DialoguePhase.TUTORIAL_GUIDE
+	tutorial_state = TutorialState.GREETING
+	_set_dialogue_text(tutorial_greeting_text)
 
-func _display_current_line() -> void:
-	var text_content: String = ""
-	
-	if current_phase == DialoguePhase.INTRO_TUTORIAL:
-		if intro_tutorial_dialogue_list.is_empty() or _current_line_index >= intro_tutorial_dialogue_list.size():
-			# Hoàn thành Phase 1 (Intro/Tutorial) -> Chuyển sang Phase 2 (Gameplay Random)
-			current_phase = DialoguePhase.GAMEPLAY_RANDOM
-			intro_finished.emit()
-			_pick_next_random_gameplay_line()
-			return
-		else:
-			text_content = intro_tutorial_dialogue_list[_current_line_index]
-			
-	elif current_phase == DialoguePhase.GAMEPLAY_RANDOM:
-		if gameplay_dialogue_list.is_empty():
-			control_root.visible = false
-			return
-		text_content = gameplay_dialogue_list[_current_line_index]
-
-	text_label.text = text_content
+func _set_dialogue_text(new_text: String) -> void:
+	_current_text = new_text
+	text_label.text = _current_text
 	text_label.visible_characters = 0
 	_visible_chars_float = 0.0
 	_read_timer = 0.0
 	_is_typing = true
-	
-	line_advanced.emit(_current_line_index)
+
+func _on_quest_accepted(quest: NPCQuestData) -> void:
+	if current_phase == DialoguePhase.TUTORIAL_GUIDE:
+		if tutorial_state == TutorialState.GREETING:
+			tutorial_state = TutorialState.QUEST_ACCEPTED
+			if quest.is_item_picked_up:
+				tutorial_state = TutorialState.ITEM_PICKED_UP
+				_set_dialogue_text(tutorial_item_text)
+			else:
+				_set_dialogue_text(tutorial_accepted_text)
+
+func _on_inventory_changed() -> void:
+	if current_phase == DialoguePhase.TUTORIAL_GUIDE and tutorial_state == TutorialState.QUEST_ACCEPTED:
+		var quest_mgr = get_node_or_null("/root/QuestManager")
+		if quest_mgr and "active_quests" in quest_mgr:
+			for q in quest_mgr.active_quests:
+				if q.is_item_picked_up:
+					tutorial_state = TutorialState.ITEM_PICKED_UP
+					_set_dialogue_text(tutorial_item_text)
+					break
+
+func _on_quest_completed(_quest: NPCQuestData) -> void:
+	if current_phase == DialoguePhase.TUTORIAL_GUIDE:
+		tutorial_state = TutorialState.COMPLETED
+		_set_dialogue_text(tutorial_done_text)
 
 func _pick_next_random_gameplay_line() -> void:
 	if gameplay_dialogue_list.is_empty():
@@ -110,8 +133,7 @@ func _pick_next_random_gameplay_line() -> void:
 		next_idx = (_last_random_index + 1) % gameplay_dialogue_list.size()
 		
 	_last_random_index = next_idx
-	_current_line_index = next_idx
-	_display_current_line()
+	_set_dialogue_text(gameplay_dialogue_list[next_idx])
 
 func _process(delta: float) -> void:
 	if not control_root or not control_root.visible:
@@ -132,12 +154,13 @@ func _process(delta: float) -> void:
 			_read_timer = 0.0
 	else:
 		_read_timer += delta
-		if _read_timer >= display_duration_per_line:
-			_read_timer = 0.0
-			if current_phase == DialoguePhase.INTRO_TUTORIAL:
-				_current_line_index += 1
-				_display_current_line()
-			else:
+		if current_phase == DialoguePhase.TUTORIAL_GUIDE:
+			if tutorial_state == TutorialState.COMPLETED and _read_timer >= display_duration_per_line:
+				current_phase = DialoguePhase.GAMEPLAY_RANDOM
+				tutorial_completed.emit()
+				_pick_next_random_gameplay_line()
+		else:
+			if _read_timer >= display_duration_per_line:
 				_pick_next_random_gameplay_line()
 
 func _play_typewriter_sfx() -> void:

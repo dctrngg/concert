@@ -98,11 +98,8 @@ func _play_intro_camera_zoom() -> void:
 	if not cam:
 		return
 		
-	# 🎥 Khóa di chuyển nhân vật khi bắt đầu Intro Zoom
+	# 🎥 Khóa di chuyển nhân vật ngắn trong lúc Camera Zoom
 	is_camera_intro_active = true
-	_camera_zoom_finished = false
-	_dialogue_intro_finished = false
-	
 	cam.zoom = Vector2(intro_zoom_start, intro_zoom_start)
 	
 	# 🎬 Tween zoom-out mượt từ start -> end
@@ -111,27 +108,10 @@ func _play_intro_camera_zoom() -> void:
 	if intro_zoom_delay > 0.0:
 		tween.tween_interval(intro_zoom_delay)
 	tween.tween_property(cam, "zoom", Vector2(intro_zoom_end, intro_zoom_end), intro_zoom_duration).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	# Mở khóa di chuyển ngay khi Camera Zoom kết thúc để người chơi tự do vừa chơi vừa xem hướng dẫn
 	tween.tween_callback(func():
-		_camera_zoom_finished = true
-		_check_unlock_movement()
-	)
-
-	# Kết nối tín hiệu hoàn thành hội thoại hướng dẫn mở đầu từ DialogueBox
-	var dialogue_box = get_node_or_null("/root/DialogueBox")
-	if dialogue_box:
-		if dialogue_box.has_signal("intro_finished"):
-			if not dialogue_box.intro_finished.is_connected(_on_dialogue_intro_finished):
-				dialogue_box.intro_finished.connect(_on_dialogue_intro_finished)
-	else:
-		_dialogue_intro_finished = true
-
-func _on_dialogue_intro_finished() -> void:
-	_dialogue_intro_finished = true
-	_check_unlock_movement()
-
-func _check_unlock_movement() -> void:
-	if _camera_zoom_finished and _dialogue_intro_finished:
 		is_camera_intro_active = false
+	)
 
 func _load_soldier_character() -> void:
 	var soldier_path = "res://Sprites/RPG Top Down Characters/Soldier/soldier.png"
