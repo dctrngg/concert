@@ -77,6 +77,8 @@ static func get_npc_sprite_frames() -> SpriteFrames:
 
 func _ready() -> void:
 	add_to_group("fight_event")
+	z_index = 100
+	z_as_relative = false
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
 	

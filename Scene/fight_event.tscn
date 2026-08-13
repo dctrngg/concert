@@ -20,6 +20,8 @@ corner_radius_bottom_right = 2
 corner_radius_bottom_left = 2
 
 [node name="FightEvent" type="Area2D"]
+z_index = 100
+z_as_relative = false
 script = ExtResource("1_fight_script")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
