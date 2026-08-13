@@ -121,16 +121,16 @@ func _load_player_character() -> void:
 	# main_cha.png: 8 rows of 32x32 frames
 	var row_map = {
 		"idle_down": 0,
-		"idle_right": 32,
-		"idle_left": 64,
+		"idle_left": 32,
+		"idle_right": 64,
 		"idle_up": 96,
 		"walk_down": 128,
-		"walk_right": 160,
-		"walk_left": 192,
+		"walk_left": 160,
+		"walk_right": 192,
 		"walk_up": 224,
 		"run_down": 128,
-		"run_right": 160,
-		"run_left": 192,
+		"run_left": 160,
+		"run_right": 192,
 		"run_up": 224
 	}
 	
@@ -400,8 +400,8 @@ func _update_animation(input_vector: Vector2, is_running: bool) -> void:
 		# Fallback hiếm khi xảy ra (ví dụ input từ joystick analog không qua action
 		# press/release rõ ràng) -> dùng logic theo độ lớn trục như cũ
 		if abs(input_vector.x) > abs(input_vector.y):
-			direction = "right"
-			flip = input_vector.x < 0
+			direction = "right" if input_vector.x > 0 else "left"
+			flip = false
 		else:
 			direction = "down" if input_vector.y > 0 else "up"
 			flip = false
