@@ -19,8 +19,8 @@ extends Node2D
 @export var pool_size: int = 30
 
 @export_group("Character Filter Config")
-## Các từ khóa tên nhân vật/thư mục không phù hợp với concert để tự động loại bỏ (vd: goblin, viking, knight)
-@export var excluded_character_keywords: Array[String] = ["goblin", "viking", "knight"]
+## Các từ khóa tên nhân vật/thư mục không phù hợp với concert để tự động loại bỏ (vd: goblin, viking, knight, punk_kid_boy)
+@export var excluded_character_keywords: Array[String] = ["goblin", "viking", "knight", "punk_kid_boy", "punk kid"]
 
 ## --- Resistance đám đông cho NPC nền (thay cho "push" cũ) ---
 ## KHÔNG đẩy NPC bay ra mạnh nữa. NPC nền chỉ "nhường" rất nhẹ để không đè lên
@@ -301,6 +301,9 @@ func _ready() -> void:
 		
 	# 4. Initialize object pool
 	_init_pool()
+	
+	# Khởi tạo sự kiện Trẻ Lạc
+	call_deferred("spawn_lost_child_event")
 	
 	# 5. Initialize debug overlay
 	_init_debug_overlay()
@@ -835,6 +838,47 @@ func _return_node_to_pool(npc: CharacterBody2D) -> void:
 
 
 var merch_buyers_map: Dictionary = {}
+var lost_child_parents_map: Dictionary = {}
+
+func spawn_lost_child_event() -> void:
+	var child_scene = load("res://Scene/lost_child_npc.tscn")
+	if not child_scene:
+		return
+		
+	var player = get_tree().get_first_node_in_group("player") as Node2D
+	var spawn_pos = get_random_position_in_zone(0)
+	if player:
+		var p_local = to_local(player.global_position)
+		for attempt in range(15):
+			var pos = get_random_position_in_zone(0)
+			if pos.distance_to(p_local) > 220.0 and pos.distance_to(p_local) < 550.0:
+				spawn_pos = pos
+				break
+				
+	# Tìm vị trí Ba Mẹ (cách bé khoảng 380 - 750px)
+	var parent_candidates: Array[int] = []
+	for i in range(npc_count):
+		if has_quests[i] == 0 and is_vip[i] == 0:
+			var d = positions[i].distance_to(spawn_pos)
+			if d >= 380.0 and d <= 750.0:
+				parent_candidates.append(i)
+				
+	var parent_idx = -1
+	if parent_candidates.size() > 0:
+		parent_idx = parent_candidates[randi() % parent_candidates.size()]
+		lost_child_parents_map[parent_idx] = true
+
+	var child_instance = child_scene.instantiate()
+	child_instance.position = to_global(spawn_pos)
+	if parent_idx >= 0:
+		child_instance.parent_npc_idx = parent_idx
+		child_instance.parent_global_pos = to_global(positions[parent_idx])
+		if child_instance.quest_data:
+			child_instance.quest_data.parent_npc_idx = parent_idx
+			child_instance.quest_data.parent_global_pos = child_instance.parent_global_pos
+			
+	add_child(child_instance)
+	print("[CrowdManager] Đã xuất hiện Trẻ Lạc (Punk Kid Boy) tại: ", child_instance.position)
 
 func assign_merch_buyers(quest: NPCQuestData, count: int) -> void:
 	merch_buyers_map.clear()
@@ -873,9 +917,9 @@ func clear_merch_buyer(npc_idx: int) -> void:
 func _check_promote_demote(player: Node2D) -> void:
 	var player_local_pos = to_local(player.global_position)
 	
-	# 1. Promote NPCs with quests OR marked as merch buyers close to the player
+	# 1. Promote NPCs with quests OR marked as merch buyers OR parents of lost child close to the player
 	for i in range(npc_count):
-		if (has_quests[i] == 1 or merch_buyers_map.has(i)) and is_promoted[i] == 0:
+		if (has_quests[i] == 1 or merch_buyers_map.has(i) or lost_child_parents_map.has(i)) and is_promoted[i] == 0:
 			var dist = positions[i].distance_to(player_local_pos)
 			if dist < promote_radius:
 				_promote_npc(i)
@@ -887,7 +931,7 @@ func _check_promote_demote(player: Node2D) -> void:
 		if is_instance_valid(npc_node):
 			var dist = npc_node.position.distance_to(player_local_pos)
 			if dist > demote_radius:
-				if not npc_node.is_interacted and not npc_node.is_merch_buyer:
+				if not npc_node.is_interacted and not npc_node.is_merch_buyer and not npc_node.is_parent_npc:
 					_demote_npc(i)
 
 
@@ -918,9 +962,11 @@ func _promote_npc(i: int) -> void:
 	
 	var quest_data = quest_data_map.get(i, null)
 	var is_buyer = merch_buyers_map.get(i, false)
+	var is_parent = lost_child_parents_map.get(i, false)
 	var sf = outfit_sprite_frames[outfit_ids[i]] if (outfit_ids[i] >= 0 and outfit_ids[i] < outfit_sprite_frames.size()) else null
 	npc_node.setup(i, outfit_ids[i], has_quests[i] == 1, quest_data, dir_str, flip, sf)
 	npc_node.is_merch_buyer = is_buyer
+	npc_node.is_parent_npc = is_parent
 	npc_node.update_quest_indicator()
 
 	

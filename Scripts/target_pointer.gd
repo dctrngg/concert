@@ -51,6 +51,10 @@ func _get_active_target_position() -> Vector2:
 	if quest == null:
 		return Vector2.INF
 
+	if quest.quest_type == NPCQuestData.QuestType.LOST_CHILD:
+		if quest.parent_global_pos != Vector2.INF:
+			return quest.parent_global_pos
+
 	if not quest.is_item_picked_up:
 		# CHƯA LẤY HÀNG -> Chỉ đường tới Nguồn Lấy Hàng tương ứng
 		match quest.quest_type:
