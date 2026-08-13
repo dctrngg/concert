@@ -2,7 +2,7 @@ extends Node2D
 
 @export var shader: Shader = preload("res://Scene/crowd_npc.gdshader")
 @export var npc_count: int = 500
-@export var quest_probability: float = 0.1
+@export var quest_probability: float = 0.04
 @export var promote_radius: float = 200.0
 @export var demote_radius: float = 250.0
 @export var outfit_count: int = 1
