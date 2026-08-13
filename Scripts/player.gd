@@ -299,6 +299,38 @@ func _try_interact() -> void:
 
 
 
+var shake_amount: float = 0.0
+var _shake_time: float = 0.0
+
+func apply_camera_shake(intensity: float = 8.0) -> void:
+	shake_amount = max(shake_amount, intensity)
+
+func _process(delta: float) -> void:
+	_update_camera_shake(delta)
+
+func _update_camera_shake(delta: float) -> void:
+	var cam = get_node_or_null("Camera2D") as Camera2D
+	if not cam:
+		return
+		
+	var stage_node = get_tree().get_first_node_in_group("concert_stage")
+	var is_climax = (stage_node != null and "is_climax_active" in stage_node and stage_node.is_climax_active)
+
+	if is_climax:
+		_shake_time += delta * 24.0
+		# Rung nhún nhảy mượt mà theo nhịp Bass sôi động khi cao trào
+		var bass_shake = sin(_shake_time) * 3.0
+		var random_shake = Vector2(randf_range(-2.2, 2.2), randf_range(-2.2, 2.2))
+		cam.offset = random_shake + Vector2(0, bass_shake)
+	elif shake_amount > 0.0:
+		shake_amount = lerp(shake_amount, 0.0, delta * 10.0)
+		cam.offset = Vector2(
+			randf_range(-shake_amount, shake_amount),
+			randf_range(-shake_amount, shake_amount)
+		)
+	else:
+		cam.offset = lerp(cam.offset, Vector2.ZERO, delta * 10.0)
+
 func _physics_process(_delta: float) -> void:
 	if is_camera_intro_active:
 		velocity = Vector2.ZERO

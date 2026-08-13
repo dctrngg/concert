@@ -121,6 +121,11 @@ func trigger_climax() -> void:
 	_climax_interval_timer = 0.0
 	climax_started.emit()
 	print("[ConcertStage] 🔥 CAO TRÀO SÂN KHẤU BẮT ĐẦU! CA SĨ BÙNG NỔ!")
+	
+	# Kích hoạt cú Rung Camera Bùng Nổ cực phê khi Cao Trào bắt đầu
+	var player = get_tree().get_first_node_in_group("player")
+	if player and player.has_method("apply_camera_shake"):
+		player.apply_camera_shake(12.0)
 
 func end_climax() -> void:
 	is_climax_active = false
