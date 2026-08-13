@@ -39,8 +39,11 @@ func _get_active_target_position() -> Vector2:
 	var active_quests = player.inventory.get_active_quests()
 	if active_quests.is_empty():
 		return Vector2.INF
+
+	# Sắp xếp ưu tiên nhiệm vụ gần hết thời gian nhất (thời gian nhận trước / cấp bách trước)
+	active_quests.sort_custom(func(a, b): return a.time_remaining < b.time_remaining)
 		
-	# Lấy nhiệm vụ đầu tiên đang kích hoạt trong túi đồ
+	# Lấy nhiệm vụ cấp bách nhất đang kích hoạt trong túi đồ
 	var quest: NPCQuestData = active_quests[0]
 	if quest == null:
 		return Vector2.INF

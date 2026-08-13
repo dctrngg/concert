@@ -8981,7 +8981,7 @@ scale = Vector2(3, 3)
 walk_speed = 300.0
 run_speed = 400.0
 intro_zoom_start = 3.0
-intro_zoom_delay = 10.0
+intro_zoom_delay = 1.0
 
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=1040013179]
 
