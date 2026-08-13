@@ -34,9 +34,11 @@ func accept_quest(quest: NPCQuestData) -> bool:
 	quest.time_remaining = quest.time_limit
 	quest.set_meta("just_accepted", true)
 	
-	# MỌI nhiệm vụ khi vừa nhận ĐỀU chưa có item (is_item_picked_up = false)
-	# Người chơi BẮT BUỘC phải qua Quầy Đồ Ăn / Kho Ghế / Quầy Merch để lấy hàng!
-	quest.is_item_picked_up = false
+	# MỌI nhiệm vụ (trừ Trẻ Lạc LOST_CHILD) khi vừa nhận ĐỀU chưa có item
+	if quest.quest_type == NPCQuestData.QuestType.LOST_CHILD:
+		quest.is_item_picked_up = true
+	else:
+		quest.is_item_picked_up = false
 	
 	active_quests.append(quest)
 	inventory.assign_slot(quest)
