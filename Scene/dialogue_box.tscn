@@ -38,28 +38,28 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -440.0
-offset_top = -210.0
-offset_right = 440.0
+offset_left = -450.0
+offset_top = -230.0
+offset_right = 450.0
 offset_bottom = -15.0
 grow_horizontal = 2
 grow_vertical = 0
 
 [node name="DialoguePanel" type="PanelContainer" parent="Control/MarginContainer"]
-custom_minimum_size = Vector2(880, 195)
+custom_minimum_size = Vector2(900, 215)
 layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="Margin" type="MarginContainer" parent="Control/MarginContainer/DialoguePanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 26
-theme_override_constants/margin_top = 18
-theme_override_constants/margin_right = 26
-theme_override_constants/margin_bottom = 16
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 18
 
 [node name="VBox" type="VBoxContainer" parent="Control/MarginContainer/DialoguePanel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 28
 
 [node name="SpeakerNameLabel" type="Label" parent="Control/MarginContainer/DialoguePanel/Margin/VBox"]
 layout_mode = 2
