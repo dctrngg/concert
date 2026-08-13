@@ -29,7 +29,7 @@ func _try_accept_merch_quest() -> void:
 			quest.is_item_picked_up = true
 			var crowd_manager = get_node_or_null("/root/World/CrowdManager")
 			if crowd_manager and crowd_manager.has_method("assign_merch_buyers"):
-				crowd_manager.assign_merch_buyers(quest, 7)
+				crowd_manager.assign_merch_buyers(quest, 14)
 			inventory.inventory_changed.emit()
 			get_tree().call_group("npc_interactive", "update_quest_indicator")
 			print("[MerchStall] Đã lấy hàng Merchandise thành công! Hãy tìm các khán giả có biểu tượng túi đồ (🛍️) để bán hàng.")

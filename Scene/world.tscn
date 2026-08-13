@@ -53,9 +53,6 @@ size = Vector2(185.38545, 457.21875)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_cambounds"]
 size = Vector2(3107, 3117.5)
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_tree_foot"]
-radius = 36.0
-
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_h7cfj"]
 texture = ExtResource("8_ddf65")
 7:13/0 = 0
@@ -8972,6 +8969,9 @@ sources/0 = SubResource("TileSetAtlasSource_ac1aq")
 sources/1 = SubResource("TileSetAtlasSource_pbc3o")
 sources/2 = SubResource("TileSetAtlasSource_q32hj")
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_tree_foot"]
+radius = 59.03389
+
 [node name="World" type="Node2D" unique_id=2048086502]
 position = Vector2(-1223, 706)
 
@@ -9155,34 +9155,50 @@ texture = ExtResource("22_w1jyx")
 position = Vector2(0, 14)
 shape = SubResource("RectangleShape2D_flag_base")
 
-[node name="Tree" type="TileMapLayer" parent="." unique_id=202942825]
+[node name="Tree" type="Node" parent="." unique_id=1871390634]
+
+[node name="Tree" type="TileMapLayer" parent="Tree" unique_id=202942825]
+position = Vector2(-1223, 706)
 scale = Vector2(6, 6)
 tile_map_data = PackedByteArray("AAAJAPv/AAAJAAQAAAAJAPz/AAAJAAUAAAAJAP3/AAAJAAYAAAAJAP7/AAAJAAcAAAAKAPv/AAAKAAQAAAAKAPz/AAAKAAUAAAAKAP3/AAAKAAYAAAAKAP7/AAAKAAcAAAALAPv/AAALAAQAAAALAPz/AAALAAUAAAALAP3/AAALAAYAAAALAP7/AAALAAcAAAAJAAEAAAAJAAQAAAAJAAIAAAAJAAUAAAAJAAMAAAAJAAYAAAAJAAQAAAAJAAcAAAAKAAEAAAAKAAQAAAAKAAIAAAAKAAUAAAAKAAMAAAAKAAYAAAAKAAQAAAAKAAcAAAALAAEAAAALAAQAAAALAAIAAAALAAUAAAALAAMAAAALAAYAAAALAAQAAAALAAcAAAAKAAoAAAAJAAQAAAAKAAsAAAAJAAUAAAAKAAwAAAAJAAYAAAAKAA0AAAAJAAcAAAALAAoAAAAKAAQAAAALAAsAAAAKAAUAAAALAAwAAAAKAAYAAAALAA0AAAAKAAcAAAAMAAoAAAALAAQAAAAMAAsAAAALAAUAAAAMAAwAAAALAAYAAAAMAA0AAAALAAcAAAD1/wsAAAAJAAQAAAD1/wwAAAAJAAUAAAD1/w0AAAAJAAYAAAD1/w4AAAAJAAcAAAD2/wsAAAAKAAQAAAD2/wwAAAAKAAUAAAD2/w0AAAAKAAYAAAD2/w4AAAAKAAcAAAD3/wsAAAALAAQAAAD3/wwAAAALAAUAAAD3/w0AAAALAAYAAAD3/w4AAAALAAcAAAD2/wEAAAAJAAQAAAD2/wIAAAAJAAUAAAD2/wMAAAAJAAYAAAD2/wQAAAAJAAcAAAD3/wEAAAAKAAQAAAD3/wIAAAAKAAUAAAD3/wMAAAAKAAYAAAD3/wQAAAAKAAcAAAD4/wEAAAALAAQAAAD4/wIAAAALAAUAAAD4/wMAAAALAAYAAAD4/wQAAAALAAcAAAD2//v/AAAJAAQAAAD2//z/AAAJAAUAAAD2//3/AAAJAAYAAAD2//7/AAAJAAcAAAD3//v/AAAKAAQAAAD3//z/AAAKAAUAAAD3//3/AAAKAAYAAAD3//7/AAAKAAcAAAD4//v/AAALAAQAAAD4//z/AAALAAUAAAD4//3/AAALAAYAAAD4//7/AAALAAcAAADv//v/AAAJAAQAAADv//z/AAAJAAUAAADv//3/AAAJAAYAAADv//7/AAAJAAcAAADw//v/AAAKAAQAAADw//z/AAAKAAUAAADw//3/AAAKAAYAAADw//7/AAAKAAcAAADx//v/AAALAAQAAADx//z/AAALAAUAAADx//3/AAALAAYAAADx//7/AAALAAcAAADv/wEAAAAJAAQAAADv/wIAAAAJAAUAAADv/wMAAAAJAAYAAADv/wQAAAAJAAcAAADw/wEAAAAKAAQAAADw/wIAAAAKAAUAAADw/wMAAAAKAAYAAADw/wQAAAAKAAcAAADx/wEAAAALAAQAAADx/wIAAAALAAUAAADx/wMAAAALAAYAAADx/wQAAAALAAcAAADv/wsAAAAJAAQAAADv/wwAAAAJAAUAAADv/w0AAAAJAAYAAADv/w4AAAAJAAcAAADw/wsAAAAKAAQAAADw/wwAAAAKAAUAAADw/w0AAAAKAAYAAADw/w4AAAAKAAcAAADx/wsAAAALAAQAAADx/wwAAAALAAUAAADx/w0AAAALAAYAAADx/w4AAAALAAcAAADv/xAAAAAJAAQAAADv/xEAAAAJAAUAAADv/xIAAAAJAAYAAADv/xMAAAAJAAcAAADw/xAAAAAKAAQAAADw/xEAAAAKAAUAAADw/xIAAAAKAAYAAADw/xMAAAAKAAcAAADx/xAAAAALAAQAAADx/xEAAAALAAUAAADx/xIAAAALAAYAAADx/xMAAAALAAcAAAA=")
 tile_set = SubResource("TileSet_lc6su")
 
-[node name="TreeColliders" type="StaticBody2D" parent="." unique_id=987654321 groups=["static_obstacle"]]
+[node name="TreeColliders" type="StaticBody2D" parent="Tree" unique_id=987654321 groups=["static_obstacle"]]
+position = Vector2(-1223, 706)
 collision_layer = 5
 
-[node name="TreeFoot1" type="CollisionShape2D" parent="TreeColliders" unique_id=987654322]
-position = Vector2(1008, -300)
+[node name="TreeFoot1" type="CollisionShape2D" parent="Tree/TreeColliders" unique_id=987654322]
+position = Vector2(1010, -142)
 shape = SubResource("CircleShape2D_tree_foot")
 
-[node name="TreeFoot2" type="CollisionShape2D" parent="TreeColliders" unique_id=987654323]
-position = Vector2(1008, 750)
+[node name="TreeFoot2" type="CollisionShape2D" parent="Tree/TreeColliders" unique_id=987654323]
+position = Vector2(1013, 435)
 shape = SubResource("CircleShape2D_tree_foot")
 
-[node name="TreeFoot3" type="CollisionShape2D" parent="TreeColliders" unique_id=987654324]
-position = Vector2(-816, 365)
+[node name="TreeFoot3" type="CollisionShape2D" parent="Tree/TreeColliders" unique_id=987654324]
+position = Vector2(-813, 422)
 shape = SubResource("CircleShape2D_tree_foot")
 
-[node name="TreeFoot4" type="CollisionShape2D" parent="TreeColliders" unique_id=987654325]
-position = Vector2(-816, -400)
+[node name="TreeFoot4" type="CollisionShape2D" parent="Tree/TreeColliders" unique_id=987654325]
+position = Vector2(-809, -155)
 shape = SubResource("CircleShape2D_tree_foot")
 
-[node name="TreeFoot5" type="CollisionShape2D" parent="TreeColliders" unique_id=987654326]
-position = Vector2(432, 80)
+[node name="TreeFoot5" type="CollisionShape2D" parent="Tree/TreeColliders" unique_id=987654326]
+position = Vector2(1096, 1286)
 shape = SubResource("CircleShape2D_tree_foot")
 
-[node name="TreeFoot6" type="CollisionShape2D" parent="TreeColliders" unique_id=987654327]
-position = Vector2(1248, 80)
+[node name="TreeFoot6" type="CollisionShape2D" parent="Tree/TreeColliders" unique_id=987654327]
+position = Vector2(-908, 1379)
+shape = SubResource("CircleShape2D_tree_foot")
+
+[node name="TreeFoot7" type="CollisionShape2D" parent="Tree/TreeColliders" unique_id=1306406427]
+position = Vector2(-1489, 1379)
+shape = SubResource("CircleShape2D_tree_foot")
+
+[node name="TreeFoot8" type="CollisionShape2D" parent="Tree/TreeColliders" unique_id=1433382631]
+position = Vector2(-1488, 431)
+shape = SubResource("CircleShape2D_tree_foot")
+
+[node name="TreeFoot9" type="CollisionShape2D" parent="Tree/TreeColliders" unique_id=581893624]
+position = Vector2(-1488, -163)
 shape = SubResource("CircleShape2D_tree_foot")
