@@ -892,7 +892,7 @@ func _distribute_quests_balanced() -> void:
 
 	print("[CrowdManager] Đã dàn trải đều quest: %d bên Trái (x < 0) và %d bên Phải (x >= 0) sân khấu!" % [assigned_left, assigned_right])
 
-func setup_parents_for_child(child: LostChildNPC) -> void:
+func setup_parents_for_child(child: Node2D) -> void:
 	if not child or not is_instance_valid(child):
 		return
 		
@@ -919,14 +919,15 @@ func setup_parents_for_child(child: LostChildNPC) -> void:
 	if parent_candidates.size() > 0:
 		parent_idx = parent_candidates[randi() % parent_candidates.size()]
 		lost_child_parents_map[parent_idx] = true
-		child.parent_npc_idx = parent_idx
-		child.parent_global_pos = to_global(positions[parent_idx])
-		if child.quest_data:
-			child.quest_data.parent_npc_idx = parent_idx
-			child.quest_data.parent_global_pos = child.parent_global_pos
+		child.set("parent_npc_idx", parent_idx)
+		child.set("parent_global_pos", to_global(positions[parent_idx]))
+		var q_data = child.get("quest_data")
+		if q_data:
+			q_data.parent_npc_idx = parent_idx
+			q_data.parent_global_pos = child.get("parent_global_pos")
 			
 		_promote_npc(parent_idx)
-		print("[CrowdManager] Đã gắn Ba Mẹ ở phía đối diện sân khấu tại vị trí: ", child.parent_global_pos)
+		print("[CrowdManager] Đã gắn Ba Mẹ ở phía đối diện sân khấu tại vị trí: ", child.get("parent_global_pos"))
 
 func spawn_lost_child_event() -> void:
 	if get_tree().get_nodes_in_group("lost_child_npc").size() > 0:
@@ -949,7 +950,7 @@ func spawn_lost_child_event() -> void:
 				spawn_pos = pos
 				break
 
-	var child_instance = child_scene.instantiate() as LostChildNPC
+	var child_instance = child_scene.instantiate() as Node2D
 	var world_node = get_parent()
 	if world_node:
 		child_instance.scale = Vector2(3, 3)
