@@ -257,8 +257,12 @@ func _try_interact() -> void:
 	if candidates.size() == 0:
 		return
 
-	# Sắp xếp để chọn đối tượng GẦN PLAYER NHẤT
-	candidates.sort_custom(func(a, b): return a["dist"] < b["dist"])
+	# Sắp xếp ưu tiên NPC giao quest nếu người chơi đang đứng gần NPC
+	candidates.sort_custom(func(a, b):
+		var bonus_a = -35.0 if a["node"].is_in_group("npc_interactive") else 0.0
+		var bonus_b = -35.0 if b["node"].is_in_group("npc_interactive") else 0.0
+		return (a["dist"] + bonus_a) < (b["dist"] + bonus_b)
+	)
 
 	var closest_node = candidates[0]["node"] as Node
 	if closest_node and closest_node.has_method("interact"):

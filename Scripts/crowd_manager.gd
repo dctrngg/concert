@@ -498,6 +498,7 @@ func _assign_quest(npc_idx: int) -> void:
 		# Quest 1: Food Delivery (Lấy ngẫu nhiên món ăn từ PixelMart)
 		var food_info: Dictionary = PIXEL_MART_FOODS[randi() % PIXEL_MART_FOODS.size()]
 		quest.quest_type = NPCQuestData.QuestType.FOOD_DELIVERY
+		quest.is_item_picked_up = false
 		quest.title = "Giao %s" % food_info["name"]
 		quest.description = "Lấy giúp tôi 1 phần %s từ quầy phục vụ trước khi nguội!" % food_info["name"]
 		quest.item_icon_path = food_info["icon"]
@@ -505,6 +506,7 @@ func _assign_quest(npc_idx: int) -> void:
 	elif quest_roll < 0.70:
 		# Quest 2: Chair Carry (Lấy ghế từ Kho Ghế cho khán giả)
 		quest.quest_type = NPCQuestData.QuestType.SEAT_FINDER
+		quest.is_item_picked_up = false
 		quest.title = "Cần 1 chiếc ghế #%d" % npc_idx
 		quest.description = "Tôi bị mỏi chân quá, hãy chạy qua Kho Ghế lấy 1 chiếc ghế mang tới đây giúp tôi!"
 		quest.time_limit = randf_range(30.0, 45.0)

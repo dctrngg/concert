@@ -33,13 +33,12 @@ func _try_confirm_seat() -> void:
 	
 	var confirmed_any = false
 	for quest in active_quests:
-		if quest.quest_type == NPCQuestData.QuestType.SEAT_FINDER and not quest.is_item_picked_up:
-			# So sánh seat_id (hoặc tự động xác nhận ghế nếu khớp khu vực)
-			if quest.target_seat_id == seat_id or quest.target_seat_id == "" or seat_id.begins_with(quest.target_seat_id.split("-")[0].strip_edges()):
-				quest.is_item_picked_up = true
-				confirmed_any = true
-				print("[SeatArea] Đã tìm và xác nhận đúng vị trí ghế: ", seat_id)
-				break
+		if quest.quest_type == NPCQuestData.QuestType.SEAT_FINDER and quest.is_item_picked_up:
+			# Đã có ghế trong tay -> Đặt ghế xuống khu vực và hoàn thành quest
+			confirmed_any = true
+			print("[SeatArea] Đã mang ghế tới và xếp thành công cho vị trí: ", seat_id)
+			quest_manager.complete_quest(quest)
+			break
 			
 	if confirmed_any:
 		inventory.inventory_changed.emit()
