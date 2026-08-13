@@ -265,7 +265,16 @@ func _ready() -> void:
 				if init_attempts >= 15:
 					break
 					
-			var has_q = randf() < quest_probability
+			# Vùng an toàn xung quanh các Quầy (Kho Ghế, Quầy Đồ Ăn, Quầy Merch): KHÔNG giao quest cho NPC ở đây
+			var near_stall = false
+			var stall_nodes = get_tree().get_nodes_in_group("chair_source") + get_tree().get_nodes_in_group("food_source") + get_tree().get_nodes_in_group("merch_stall")
+			for stall in stall_nodes:
+				if is_instance_valid(stall):
+					if positions[i].distance_to(to_local(stall.global_position)) < 220.0:
+						near_stall = true
+						break
+
+			var has_q = (not near_stall) and (randf() < quest_probability)
 			has_quests[i] = 1 if has_q else 0
 			if has_q:
 				_assign_quest(i)

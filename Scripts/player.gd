@@ -257,10 +257,38 @@ func _try_interact() -> void:
 	if candidates.size() == 0:
 		return
 
-	# Sắp xếp ưu tiên NPC giao quest nếu người chơi đang đứng gần NPC
+	# Kiểm tra nhu cầu lấy đồ từ quầy của các quest đang kích hoạt
+	var needs_chair = false
+	var needs_food = false
+	var needs_merch = false
+	if inventory:
+		for q in inventory.get_active_quests():
+			if not q.is_item_picked_up:
+				if q.quest_type == NPCQuestData.QuestType.SEAT_FINDER:
+					needs_chair = true
+				elif q.quest_type == NPCQuestData.QuestType.FOOD_DELIVERY:
+					needs_food = true
+				elif q.quest_type == NPCQuestData.QuestType.MERCH_SELLING:
+					needs_merch = true
+
 	candidates.sort_custom(func(a, b):
-		var bonus_a = -35.0 if a["node"].is_in_group("npc_interactive") else 0.0
-		var bonus_b = -35.0 if b["node"].is_in_group("npc_interactive") else 0.0
+		var bonus_a = 0.0
+		var bonus_b = 0.0
+		var node_a = a["node"]
+		var node_b = b["node"]
+		
+		if needs_chair and node_a.is_in_group("chair_source"): bonus_a -= 90.0
+		if needs_chair and node_b.is_in_group("chair_source"): bonus_b -= 90.0
+		
+		if needs_food and node_a.is_in_group("food_source"): bonus_a -= 90.0
+		if needs_food and node_b.is_in_group("food_source"): bonus_b -= 90.0
+		
+		if needs_merch and node_a.is_in_group("merch_stall"): bonus_a -= 90.0
+		if needs_merch and node_b.is_in_group("merch_stall"): bonus_b -= 90.0
+		
+		if bonus_a == 0.0 and node_a.is_in_group("npc_interactive"): bonus_a -= 30.0
+		if bonus_b == 0.0 and node_b.is_in_group("npc_interactive"): bonus_b -= 30.0
+		
 		return (a["dist"] + bonus_a) < (b["dist"] + bonus_b)
 	)
 
