@@ -277,9 +277,7 @@ func _ready() -> void:
 			var has_q = (not near_stall) and (randf() < quest_probability)
 			has_quests[i] = 1 if has_q else 0
 			if has_q:
-				_assign_quest(i)
-				
-			directions[i] = float(randi() % 3)
+				directions[i] = float(randi() % 3)
 			is_walking[i] = 0
 			wander_timers[i] = randf_range(min_idle_time, max_idle_time)
 
@@ -296,6 +294,9 @@ func _ready() -> void:
 		mm_back.multimesh.set_instance_custom_data(i, Color(outfit_ids[i], 0.0, 0.0, time_offsets[i]))
 		mm_back.multimesh.set_instance_color(i, Color(0.0, 1.0, 1.0, 1.0))
 		mm_front.multimesh.set_instance_transform_2d(i, Transform2D(0.0, Vector2(-999999.0, -999999.0)))
+
+	# Dàn trải đều 50% quest bên Trái và 50% quest bên Phải sân khấu
+	_distribute_quests_balanced()
 
 	_setup_vip_physical_barriers()
 		
@@ -844,22 +845,75 @@ func _return_node_to_pool(npc: CharacterBody2D) -> void:
 	npc.collision_mask = 0
 
 
-var merch_buyers_map: Dictionary = {}
-var lost_child_parents_map: Dictionary = {}
-var _lost_child_spawn_timer: float = 0.0
-@export var lost_child_interval: float = 45.0
+func _distribute_quests_balanced() -> void:
+	for i in range(npc_count):
+		has_quests[i] = 0
+		quest_data_map.erase(i)
+
+	var stall_nodes = get_tree().get_nodes_in_group("chair_source") + get_tree().get_nodes_in_group("food_source") + get_tree().get_nodes_in_group("merch_stall")
+	
+	var left_candidates: Array[int] = []
+	var right_candidates: Array[int] = []
+	
+	var effective_vip_count = min(vip_npc_count, npc_count) if enable_vip_area else 0
+	
+	for i in range(effective_vip_count, npc_count):
+		var near_stall = false
+		for stall in stall_nodes:
+			if is_instance_valid(stall):
+				if positions[i].distance_to(to_local(stall.global_position)) < 220.0:
+					near_stall = true
+					break
+		if near_stall:
+			continue
+
+		if positions[i].x < 0.0:
+			left_candidates.append(i)
+		else:
+			right_candidates.append(i)
+			
+	left_candidates.shuffle()
+	right_candidates.shuffle()
+
+	var total_target_quests = int(float(npc_count) * quest_probability)
+	var target_per_side = max(1, int(total_target_quests / 2.0))
+
+	var assigned_left = min(target_per_side, left_candidates.size())
+	for k in range(assigned_left):
+		var npc_idx = left_candidates[k]
+		has_quests[npc_idx] = 1
+		_assign_quest(npc_idx)
+
+	var assigned_right = min(target_per_side, right_candidates.size())
+	for k in range(assigned_right):
+		var npc_idx = right_candidates[k]
+		has_quests[npc_idx] = 1
+		_assign_quest(npc_idx)
+
+	print("[CrowdManager] Đã dàn trải đều quest: %d bên Trái (x < 0) và %d bên Phải (x >= 0) sân khấu!" % [assigned_left, assigned_right])
 
 func setup_parents_for_child(child: LostChildNPC) -> void:
 	if not child or not is_instance_valid(child):
 		return
 		
 	var child_local_pos = to_local(child.global_position)
+	var is_child_on_left = (child_local_pos.x < 0.0)
 	var parent_candidates: Array[int] = []
+	
 	for i in range(npc_count):
 		if has_quests[i] == 0 and is_vip[i] == 0:
 			var d = positions[i].distance_to(child_local_pos)
-			if d >= 220.0 and d <= 650.0:
-				parent_candidates.append(i)
+			if d >= 220.0 and d <= 700.0:
+				var is_parent_opposite = (is_child_on_left and positions[i].x >= 0.0) or (not is_child_on_left and positions[i].x < 0.0)
+				if is_parent_opposite:
+					parent_candidates.append(i)
+					
+	if parent_candidates.is_empty():
+		for i in range(npc_count):
+			if has_quests[i] == 0 and is_vip[i] == 0:
+				var d = positions[i].distance_to(child_local_pos)
+				if d >= 220.0 and d <= 700.0:
+					parent_candidates.append(i)
 				
 	var parent_idx = -1
 	if parent_candidates.size() > 0:
@@ -872,7 +926,7 @@ func setup_parents_for_child(child: LostChildNPC) -> void:
 			child.quest_data.parent_global_pos = child.parent_global_pos
 			
 		_promote_npc(parent_idx)
-		print("[CrowdManager] Đã gắn Ba Mẹ cho Trẻ Lạc tại vị trí: ", child.parent_global_pos)
+		print("[CrowdManager] Đã gắn Ba Mẹ ở phía đối diện sân khấu tại vị trí: ", child.parent_global_pos)
 
 func spawn_lost_child_event() -> void:
 	if get_tree().get_nodes_in_group("lost_child_npc").size() > 0:
@@ -910,24 +964,31 @@ func spawn_lost_child_event() -> void:
 
 func assign_merch_buyers(quest: NPCQuestData, count: int) -> void:
 	merch_buyers_map.clear()
-	var candidates: Array[int] = []
+	var left_candidates: Array[int] = []
+	var right_candidates: Array[int] = []
 	var player = get_tree().get_first_node_in_group("player") as Node2D
 	var player_local_pos = to_local(player.global_position) if player else Vector2.ZERO
 	
 	for i in range(npc_count):
 		if has_quests[i] == 0 and is_vip[i] == 0:
-			# Không biến các NPC đang đứng ngay sát bên Player thành người mua merch để tránh mua luôn lập tức
 			if player == null or positions[i].distance_to(player_local_pos) > 150.0:
-				candidates.append(i)
-	candidates.shuffle()
+				if positions[i].x < 0.0:
+					left_candidates.append(i)
+				else:
+					right_candidates.append(i)
+					
+	left_candidates.shuffle()
+	right_candidates.shuffle()
 	
-	var assigned_count = min(count, candidates.size())
-	for k in range(assigned_count):
-		var npc_idx = candidates[k]
+	var half_count = max(1, int(count / 2.0))
+	var assigned_left = min(half_count, left_candidates.size())
+	var assigned_right = min(count - assigned_left, right_candidates.size())
+	
+	var total_buyers = left_candidates.slice(0, assigned_left) + right_candidates.slice(0, assigned_right)
+	for npc_idx in total_buyers:
 		merch_buyers_map[npc_idx] = true
 		quest.merch_buyer_indices.append(npc_idx)
 		
-		# Nếu NPC này đang được promote -> Cập nhật trực tiếp
 		if is_promoted[npc_idx] == 1 and promoted_nodes.has(npc_idx):
 			var node = promoted_nodes[npc_idx]
 			if is_instance_valid(node):
