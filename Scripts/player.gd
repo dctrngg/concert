@@ -212,12 +212,11 @@ func _try_interact() -> void:
 	var candidates: Array[Dictionary] = []
 	var max_dist = 120.0 # Bán kính tương tác tối đa (pixel)
 
-	# 1. NPC Tương Tác
+	# 1. NPC Tương Tác (Bao gồm cả Trẻ Lạc & Khán Giả)
 	for npc in get_tree().get_nodes_in_group("npc_interactive"):
-		if npc.get("is_player_nearby") == true:
-			var dist = global_position.distance_to(npc.global_position)
-			if dist <= max_dist:
-				candidates.append({"node": npc, "dist": dist})
+		var dist = global_position.distance_to(npc.global_position)
+		if dist <= max_dist or npc.get("is_player_nearby") == true:
+			candidates.append({"node": npc, "dist": dist})
 
 	# 2. Sự Cố Ẩu Đả (Fight Event)
 	for fight in get_tree().get_nodes_in_group("fight_event"):
