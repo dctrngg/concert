@@ -31,16 +31,9 @@ func accept_quest(quest: NPCQuestData) -> bool:
 	quest.time_remaining = quest.time_limit
 	quest.set_meta("just_accepted", true)
 	
-	# Nếu là quest bán Merchandise: Tự động cấp hàng (is_item_picked_up = true) và tạo khán giả mua 🛍️ ngay lập tức!
-	if quest.quest_type == NPCQuestData.QuestType.MERCH_SELLING:
-		quest.is_item_picked_up = true
-		var crowd_manager = get_node_or_null("/root/World/CrowdManager")
-		if not crowd_manager:
-			crowd_manager = get_tree().get_first_node_in_group("crowd_manager")
-		if crowd_manager and crowd_manager.has_method("assign_merch_buyers"):
-			crowd_manager.assign_merch_buyers(quest, 7)
-	else:
-		quest.is_item_picked_up = false
+	# MỌI nhiệm vụ khi vừa nhận ĐỀU chưa có item (is_item_picked_up = false)
+	# Người chơi BẮT BUỘC phải qua Quầy Đồ Ăn / Kho Ghế / Quầy Merch để lấy hàng!
+	quest.is_item_picked_up = false
 	
 	active_quests.append(quest)
 	inventory.assign_slot(quest)

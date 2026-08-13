@@ -23,13 +23,22 @@ func _try_accept_merch_quest() -> void:
 	var inventory = player.inventory
 	var active_quests = inventory.get_active_quests()
 	
-	# Kiểm tra xem đã nhận quest bán merch chưa
+	# 1. Nếu người chơi đã nhận quest bán merch từ trước (chưa có hàng) -> Cấp hàng tại đây!
 	for quest in active_quests:
 		if quest.quest_type == NPCQuestData.QuestType.MERCH_SELLING and not quest.is_item_picked_up:
-			print("[MerchStall] Bạn đang có nhiệm vụ bán Merchandise (%d/%d)! Hãy đến gặp khán giả để bán." % [quest.merch_sold_count, quest.merch_target_count])
+			quest.is_item_picked_up = true
+			var crowd_manager = get_node_or_null("/root/World/CrowdManager")
+			if crowd_manager and crowd_manager.has_method("assign_merch_buyers"):
+				crowd_manager.assign_merch_buyers(quest, 7)
+			inventory.inventory_changed.emit()
+			get_tree().call_group("npc_interactive", "update_quest_indicator")
+			print("[MerchStall] Đã lấy hàng Merchandise thành công! Hãy tìm các khán giả có biểu tượng túi đồ (🛍️) để bán hàng.")
 			return
-			
-	# Chưa có quest -> Tạo và nhận quest mới nếu túi đồ còn chỗ
+		elif quest.quest_type == NPCQuestData.QuestType.MERCH_SELLING and quest.is_item_picked_up:
+			print("[MerchStall] Bạn đã có hàng trong túi (%d/%d)! Hãy đến gặp khán giả để bán." % [quest.merch_sold_count, quest.merch_target_count])
+			return
+
+	# 2. Chưa có quest -> Tạo và nhận quest mới ngay tại quầy
 	if not inventory.has_free_slot():
 		print("[MerchStall] Túi đồ đã đầy, không thể nhận thêm nhiệm vụ bán Merch!")
 		return
@@ -39,17 +48,18 @@ func _try_accept_merch_quest() -> void:
 	merch_quest.quest_type = NPCQuestData.QuestType.MERCH_SELLING
 	merch_quest.merch_target_count = 5
 	merch_quest.merch_sold_count = 0
-	merch_quest.is_item_picked_up = true # Đã lấy hàng sẵn sàng đi bán!
 	merch_quest.title = "Bán 5 Merchandise"
 	merch_quest.description = "Hãy tìm các khán giả có biểu tượng túi đồ (🛍️) trên đầu để bán hàng!"
 	merch_quest.time_limit = 45.0
 	
 	var success = quest_manager.accept_quest(merch_quest)
 	if success:
+		merch_quest.is_item_picked_up = true # Đang đứng tại quầy -> Cấp hàng ngay
 		var crowd_manager = get_node_or_null("/root/World/CrowdManager")
 		if crowd_manager and crowd_manager.has_method("assign_merch_buyers"):
 			crowd_manager.assign_merch_buyers(merch_quest, 7)
-		print("[MerchStall] Đã nhận nhiệm vụ bán 5 Merchandise! Hãy tìm các khán giả có biểu tượng 🛍️ trên đầu để bán hàng.")
+		inventory.inventory_changed.emit()
+		print("[MerchStall] Đã nhận nhiệm vụ và lấy hàng Merchandise! Hãy tìm khán giả có 🛍️ để bán.")
 
 
 func _on_body_entered(body: Node2D) -> void:

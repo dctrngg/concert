@@ -515,7 +515,7 @@ func _assign_quest(npc_idx: int) -> void:
 		quest.quest_type = NPCQuestData.QuestType.MERCH_SELLING
 		quest.merch_target_count = 5
 		quest.merch_sold_count = 0
-		quest.is_item_picked_up = true # Nhận quest là có hàng đi bán luôn!
+		quest.is_item_picked_up = false # Phải qua Quầy Merch lấy hàng mới được đi bán!
 		quest.title = "Bán 5 Merchandise"
 		quest.description = "Hãy tìm các khán giả có biểu tượng túi đồ (🛍️) trên đầu để bán hàng!"
 		quest.item_icon_path = "res://Sprites/Pixel_Mart/snack1.png"
