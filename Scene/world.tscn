@@ -9138,7 +9138,7 @@ tile_map_data = PackedByteArray("AADk/xUAAQAFAAsAAADk/xYAAQAHAAsAAADk/xcAAQABAAo
 tile_set = SubResource("TileSet_d2edt")
 
 [node name="NightCanvasModulate" type="CanvasModulate" parent="." unique_id=1284719001]
-color = Color(0.5206067, 0.54207003, 0.69037193, 1)
+color = Color(0.42004424, 0.43844938, 0.5873333, 1)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1847192002]
 environment = SubResource("Environment_night")
