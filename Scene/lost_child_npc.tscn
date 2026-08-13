@@ -1,0 +1,46 @@
+[gd_scene load_steps=6 format=3 uid="uid://d3lostchildnpc"]
+
+[ext_resource type="Script" path="res://Scripts/lost_child_npc.gd" id="1_child_script"]
+[ext_resource type="FontFile" path="res://0307-LNTH-TwistyPixel.ttf" id="2_pixel_font"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_child"]
+radius = 8.0
+height = 20.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_interact"]
+radius = 36.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_indicator"]
+font = ExtResource("2_pixel_font")
+font_size = 20
+font_color = Color(1, 0.9, 0.2, 1)
+outline_size = 4
+outline_color = Color(0, 0, 0, 1)
+
+[node name="LostChildNPC" type="CharacterBody2D" groups=["lost_child_npc", "npc_interactive"]]
+collision_layer = 2
+collision_mask = 7
+script = ExtResource("1_child_script")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 4)
+shape = SubResource("CapsuleShape2D_child")
+
+[node name="InteractionArea" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionArea"]
+shape = SubResource("CircleShape2D_interact")
+
+[node name="QuestIndicator" type="Label" parent="."]
+offset_left = -30.0
+offset_top = -28.0
+offset_right = 30.0
+offset_bottom = -5.0
+text = "👶"
+label_settings = SubResource("LabelSettings_indicator")
+horizontal_alignment = 1
+vertical_alignment = 1
