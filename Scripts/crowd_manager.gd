@@ -907,32 +907,7 @@ func spawn_lost_child_event() -> void:
 		add_child(child_instance)
 
 	setup_parents_for_child(child_instance)
-	print("[CrowdManager] Đã xuất hiện Trẻ Lạc ngẫu nhiên tại Zone %d, vị trí: %s" % [rand_zone_idx, child_instance.position])break
-				
-	# Tìm vị trí Ba Mẹ (cách bé khoảng 380 - 750px)
-	var parent_candidates: Array[int] = []
-	for i in range(npc_count):
-		if has_quests[i] == 0 and is_vip[i] == 0:
-			var d = positions[i].distance_to(spawn_pos)
-			if d >= 380.0 and d <= 750.0:
-				parent_candidates.append(i)
-				
-	var parent_idx = -1
-	if parent_candidates.size() > 0:
-		parent_idx = parent_candidates[randi() % parent_candidates.size()]
-		lost_child_parents_map[parent_idx] = true
-
-	var child_instance = child_scene.instantiate()
-	child_instance.position = to_global(spawn_pos)
-	if parent_idx >= 0:
-		child_instance.parent_npc_idx = parent_idx
-		child_instance.parent_global_pos = to_global(positions[parent_idx])
-		if child_instance.quest_data:
-			child_instance.quest_data.parent_npc_idx = parent_idx
-			child_instance.quest_data.parent_global_pos = child_instance.parent_global_pos
-			
-	add_child(child_instance)
-	print("[CrowdManager] Đã xuất hiện Trẻ Lạc (Punk Kid Boy) tại: ", child_instance.position)
+	print("[CrowdManager] Đã xuất hiện Trẻ Lạc ngẫu nhiên tại Zone %d, vị trí: %s" % [rand_zone_idx, child_instance.position])
 
 func assign_merch_buyers(quest: NPCQuestData, count: int) -> void:
 	merch_buyers_map.clear()
