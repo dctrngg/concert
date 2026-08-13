@@ -9,7 +9,7 @@ signal line_advanced(line_index: int)
 @onready var speaker_name_label: Label = $Control/MarginContainer/DialoguePanel/Margin/VBox/SpeakerNameLabel
 @onready var text_label: Label = $Control/MarginContainer/DialoguePanel/Margin/VBox/TextLabel
 
-@export var player_name: String = "Player (Bảo Vệ)"
+@export var player_name: String = "dctrng"
 
 @export_group("1. Dynamic Guided Tutorial Lines")
 @export var tutorial_welcome_text: String = "Chào mừng bạn đến với Đêm Đại Nhạc Hội! Tôi là Bảo Vệ chịu trách nhiệm an ninh và hỗ trợ khán giả hôm nay."

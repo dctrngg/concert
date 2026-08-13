@@ -1243,7 +1243,7 @@ func _find_collision_shapes(parent: Node) -> Array[CollisionShape2D]:
 	return shapes
 
 func _create_merged_tilemap_collisions() -> void:
-	for layer_path in ["../Object", "../Wall", "../barrier", "../tree", "../Tree", "../trees", "../Trees"]:
+	for layer_path in ["../Object", "../Wall", "../barrier"]:
 		var layer = get_node_or_null(layer_path) as TileMapLayer
 		if layer == null:
 			continue
