@@ -1,7 +1,7 @@
 extends CanvasLayer
 
 signal dialogue_started()
-signal dialogue_finished()
+signal intro_finished()
 signal line_advanced(line_index: int)
 
 @onready var control_root: Control = $Control
@@ -11,9 +11,17 @@ signal line_advanced(line_index: int)
 
 @export var player_name: String = "Player (Bảo Vệ)"
 
-## 📝 DANH SÁCH CÂU THOẠI BẠN CHUẨN BỊ TRƯỚC TẠI ĐÂY:
-## Bạn có thể tự do thêm, bớt hoặc thay đổi các câu thoại trong mảng này!
-@export var my_dialogue_list: Array[String] = [
+@export_group("1. Intro / Tutorial Dialogue")
+## Danh sách câu thoại Giới thiệu & Hướng dẫn cách chơi (chạy lần lượt khi zoom camera mở đầu game)
+@export var intro_tutorial_dialogue_list: Array[String] = [
+	"Chào mừng bạn! Tôi là Bảo Vệ đêm đại nhạc hội hôm nay.",
+	"Sử dụng các phím A-W-S-D để di chuyển, giữ phím Shift để chạy nhanh.",
+	"Hãy qua Quầy Đồ Ăn / Kho Ghế để lấy đồ và hỗ trợ khán giả kịp thời nhé!"
+]
+
+@export_group("2. Gameplay Dialogue (Random Loop)")
+## Danh sách các câu thoại lặp lại NGẪU NHIÊN khi ĐANG CHƠI GAME
+@export var gameplay_dialogue_list: Array[String] = [
 	"Tôi là Bảo Vệ đêm nhạc. Tôi sẽ hỗ trợ khán giả và giữ gìn an ninh!",
 	"Khu vực sân khấu đang rất đông vui, hãy chú ý di chuyển trật tự nhé.",
 	"Nếu khán giả nào cần đồ ăn hoặc ghế ngồi, tôi sẽ đến hỗ trợ ngay!",
@@ -24,13 +32,15 @@ signal line_advanced(line_index: int)
 @export var characters_per_second: float = 30.0
 ## Thời gian hiển thị mỗi câu thoại sau khi gõ xong (giây)
 @export var display_duration_per_line: float = 3.5
-## Tự động lặp lại từ đầu khi đọc hết danh sách
-@export var loop_forever: bool = true
 @export var enable_typewriter_sound: bool = true
+
+enum DialoguePhase { INTRO_TUTORIAL, GAMEPLAY_RANDOM }
+var current_phase: DialoguePhase = DialoguePhase.INTRO_TUTORIAL
 
 var tex_frame_dialogue: Texture2D = preload("res://Sprites/UI_Flat_Frame01a.png")
 
 var _current_line_index: int = 0
+var _last_random_index: int = -1
 var _is_typing: bool = false
 var _visible_chars_float: float = 0.0
 var _read_timer: float = 0.0
@@ -53,30 +63,35 @@ func _apply_styles() -> void:
 		dialogue_panel.add_theme_stylebox_override("panel", style_d)
 
 func _start_auto_dialogue() -> void:
-	if my_dialogue_list.is_empty():
-		if control_root:
-			control_root.visible = false
-		return
-		
 	if speaker_name_label:
 		speaker_name_label.text = player_name
 
 	control_root.visible = true
 	dialogue_started.emit()
 	
+	current_phase = DialoguePhase.INTRO_TUTORIAL
 	_current_line_index = 0
 	_display_current_line()
 
 func _display_current_line() -> void:
-	if _current_line_index < 0 or _current_line_index >= my_dialogue_list.size():
-		if loop_forever and not my_dialogue_list.is_empty():
-			_current_line_index = 0
-		else:
-			control_root.visible = false
-			dialogue_finished.emit()
+	var text_content: String = ""
+	
+	if current_phase == DialoguePhase.INTRO_TUTORIAL:
+		if intro_tutorial_dialogue_list.is_empty() or _current_line_index >= intro_tutorial_dialogue_list.size():
+			# Hoàn thành Phase 1 (Intro/Tutorial) -> Chuyển sang Phase 2 (Gameplay Random)
+			current_phase = DialoguePhase.GAMEPLAY_RANDOM
+			intro_finished.emit()
+			_pick_next_random_gameplay_line()
 			return
+		else:
+			text_content = intro_tutorial_dialogue_list[_current_line_index]
+			
+	elif current_phase == DialoguePhase.GAMEPLAY_RANDOM:
+		if gameplay_dialogue_list.is_empty():
+			control_root.visible = false
+			return
+		text_content = gameplay_dialogue_list[_current_line_index]
 
-	var text_content = my_dialogue_list[_current_line_index]
 	text_label.text = text_content
 	text_label.visible_characters = 0
 	_visible_chars_float = 0.0
@@ -85,8 +100,21 @@ func _display_current_line() -> void:
 	
 	line_advanced.emit(_current_line_index)
 
+func _pick_next_random_gameplay_line() -> void:
+	if gameplay_dialogue_list.is_empty():
+		control_root.visible = false
+		return
+		
+	var next_idx = randi() % gameplay_dialogue_list.size()
+	if gameplay_dialogue_list.size() > 1 and next_idx == _last_random_index:
+		next_idx = (_last_random_index + 1) % gameplay_dialogue_list.size()
+		
+	_last_random_index = next_idx
+	_current_line_index = next_idx
+	_display_current_line()
+
 func _process(delta: float) -> void:
-	if not control_root or not control_root.visible or my_dialogue_list.is_empty():
+	if not control_root or not control_root.visible:
 		return
 
 	if _is_typing:
@@ -106,8 +134,11 @@ func _process(delta: float) -> void:
 		_read_timer += delta
 		if _read_timer >= display_duration_per_line:
 			_read_timer = 0.0
-			_current_line_index += 1
-			_display_current_line()
+			if current_phase == DialoguePhase.INTRO_TUTORIAL:
+				_current_line_index += 1
+				_display_current_line()
+			else:
+				_pick_next_random_gameplay_line()
 
 func _play_typewriter_sfx() -> void:
 	var sound_mgr = get_node_or_null("/root/SoundManager")
