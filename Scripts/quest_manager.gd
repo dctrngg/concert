@@ -7,6 +7,9 @@ signal quest_timer_updated(quest: NPCQuestData, time_left: float)
 
 var active_quests: Array[NPCQuestData] = []
 
+var _popup_merch_timer: float = 0.0
+@export var auto_merch_popup_interval: float = 40.0
+
 func get_player() -> Node2D:
 	return get_tree().get_first_node_in_group("player") as Node2D
 
@@ -39,16 +42,6 @@ func accept_quest(quest: NPCQuestData) -> bool:
 	inventory.assign_slot(quest)
 	quest_accepted.emit(quest)
 	return true
-
-var _popup_merch_timer: float = 0.0
-@export var auto_merch_popup_interval: float = 40.0
-
-func _process(delta: float) -> void:
-	# Quản lý tự động phát sinh nhiệm vụ đột xuất Bán Merch định kỳ (40s)
-	_popup_merch_timer += delta
-	if _popup_merch_timer >= auto_merch_popup_interval:
-		_popup_merch_timer = 0.0
-		spawn_popup_merch_quest()
 
 ## Tạo và nhận ngay nhiệm vụ pop-up bán Merchandise trực tiếp
 func spawn_popup_merch_quest(target_count: int = 5, time_limit: float = 50.0) -> bool:
@@ -110,7 +103,13 @@ func fail_quest(quest: NPCQuestData) -> void:
 	quest_failed.emit(quest)
 
 func _process(delta: float) -> void:
-	# Cần duyệt ngược để xóa phần tử an toàn khi hết giờ
+	# 1. Quản lý tự động phát sinh nhiệm vụ đột xuất Bán Merch định kỳ (40s)
+	_popup_merch_timer += delta
+	if _popup_merch_timer >= auto_merch_popup_interval:
+		_popup_merch_timer = 0.0
+		spawn_popup_merch_quest()
+
+	# 2. Duyệt ngược để cập nhật đếm ngược thời gian và xử lý quá giờ nhiệm vụ
 	for i in range(active_quests.size() - 1, -1, -1):
 		var quest = active_quests[i]
 		quest.time_remaining -= delta
