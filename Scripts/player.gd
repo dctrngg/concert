@@ -105,21 +105,31 @@ func _ready() -> void:
 
 func get_intro_target_global_pos() -> Vector2:
 	if intro_target_node:
-		var node = get_node_or_null(intro_target_node) as Node2D
-		if node:
-			return node.global_position
+		var node = get_node_or_null(intro_target_node)
+		if node and node is Node2D:
+			var shape_nodes = node.find_children("", "CollisionShape2D", true, false)
+			for shape_node in shape_nodes:
+				var col_shape = shape_node as CollisionShape2D
+				if col_shape:
+					return col_shape.global_position
+			return (node as Node2D).global_position
+			
+	# Mặc định tự động tìm CameraIntroTarget Node2D/Area2D trong World
+	var target_zone = get_node_or_null("../CameraIntroTarget")
+	if target_zone and target_zone is Node2D:
+		var shape_nodes = target_zone.find_children("", "CollisionShape2D", true, false)
+		for shape_node in shape_nodes:
+			var col_shape = shape_node as CollisionShape2D
+			if col_shape:
+				return col_shape.global_position
+		return (target_zone as Node2D).global_position
 			
 	if intro_target_position != Vector2.ZERO:
 		return intro_target_position
 		
-	# Mặc định tự động tìm Sân Khấu (Stage) nếu có trong cảnh
 	var stage = get_tree().get_first_node_in_group("stage")
 	if stage:
 		return stage.global_position
-		
-	var stage_node = get_node_or_null("../Stage") as Node2D
-	if stage_node:
-		return stage_node.global_position
 		
 	return global_position
 

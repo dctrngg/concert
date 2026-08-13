@@ -8053,13 +8053,18 @@ glow_bloom = 0.3
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_flag_base"]
 size = Vector2(68, 45)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_intro_target"]
+size = Vector2(500, 300)
+
 [node name="World" type="Node2D" unique_id=2048086502]
 position = Vector2(-1223, 706)
 
-[node name="CameraIntroTarget" type="Marker2D" parent="." unique_id=1055009988]
+[node name="CameraIntroTarget" type="Area2D" parent="." unique_id=1055009988]
 position = Vector2(0, -300)
 scale = Vector2(3, 3)
-gizmo_extents = 100.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CameraIntroTarget"]
+shape = SubResource("RectangleShape2D_intro_target")
 
 [node name="Player" parent="." unique_id=2093694816 instance=ExtResource("1_emx41")]
 position = Vector2(88.95, -100)
@@ -8067,8 +8072,6 @@ scale = Vector2(3, 3)
 walk_speed = 300.0
 run_speed = 400.0
 intro_target_node = NodePath("../CameraIntroTarget")
-intro_zoom_start = 5.0
-intro_delay_close = 0.6
 
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=1040013179]
 
