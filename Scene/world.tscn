@@ -8986,10 +8986,6 @@ intro_zoom_delay = 1.0
 
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=1040013179]
 
-[node name="LostChildNPC" parent="." instance=ExtResource("15_lost_child_scene")]
-position = Vector2(240, -80)
-scale = Vector2(3, 3)
-
 [node name="CrowdManager" type="Node2D" parent="." unique_id=1218005740]
 scale = Vector2(3, 3)
 script = ExtResource("2_crowd")

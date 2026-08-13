@@ -472,6 +472,13 @@ func _process(delta: float) -> void:
 				mm_back.multimesh.set_instance_color(i, inst_color)
 				mm_front.multimesh.set_instance_transform_2d(i, hidden_xform)
 
+	# Tự động xuất hiện Trẻ Lạc ngẫu nhiên định kỳ (45s)
+	_lost_child_spawn_timer += delta
+	if _lost_child_spawn_timer >= lost_child_interval:
+		_lost_child_spawn_timer = 0.0
+		if get_tree().get_nodes_in_group("lost_child_npc").is_empty():
+			spawn_lost_child_event()
+
 	# Run promotion/demotion logic if the player is active
 	if player:
 		_check_promote_demote(player)
@@ -839,6 +846,8 @@ func _return_node_to_pool(npc: CharacterBody2D) -> void:
 
 var merch_buyers_map: Dictionary = {}
 var lost_child_parents_map: Dictionary = {}
+var _lost_child_spawn_timer: float = 0.0
+@export var lost_child_interval: float = 45.0
 
 func setup_parents_for_child(child: LostChildNPC) -> void:
 	if not child or not is_instance_valid(child):
@@ -849,7 +858,7 @@ func setup_parents_for_child(child: LostChildNPC) -> void:
 	for i in range(npc_count):
 		if has_quests[i] == 0 and is_vip[i] == 0:
 			var d = positions[i].distance_to(child_local_pos)
-			if d >= 200.0 and d <= 650.0:
+			if d >= 220.0 and d <= 650.0:
 				parent_candidates.append(i)
 				
 	var parent_idx = -1
@@ -866,19 +875,39 @@ func setup_parents_for_child(child: LostChildNPC) -> void:
 		print("[CrowdManager] Đã gắn Ba Mẹ cho Trẻ Lạc tại vị trí: ", child.parent_global_pos)
 
 func spawn_lost_child_event() -> void:
+	if get_tree().get_nodes_in_group("lost_child_npc").size() > 0:
+		return
+
 	var child_scene = load("res://Scene/lost_child_npc.tscn")
 	if not child_scene:
 		return
 		
-	var player = get_tree().get_first_node_in_group("player") as Node2D
-	var spawn_pos = get_random_position_in_zone(0)
-	if player:
-		var p_local = to_local(player.global_position)
-		for attempt in range(25):
-			var pos = get_random_position_in_zone(0)
-			if pos.distance_to(p_local) > 120.0 and pos.distance_to(p_local) < 320.0:
-				spawn_pos = pos
-				break
+	var num_zones = max(1, get_audience_zones().size())
+	var rand_zone_idx = randi() % num_zones
+	var spawn_pos = get_random_position_in_zone(rand_zone_idx)
+	
+	var attempts = 0
+	while (enable_stage_obstacle and stage_obstacle_rect.has_point(spawn_pos)) \
+		or (enable_vip_area and _is_vip_area(spawn_pos)) \
+		or _is_barrier_tile(spawn_pos):
+		rand_zone_idx = randi() % num_zones
+		spawn_pos = get_random_position_in_zone(rand_zone_idx)
+		attempts += 1
+		if attempts >= 20:
+			break
+
+	var child_instance = child_scene.instantiate() as LostChildNPC
+	var world_node = get_parent()
+	if world_node:
+		child_instance.position = to_global(spawn_pos)
+		child_instance.scale = Vector2(3, 3)
+		world_node.add_child(child_instance)
+	else:
+		child_instance.position = spawn_pos
+		add_child(child_instance)
+
+	setup_parents_for_child(child_instance)
+	print("[CrowdManager] Đã xuất hiện Trẻ Lạc ngẫu nhiên tại Zone %d, vị trí: %s" % [rand_zone_idx, child_instance.position])break
 				
 	# Tìm vị trí Ba Mẹ (cách bé khoảng 380 - 750px)
 	var parent_candidates: Array[int] = []
