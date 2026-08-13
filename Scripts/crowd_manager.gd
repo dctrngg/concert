@@ -503,8 +503,8 @@ func _assign_quest(npc_idx: int) -> void:
 	quest.quest_id = "quest_%d" % npc_idx
 	
 	var quest_roll = randf()
-	if quest_roll < 0.25:
-		# Quest 1: Food Delivery (25%)
+	if quest_roll < 0.50:
+		# Quest 1: Food Delivery (50%)
 		var food_info: Dictionary = PIXEL_MART_FOODS[randi() % PIXEL_MART_FOODS.size()]
 		quest.quest_type = NPCQuestData.QuestType.FOOD_DELIVERY
 		quest.is_item_picked_up = false
@@ -512,23 +512,13 @@ func _assign_quest(npc_idx: int) -> void:
 		quest.description = "Lấy giúp tôi 1 phần %s từ quầy phục vụ trước khi nguội!" % food_info["name"]
 		quest.item_icon_path = food_info["icon"]
 		quest.time_limit = randf_range(30.0, 45.0)
-	elif quest_roll < 0.50:
-		# Quest 2: Chair Carry (25%)
+	else:
+		# Quest 2: Chair Carry (50%)
 		quest.quest_type = NPCQuestData.QuestType.SEAT_FINDER
 		quest.is_item_picked_up = false
 		quest.title = "Cần 1 chiếc ghế #%d" % npc_idx
 		quest.description = "Tôi bị mỏi chân quá, hãy chạy qua Kho Ghế lấy 1 chiếc ghế mang tới đây giúp tôi!"
 		quest.time_limit = randf_range(30.0, 45.0)
-	else:
-		# Quest 3: Merch Selling (50% - Tăng xác suất xuất hiện nhiệm vụ bán Merch!)
-		quest.quest_type = NPCQuestData.QuestType.MERCH_SELLING
-		quest.merch_target_count = 5
-		quest.merch_sold_count = 0
-		quest.is_item_picked_up = false # Phải qua Quầy Merch lấy hàng mới được đi bán!
-		quest.title = "Bán 5 Merchandise"
-		quest.description = "Hãy tìm các khán giả có biểu tượng túi đồ (🛍️) trên đầu để bán hàng!"
-		quest.item_icon_path = "res://Sprites/Pixel_Mart/snack1.png"
-		quest.time_limit = 55.0
 		
 	quest_data_map[npc_idx] = quest
 
