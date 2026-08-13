@@ -130,12 +130,12 @@ func setup(p_npc_index: int, p_outfit_id: int, p_has_quest: bool, p_quest_data: 
 func update_quest_indicator() -> void:
 	if quest_indicator:
 		if is_parent_npc:
-			quest_indicator.text = "👨‍👩‍👧"
+			quest_indicator.text = "👨‍👩‍👧 BA MẸ"
 			quest_indicator.visible = true
 			return
 
 		if is_merch_buyer:
-			quest_indicator.text = "🛍️"
+			quest_indicator.text = "🛍️ MUA MERCH"
 			quest_indicator.visible = true
 			return
 

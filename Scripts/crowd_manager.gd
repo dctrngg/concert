@@ -849,9 +849,9 @@ func spawn_lost_child_event() -> void:
 	var spawn_pos = get_random_position_in_zone(0)
 	if player:
 		var p_local = to_local(player.global_position)
-		for attempt in range(15):
+		for attempt in range(25):
 			var pos = get_random_position_in_zone(0)
-			if pos.distance_to(p_local) > 220.0 and pos.distance_to(p_local) < 550.0:
+			if pos.distance_to(p_local) > 120.0 and pos.distance_to(p_local) < 320.0:
 				spawn_pos = pos
 				break
 				

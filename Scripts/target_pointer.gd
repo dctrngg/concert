@@ -36,24 +36,43 @@ func _get_active_target_position() -> Vector2:
 	if not player or not player.inventory:
 		return Vector2.INF
 		
+	# 1. Nếu chưa nhận quest nhưng có Trẻ Lạc đang đứng chờ -> Mũi tên chỉ thẳng đến Trẻ Lạc!
+	var lost_children = get_tree().get_nodes_in_group("lost_child_npc")
+	for child in lost_children:
+		if is_instance_valid(child) and child.get("quest_data") != null:
+			if child.quest_data.state == NPCQuestData.QuestState.OFFERED:
+				return child.global_position
+
 	var active_quests = player.inventory.get_active_quests()
 	if active_quests.is_empty():
 		return Vector2.INF
 		
-	# Ưu tiên tìm quest ĐẦU TIÊN KHÔNG PHẢI MERCH_SELLING để chỉ đường
+	# Ưu tiên tìm quest (LOST_CHILD, FOOD, SEAT, hoặc MERCH)
 	var quest: NPCQuestData = null
 	for q in active_quests:
-		if q.quest_type != NPCQuestData.QuestType.MERCH_SELLING:
+		if q.quest_type == NPCQuestData.QuestType.LOST_CHILD:
 			quest = q
 			break
+		elif q.quest_type != NPCQuestData.QuestType.MERCH_SELLING and quest == null:
+			quest = q
+		elif q.quest_type == NPCQuestData.QuestType.MERCH_SELLING and quest == null:
+			quest = q
 			
-	# Nếu không có quest khác (chỉ có quest Bán Merch hoặc trống) -> Ẩn mũi tên
 	if quest == null:
 		return Vector2.INF
 
 	if quest.quest_type == NPCQuestData.QuestType.LOST_CHILD:
 		if quest.parent_global_pos != Vector2.INF:
 			return quest.parent_global_pos
+
+	if quest.quest_type == NPCQuestData.QuestType.MERCH_SELLING:
+		if quest.is_item_picked_up:
+			return _get_nearest_merch_buyer_position()
+		else:
+			var merch_stalls = get_tree().get_nodes_in_group("merch_stall")
+			if merch_stalls.size() > 0:
+				return merch_stalls[0].global_position
+			return Vector2.INF
 
 	if not quest.is_item_picked_up:
 		# CHƯA LẤY HÀNG -> Chỉ đường tới Nguồn Lấy Hàng tương ứng
