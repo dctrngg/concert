@@ -840,6 +840,31 @@ func _return_node_to_pool(npc: CharacterBody2D) -> void:
 var merch_buyers_map: Dictionary = {}
 var lost_child_parents_map: Dictionary = {}
 
+func setup_parents_for_child(child: LostChildNPC) -> void:
+	if not child or not is_instance_valid(child):
+		return
+		
+	var child_local_pos = to_local(child.global_position)
+	var parent_candidates: Array[int] = []
+	for i in range(npc_count):
+		if has_quests[i] == 0 and is_vip[i] == 0:
+			var d = positions[i].distance_to(child_local_pos)
+			if d >= 200.0 and d <= 650.0:
+				parent_candidates.append(i)
+				
+	var parent_idx = -1
+	if parent_candidates.size() > 0:
+		parent_idx = parent_candidates[randi() % parent_candidates.size()]
+		lost_child_parents_map[parent_idx] = true
+		child.parent_npc_idx = parent_idx
+		child.parent_global_pos = to_global(positions[parent_idx])
+		if child.quest_data:
+			child.quest_data.parent_npc_idx = parent_idx
+			child.quest_data.parent_global_pos = child.parent_global_pos
+			
+		_promote_npc(parent_idx)
+		print("[CrowdManager] Đã gắn Ba Mẹ cho Trẻ Lạc tại vị trí: ", child.parent_global_pos)
+
 func spawn_lost_child_event() -> void:
 	var child_scene = load("res://Scene/lost_child_npc.tscn")
 	if not child_scene:

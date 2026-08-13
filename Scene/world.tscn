@@ -18,6 +18,7 @@
 [ext_resource type="AudioStream" uid="uid://cvu01aj4st81u" path="res://sound/No Trophy For You! - Mario Kart Wii OST - No Copyright Nintendo Music [TubeRipper.click].ogg" id="11_wua5g"]
 [ext_resource type="Texture2D" uid="uid://djafynmnggmoy" path="res://Spritesheets/objects_demo.png" id="12_nka0b"]
 [ext_resource type="Texture2D" uid="uid://c5fbh23p70gdo" path="res://Spritesheets/Backgrounds/Tilesets/TilesetNature.png" id="14_kufhj"]
+[ext_resource type="PackedScene" uid="uid://d3lostchildnpc" path="res://Scene/lost_child_npc.tscn" id="15_lost_child_scene"]
 [ext_resource type="Texture2D" uid="uid://duryqs3s8xlsn" path="res://Spritesheets/Backgrounds/Tilesets/TilesetHouse.png" id="15_a6mvv"]
 [ext_resource type="PackedScene" uid="uid://d1vyh0ke7sn51" path="res://Scene/sound_manager.tscn" id="16_sound_mgr"]
 [ext_resource type="Script" uid="uid://bwi23om0cyjic" path="res://Scripts/camera_bounds.gd" id="17_cambounds_script"]
@@ -8984,6 +8985,10 @@ intro_zoom_start = 3.0
 intro_zoom_delay = 1.0
 
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=1040013179]
+
+[node name="LostChildNPC" parent="." instance=ExtResource("15_lost_child_scene")]
+position = Vector2(240, -80)
+scale = Vector2(3, 3)
 
 [node name="CrowdManager" type="Node2D" parent="." unique_id=1218005740]
 scale = Vector2(3, 3)
