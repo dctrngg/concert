@@ -9066,7 +9066,7 @@ position = Vector2(-1374, 1985)
 scale = Vector2(5, 5)
 
 [node name="FoodSource2" parent="." unique_id=-1184908418 instance=ExtResource("4_food_source")]
-position = Vector2(-489.99994, 1977)
+position = Vector2(1000, 1977)
 scale = Vector2(5, 5)
 stall_id = 1
 
@@ -9076,7 +9076,7 @@ scale = Vector2(5, 5)
 stall_id = 2
 
 [node name="FoodSource4" parent="." unique_id=815091584 instance=ExtResource("4_food_source")]
-position = Vector2(-300, 1975.675)
+position = Vector2(700, 1975.675)
 scale = Vector2(5, 5)
 stall_id = 3
 

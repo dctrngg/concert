@@ -218,11 +218,11 @@ func _try_interact() -> void:
 		if dist <= max_dist or npc.get("is_player_nearby") == true:
 			candidates.append({"node": npc, "dist": dist})
 
-	# 2. Sự Cố Ẩu Đả (Fight Event)
+	# 2. Sự Cố Ẩu Đả (Fight Event - Ưu tiên hàng đầu khi đang diễn ra)
 	for fight in get_tree().get_nodes_in_group("fight_event"):
-		if fight.get("is_player_inside") == true and not fight.get("is_resolved"):
+		if not fight.get("is_resolved"):
 			var dist = global_position.distance_to(fight.global_position)
-			if dist <= max_dist:
+			if dist <= 150.0 or fight.get("is_player_inside") == true:
 				candidates.append({"node": fight, "dist": dist})
 
 	# 3. Quầy Đồ Ăn (Food Source)
@@ -275,6 +275,10 @@ func _try_interact() -> void:
 		var bonus_b = 0.0
 		var node_a = a["node"]
 		var node_b = b["node"]
+		
+		# Sự cố ẩu đả luôn luôn được ưu tiên tuyệt đối (-180.0)
+		if node_a.is_in_group("fight_event"): bonus_a -= 180.0
+		if node_b.is_in_group("fight_event"): bonus_b -= 180.0
 		
 		if needs_chair and node_a.is_in_group("chair_source"): bonus_a -= 90.0
 		if needs_chair and node_b.is_in_group("chair_source"): bonus_b -= 90.0

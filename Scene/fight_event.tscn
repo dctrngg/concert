@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://Scripts/fight_event.gd" id="1_fight_script"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_fight"]
-radius = 60.0
+radius = 100.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bar_bg"]
 bg_color = Color(0.1, 0.1, 0.15, 0.8)
