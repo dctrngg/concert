@@ -12,7 +12,8 @@ signal line_advanced(line_index: int)
 @export var player_name: String = "Player (Bảo Vệ)"
 
 @export_group("1. Dynamic Guided Tutorial Lines")
-@export var tutorial_greeting_text: String = "Chào mừng bạn! Dùng A-W-S-D để di chuyển. Hãy lại gần khán giả có dấu (!) để nhận nhiệm vụ nhé!"
+@export var tutorial_welcome_text: String = "Chào mừng bạn đến với Đêm Đại Nhạc Hội! Tôi là Bảo Vệ chịu trách nhiệm an ninh và hỗ trợ khán giả hôm nay."
+@export var tutorial_greeting_text: String = "Sử dụng các phím A-W-S-D để di chuyển. Hãy lại gần vị khán giả có dấu (!) gần nhất để nhận nhiệm vụ nhé!"
 @export var tutorial_accepted_text: String = "Rất tốt! Hãy đi theo Mũi Tên Chỉ Đường đến quầy tương ứng để lấy món đồ khán giả cần nhé!"
 @export var tutorial_item_text: String = "Món đồ đã có trong túi! Hãy quay lại gặp vị khán giả đó và nhấn [E] / Click chuột để giao đồ nhé!"
 @export var tutorial_done_text: String = "Hoàn hảo! Bạn đã nắm vững cách làm Bảo Vệ. Đêm đại nhạc hội bùng nổ chính thức bắt đầu!"
@@ -33,10 +34,10 @@ signal line_advanced(line_index: int)
 @export var enable_typewriter_sound: bool = true
 
 enum DialoguePhase { TUTORIAL_GUIDE, GAMEPLAY_RANDOM }
-enum TutorialState { GREETING, QUEST_ACCEPTED, ITEM_PICKED_UP, COMPLETED }
+enum TutorialState { WELCOME, GREETING, QUEST_ACCEPTED, ITEM_PICKED_UP, COMPLETED }
 
 var current_phase: DialoguePhase = DialoguePhase.TUTORIAL_GUIDE
-var tutorial_state: TutorialState = TutorialState.GREETING
+var tutorial_state: TutorialState = TutorialState.WELCOME
 
 var tex_frame_dialogue: Texture2D = preload("res://Sprites/UI_Flat_Frame01a.png")
 
@@ -87,8 +88,8 @@ func _start_auto_dialogue() -> void:
 	dialogue_started.emit()
 	
 	current_phase = DialoguePhase.TUTORIAL_GUIDE
-	tutorial_state = TutorialState.GREETING
-	_set_dialogue_text(tutorial_greeting_text)
+	tutorial_state = TutorialState.WELCOME
+	_set_dialogue_text(tutorial_welcome_text)
 
 func _set_dialogue_text(new_text: String) -> void:
 	_current_text = new_text
@@ -100,7 +101,7 @@ func _set_dialogue_text(new_text: String) -> void:
 
 func _on_quest_accepted(quest: NPCQuestData) -> void:
 	if current_phase == DialoguePhase.TUTORIAL_GUIDE:
-		if tutorial_state == TutorialState.GREETING:
+		if tutorial_state == TutorialState.GREETING or tutorial_state == TutorialState.WELCOME:
 			tutorial_state = TutorialState.QUEST_ACCEPTED
 			if quest.is_item_picked_up:
 				tutorial_state = TutorialState.ITEM_PICKED_UP
@@ -155,7 +156,10 @@ func _process(delta: float) -> void:
 	else:
 		_read_timer += delta
 		if current_phase == DialoguePhase.TUTORIAL_GUIDE:
-			if tutorial_state == TutorialState.COMPLETED and _read_timer >= display_duration_per_line:
+			if tutorial_state == TutorialState.WELCOME and _read_timer >= display_duration_per_line:
+				tutorial_state = TutorialState.GREETING
+				_set_dialogue_text(tutorial_greeting_text)
+			elif tutorial_state == TutorialState.COMPLETED and _read_timer >= display_duration_per_line:
 				current_phase = DialoguePhase.GAMEPLAY_RANDOM
 				tutorial_completed.emit()
 				_pick_next_random_gameplay_line()
