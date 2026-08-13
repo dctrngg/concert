@@ -7,15 +7,14 @@
 [ext_resource type="Texture2D" path="res://Sprites/UI_Flat_BarFill01e.png" id="5_stress_fill"]
 [ext_resource type="Texture2D" path="res://Sprites/UI_Flat_Banner02a.png" id="6_banner_tex"]
 [ext_resource type="Texture2D" path="res://Sprites/UI_Flat_Frame03a.png" id="7_stats_frame"]
-
 [ext_resource type="FontFile" path="res://0307-LNTH-TwistyPixel.ttf" id="8_pixel_font"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_stats_panel"]
 texture = ExtResource("7_stats_frame")
-texture_margin_left = 12.0
-texture_margin_top = 10.0
-texture_margin_right = 12.0
-texture_margin_bottom = 10.0
+texture_margin_left = 14.0
+texture_margin_top = 12.0
+texture_margin_right = 14.0
+texture_margin_bottom = 12.0
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bar_bg"]
 texture = ExtResource("3_bar_bg")
@@ -40,16 +39,16 @@ texture_margin_bottom = 2.0
 
 [sub_resource type="LabelSettings" id="LabelSettings_stamina"]
 font = ExtResource("8_pixel_font")
-font_size = 16
+font_size = 24
 font_color = Color(1, 0.88, 0.25, 1)
-outline_size = 3
+outline_size = 5
 outline_color = Color(0, 0, 0, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_stress"]
 font = ExtResource("8_pixel_font")
-font_size = 16
+font_size = 24
 font_color = Color(1, 0.45, 0.35, 1)
-outline_size = 3
+outline_size = 5
 outline_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_top_panel"]
@@ -61,16 +60,16 @@ texture_margin_bottom = 8.0
 
 [sub_resource type="LabelSettings" id="LabelSettings_timer"]
 font = ExtResource("8_pixel_font")
-font_size = 26
+font_size = 32
 font_color = Color(1, 0.96, 0.4, 1)
-outline_size = 4
+outline_size = 5
 outline_color = Color(0, 0, 0, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_score"]
 font = ExtResource("8_pixel_font")
-font_size = 20
+font_size = 24
 font_color = Color(1, 0.85, 0.1, 1)
-outline_size = 3
+outline_size = 4
 outline_color = Color(0, 0, 0, 1)
 
 [node name="HUD" type="CanvasLayer"]
@@ -89,27 +88,27 @@ mouse_filter = 2
 layout_mode = 0
 offset_left = 20.0
 offset_top = 15.0
-offset_right = 270.0
-offset_bottom = 85.0
+offset_right = 380.0
+offset_bottom = 125.0
 theme_override_styles/panel = SubResource("StyleBoxTexture_stats_panel")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Control/StatsPanel"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 10
 alignment = 1
 
 [node name="StaminaContainer" type="HBoxContainer" parent="Control/StatsPanel/VBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 12
 
 [node name="Label" type="Label" parent="Control/StatsPanel/VBoxContainer/StaminaContainer"]
-custom_minimum_size = Vector2(75, 0)
+custom_minimum_size = Vector2(115, 0)
 layout_mode = 2
 text = "⚡ THỂ LỰC"
 label_settings = SubResource("LabelSettings_stamina")
 
 [node name="StaminaBar" type="ProgressBar" parent="Control/StatsPanel/VBoxContainer/StaminaContainer"]
-custom_minimum_size = Vector2(0, 16)
+custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
@@ -120,16 +119,16 @@ show_percentage = false
 
 [node name="StressContainer" type="HBoxContainer" parent="Control/StatsPanel/VBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 12
 
 [node name="Label" type="Label" parent="Control/StatsPanel/VBoxContainer/StressContainer"]
-custom_minimum_size = Vector2(75, 0)
+custom_minimum_size = Vector2(115, 0)
 layout_mode = 2
 text = "🔥 STRESS"
 label_settings = SubResource("LabelSettings_stress")
 
 [node name="StressBar" type="ProgressBar" parent="Control/StatsPanel/VBoxContainer/StressContainer"]
-custom_minimum_size = Vector2(0, 16)
+custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
@@ -138,21 +137,21 @@ theme_override_styles/fill = SubResource("StyleBoxTexture_stress_fill")
 show_percentage = false
 
 [node name="TopCenterPanel" type="PanelContainer" parent="Control"]
-custom_minimum_size = Vector2(280, 72)
+custom_minimum_size = Vector2(340, 85)
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -140.0
+offset_left = -170.0
 offset_top = 10.0
-offset_right = 140.0
-offset_bottom = 82.0
+offset_right = 170.0
+offset_bottom = 95.0
 grow_horizontal = 2
 theme_override_styles/panel = SubResource("StyleBoxTexture_top_panel")
 
 [node name="VBox" type="VBoxContainer" parent="Control/TopCenterPanel"]
 layout_mode = 2
-theme_override_constants/separation = 2
+theme_override_constants/separation = 4
 alignment = 1
 
 [node name="TimerLabel" type="Label" parent="Control/TopCenterPanel/VBox"]
@@ -169,12 +168,12 @@ horizontal_alignment = 1
 
 [node name="QuestListContainer" type="VBoxContainer" parent="Control"]
 layout_mode = 0
-offset_left = -260.0
+offset_left = -350.0
 offset_top = 15.0
 offset_right = -20.0
 anchor_left = 1.0
 anchor_right = 1.0
 grow_horizontal = 0
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
 
 [node name="LevelResultDialog" parent="." instance=ExtResource("2_result_dialog")]
