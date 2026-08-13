@@ -29,18 +29,28 @@ extends CharacterBody2D
 			_point_light.texture_scale = val
 
 @export_group("Intro Camera Config")
-## Mức zoom ban đầu khi mới vào game (ví dụ: 5.0 là cận cảnh x5, 3.0 là x3)
+## Khóa di chuyển nhân vật khi camera đang chạy hiệu ứng Intro Zoom
+@export var lock_movement_during_intro: bool = true
+## Mức zoom ban đầu khi mới vào game (cận cảnh x5)
 @export var intro_zoom_start: float = 5.0
-## Mức zoom đích sau khi thu nhỏ góc nhìn (mặc định: 1.0)
+## Mức zoom trung gian (toàn cảnh x0.5)
+@export var intro_zoom_mid: float = 0.5
+## Mức zoom kết thúc (chơi game chuẩn x1.0)
 @export var intro_zoom_end: float = 1.0
-## Thời gian tạm dừng cận cảnh trước khi bắt đầu thu nhỏ (giây)
-@export var intro_zoom_delay: float = 0.5
-## Thời gian thu nhỏ góc nhìn từ start -> end (giây)
-@export var intro_zoom_duration: float = 2.5
+## Thời gian tạm dừng khi đang cận cảnh x5 (giây)
+@export var intro_delay_close: float = 0.6
+## Thời gian zoom-out từ x5 ra x0.5 (giây)
+@export var intro_duration_out: float = 2.0
+## Thời gian tạm dừng khi ở toàn cảnh x0.5 (giây)
+@export var intro_delay_mid: float = 0.4
+## Thời gian zoom-in từ x0.5 về x1.0 (giây)
+@export var intro_duration_in: float = 1.5
 
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var _point_light: PointLight2D = get_node_or_null("PointLight2D")
 
+## Trạng thái khóa di chuyển Player (ví dụ khi đang Intro Camera)
+var is_movement_locked: bool = false
 
 ## Tham chiếu CrowdManager để hỏi get_crowd_slowdown() (mật độ NPC nền quanh player)
 var crowd_manager: Node = null
@@ -94,15 +104,43 @@ func _play_intro_camera_zoom() -> void:
 	if not cam:
 		return
 		
-	# 🎥 Bắt đầu game với mức Zoom ban đầu
+	# 🔒 1. Khóa di chuyển nếu được bật
+	if lock_movement_during_intro:
+		is_movement_locked = true
+		velocity = Vector2.ZERO
+		if animated_sprite:
+			animated_sprite.play("idle_down")
+
+	# 🎥 2. Bắt đầu ở mức Zoom cận cảnh x5
 	cam.zoom = Vector2(intro_zoom_start, intro_zoom_start)
 	
-	# 🎬 Tween zoom-out mượt từ start -> end
+	# 🎬 3. Chuỗi Tween: Cận x5 (dừng) -> Toàn cảnh x0.5 (dừng) -> Chuẩn x1.0 (mở khóa)
 	var tween = create_tween()
 	tween.set_parallel(false)
-	if intro_zoom_delay > 0.0:
-		tween.tween_interval(intro_zoom_delay)
-	tween.tween_property(cam, "zoom", Vector2(intro_zoom_end, intro_zoom_end), intro_zoom_duration).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	
+	# Dừng ngắn ở zoom cận cảnh
+	if intro_delay_close > 0.0:
+		tween.tween_interval(intro_delay_close)
+		
+	# Zoom-out từ cận cảnh (5.0) ra toàn cảnh (0.5)
+	tween.tween_property(cam, "zoom", Vector2(intro_zoom_mid, intro_zoom_mid), intro_duration_out)\
+		.set_trans(Tween.TRANS_CUBIC)\
+		.set_ease(Tween.EASE_OUT)
+		
+	# Dừng ngắn ở toàn cảnh (0.5)
+	if intro_delay_mid > 0.0:
+		tween.tween_interval(intro_delay_mid)
+		
+	# Zoom-in từ toàn cảnh (0.5) về chuẩn (1.0)
+	tween.tween_property(cam, "zoom", Vector2(intro_zoom_end, intro_zoom_end), intro_duration_in)\
+		.set_trans(Tween.TRANS_CUBIC)\
+		.set_ease(Tween.EASE_IN_OUT)
+		
+	# 🔓 4. Sau khi hoàn thành toàn bộ chuỗi zoom -> Mở khóa di chuyển nhân vật!
+	tween.tween_callback(func():
+		is_movement_locked = false
+		print("[Player] 🔓 Hoàn thành Intro Camera (x5 -> x0.5 -> x1.0)! Đã mở khóa di chuyển.")
+	)
 
 func _load_soldier_character() -> void:
 	var soldier_path = "res://Sprites/RPG Top Down Characters/Soldier/soldier.png"
@@ -165,6 +203,9 @@ var last_flip: bool = false
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if is_movement_locked:
+		return
+
 	for action in DIRECTION_MAP.keys():
 		if event.is_action_pressed(action):
 			held_directions.erase(action)  # tránh trùng nếu auto-repeat input
@@ -184,6 +225,9 @@ func _unhandled_input(event: InputEvent) -> void:
 var _last_interact_msec: int = 0
 
 func _try_interact() -> void:
+	if is_movement_locked:
+		return
+
 	# Cooldown 350ms ngăn nhấp đúp tương tác quá nhanh gây vừa nhận vừa hoàn thành quest
 	var now_msec = Time.get_ticks_msec()
 	if now_msec - _last_interact_msec < 350:
@@ -256,6 +300,11 @@ func _try_interact() -> void:
 
 
 func _physics_process(_delta: float) -> void:
+	if is_movement_locked:
+		velocity = Vector2.ZERO
+		_update_animation(Vector2.ZERO, false)
+		return
+
 	var input_vector := Vector2.ZERO
 	input_vector.x = Input.get_axis("move_left", "move_right")
 	input_vector.y = Input.get_axis("move_up", "move_down")

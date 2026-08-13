@@ -21,6 +21,7 @@
 [ext_resource type="Texture2D" uid="uid://duryqs3s8xlsn" path="res://Spritesheets/Backgrounds/Tilesets/TilesetHouse.png" id="15_a6mvv"]
 [ext_resource type="PackedScene" uid="uid://d1vyh0ke7sn51" path="res://Scene/sound_manager.tscn" id="16_sound_mgr"]
 [ext_resource type="Script" uid="uid://bwi23om0cyjic" path="res://Scripts/camera_bounds.gd" id="17_cambounds_script"]
+[ext_resource type="Texture2D" uid="uid://2libcylmjrd6" path="res://Sprites/flaggg.png" id="22_w1jyx"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_vip1"]
 size = Vector2(614, 67)
@@ -38,7 +39,7 @@ size = Vector2(273.3854, 150.43755)
 size = Vector2(266.43744, 145.88545)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_aud4"]
-size = Vector2(1032.6667, 189.94273)
+size = Vector2(1022.66675, 204.94275)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_aud5"]
 size = Vector2(172.66666, 439.21875)
@@ -8049,6 +8050,9 @@ background_mode = 3
 glow_intensity = 1.2
 glow_bloom = 0.3
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_flag_base"]
+size = Vector2(68, 45)
+
 [node name="World" type="Node2D" unique_id=2048086502]
 position = Vector2(-1223, 706)
 
@@ -8119,7 +8123,7 @@ shape = SubResource("RectangleShape2D_aud2")
 position = Vector2(30, 45)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CrowdManager/AudienceZone4" unique_id=1289323208]
-position = Vector2(-18.333313, 480.02866)
+position = Vector2(-23.333313, 487.52866)
 shape = SubResource("RectangleShape2D_aud4")
 
 [node name="AudienceZone5" type="Area2D" parent="CrowdManager" unique_id=410579901]
@@ -8153,7 +8157,7 @@ scale = Vector2(5, 5)
 stall_id = 2
 
 [node name="FoodSource4" parent="." unique_id=815091584 instance=ExtResource("4_food_source")]
-position = Vector2(-69.000046, 1978)
+position = Vector2(-300, 1975.675)
 scale = Vector2(5, 5)
 stall_id = 3
 
@@ -8178,7 +8182,7 @@ pickup_volume_boost = 10.0
 script = ExtResource("17_cambounds_script")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CameraBounds" unique_id=778899113]
-position = Vector2(33, 964.5)
+position = Vector2(-423, 939)
 shape = SubResource("RectangleShape2D_cambounds")
 
 [node name="FightSpawner" type="Node2D" parent="." unique_id=358235227]
@@ -8219,3 +8223,15 @@ color = Color(0.5206067, 0.54207003, 0.69037193, 1)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1847192002]
 environment = SubResource("Environment_night")
+
+[node name="Flaggg" type="StaticBody2D" parent="." unique_id=425252143 groups=["static_obstacle"]]
+position = Vector2(117, 1573)
+scale = Vector2(8, 8)
+collision_layer = 5
+
+[node name="Sprite2D" type="Sprite2D" parent="Flaggg" unique_id=425252144]
+texture = ExtResource("22_w1jyx")
+
+[node name="BaseCollision" type="CollisionShape2D" parent="Flaggg" unique_id=425252145]
+position = Vector2(0, 14)
+shape = SubResource("RectangleShape2D_flag_base")

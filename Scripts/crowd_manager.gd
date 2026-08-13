@@ -1183,6 +1183,63 @@ func _build_object_tile_rects() -> void:
 				for gy in range(min_gy, max_gy + 1):
 					blocked_grid_cells[Vector2i(gx, gy)] = true
 
+	_build_standalone_obstacle_cells()
+
+func _build_standalone_obstacle_cells() -> void:
+	var obstacle_nodes: Array[Node] = []
+	if is_inside_tree():
+		for n in get_tree().get_nodes_in_group("static_obstacle"):
+			if not obstacle_nodes.has(n):
+				obstacle_nodes.append(n)
+			
+	for path in ["../Flaggg", "../Flag", "../flag"]:
+		var node = get_node_or_null(path)
+		if node != null and not obstacle_nodes.has(node):
+			obstacle_nodes.append(node)
+			
+	for node in obstacle_nodes:
+		_register_node_obstacle_cells(node)
+
+func _register_node_obstacle_cells(node: Node) -> void:
+	if node == null:
+		return
+	var col_shapes = _find_collision_shapes(node)
+	for cs in col_shapes:
+		var shape2d = cs.shape
+		if shape2d is RectangleShape2D:
+			var rect_size: Vector2 = shape2d.size
+			var half_size: Vector2 = rect_size / 2.0
+			
+			var g_tl: Vector2 = cs.to_global(-half_size)
+			var g_br: Vector2 = cs.to_global(half_size)
+			var g_tr: Vector2 = cs.to_global(Vector2(half_size.x, -half_size.y))
+			var g_bl: Vector2 = cs.to_global(Vector2(-half_size.x, half_size.y))
+			
+			var l_tl: Vector2 = to_local(g_tl)
+			var l_br: Vector2 = to_local(g_br)
+			var l_tr: Vector2 = to_local(g_tr)
+			var l_bl: Vector2 = to_local(g_bl)
+			
+			var min_pos = Vector2(min(min(l_tl.x, l_br.x), min(l_tr.x, l_bl.x)), min(min(l_tl.y, l_br.y), min(l_tr.y, l_bl.y)))
+			var max_pos = Vector2(max(max(l_tl.x, l_br.x), max(l_tr.x, l_bl.x)), max(max(l_tl.y, l_br.y), max(l_tr.y, l_bl.y)))
+			
+			var min_gx = int(floor(min_pos.x / TILE_GRID_SIZE))
+			var max_gx = int(floor(max_pos.x / TILE_GRID_SIZE))
+			var min_gy = int(floor(min_pos.y / TILE_GRID_SIZE))
+			var max_gy = int(floor(max_pos.y / TILE_GRID_SIZE))
+			
+			for gx in range(min_gx, max_gx + 1):
+				for gy in range(min_gy, max_gy + 1):
+					blocked_grid_cells[Vector2i(gx, gy)] = true
+
+func _find_collision_shapes(parent: Node) -> Array[CollisionShape2D]:
+	var shapes: Array[CollisionShape2D] = []
+	if parent is CollisionShape2D:
+		shapes.append(parent as CollisionShape2D)
+	for child in parent.get_children():
+		shapes.append_array(_find_collision_shapes(child))
+	return shapes
+
 func _create_merged_tilemap_collisions() -> void:
 	for layer_path in ["../Object", "../Wall", "../barrier", "../tree", "../Tree", "../trees", "../Trees"]:
 		var layer = get_node_or_null(layer_path) as TileMapLayer
