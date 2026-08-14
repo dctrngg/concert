@@ -8,7 +8,7 @@ signal quest_timer_updated(quest: NPCQuestData, time_left: float)
 var active_quests: Array[NPCQuestData] = []
 
 var _popup_merch_timer: float = 0.0
-@export var auto_merch_popup_interval: float = 40.0
+@export var auto_merch_popup_interval: float = 85.0
 
 func get_player() -> Node2D:
 	return get_tree().get_first_node_in_group("player") as Node2D
@@ -105,7 +105,7 @@ func fail_quest(quest: NPCQuestData) -> void:
 	quest_failed.emit(quest)
 
 func _process(delta: float) -> void:
-	# 1. Quản lý tự động phát sinh nhiệm vụ đột xuất Bán Merch định kỳ (40s)
+	# 1. Quản lý tự động phát sinh nhiệm vụ đột xuất Bán Merch định kỳ (85s)
 	_popup_merch_timer += delta
 	if _popup_merch_timer >= auto_merch_popup_interval:
 		_popup_merch_timer = 0.0
