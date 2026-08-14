@@ -5,82 +5,62 @@ signal level_timer_updated(time_remaining: float, time_limit: float)
 signal level_completed(score: int, stars_earned: int, is_passed: bool)
 signal level_started(level_info: Dictionary)
 
-# Cấu hình Cấp độ / Map
-const LEVEL_CONFIGS: Array[Dictionary] = [
-	{
-		"level_id": 1,
-		"title": "Cấp độ 1: Đêm Diễn Khởi Đầu",
-		"description": "Làm quen với không khí concert. Phục vụ khán giả và đảm bảo an ninh!",
-		"scene_path": "res://Scene/world.tscn",
-		"time_limit": 300.0, # 5 phút
-		"star_thresholds": [150, 350, 600] # Mốc 1 sao, 2 sao, 3 sao
-	},
-	{
-		"level_id": 2,
-		"title": "Cấp độ 2: Sức Nóng Đỉnh Điểm",
-		"description": "Đám đông cuồng nhiệt hơn, nhiều sự cố ẩu đả phát sinh!",
-		"scene_path": "res://Scene/world.tscn",
-		"time_limit": 300.0, # 5 phút
-		"star_thresholds": [200, 450, 750]
-	},
-	{
-		"level_id": 3,
-		"title": "Cấp độ 3: Đêm Đại Ca Nhạc",
-		"description": "Thử thách lớn nhất! Đòi hỏi khả năng xử lý tình huống cực kỳ nhanh nhạy.",
-		"scene_path": "res://Scene/world.tscn",
-		"time_limit": 300.0, # 5 phút
-		"star_thresholds": [250, 550, 900]
-	}
-]
+signal fever_state_changed(is_fever: bool, multiplier: int)
+signal combo_updated(combo_count: int, multiplier: int, time_left: float)
 
-var current_level_index: int = 0
-var current_score: int = 0
-var time_remaining: float = 300.0
-var is_level_active: bool = false
-var is_paused: bool = false
+# FEVER MODE & COMBO STREAK
+var combo_count: int = 0
+var combo_timer: float = 0.0
+var fever_multiplier: int = 1
+var is_fever_active: bool = false
+const COMBO_WINDOW_DURATION: float = 14.0
 
-# Dữ liệu lưu tiến trình mở khóa & số sao cao nhất
-var unlocked_levels: Array = [1] # Mặc định level 1 đã mở khóa
-var level_stars: Dictionary = {}      # level_id -> stars (int 0..3)
-var level_high_scores: Dictionary = {}# level_id -> score (int)
-
-const SAVE_PATH = "user://save_game.cfg"
-
-func _ready() -> void:
-	load_progress()
-	process_mode = Node.PROCESS_MODE_ALWAYS
-
-func get_current_level_data() -> Dictionary:
-	if current_level_index >= 0 and current_level_index < LEVEL_CONFIGS.size():
-		return LEVEL_CONFIGS[current_level_index]
-	return LEVEL_CONFIGS[0]
-
-func start_level(level_id: int) -> void:
-	for i in range(LEVEL_CONFIGS.size()):
-		if LEVEL_CONFIGS[i]["level_id"] == level_id:
-			current_level_index = i
-			break
+func register_quest_completion() -> void:
+	if not is_level_active:
+		return
+		
+	combo_count += 1
+	combo_timer = COMBO_WINDOW_DURATION
+	
+	var old_multiplier = fever_multiplier
+	var old_fever = is_fever_active
+	
+	if combo_count >= 5:
+		fever_multiplier = 4
+		is_fever_active = true
+	elif combo_count >= 3:
+		fever_multiplier = 3
+		is_fever_active = true
+	elif combo_count >= 2:
+		fever_multiplier = 2
+		is_fever_active = true
+	else:
+		fever_multiplier = 1
+		is_fever_active = false
+		
+	if old_fever != is_fever_active or old_multiplier != fever_multiplier:
+		fever_state_changed.emit(is_fever_active, fever_multiplier)
+		var stage_node = get_tree().get_first_node_in_group("concert_stage")
+		if stage_node and stage_node.has_method("burst_confetti"):
+			stage_node.burst_confetti()
 			
-	var level_data = get_current_level_data()
-	current_score = 0
-	time_remaining = level_data["time_limit"]
-	is_level_active = true
-	is_paused = false
-	get_tree().paused = false
-	
-	score_changed.emit(current_score, level_data["star_thresholds"])
-	level_timer_updated.emit(time_remaining, level_data["time_limit"])
-	level_started.emit(level_data)
-	
-	# Load scene nếu chưa nằm đúng scene
-	var target_scene = level_data["scene_path"]
-	if get_tree().current_scene and get_tree().current_scene.scene_file_path != target_scene:
-		get_tree().change_scene_to_file(target_scene)
+	combo_updated.emit(combo_count, fever_multiplier, combo_timer)
+
+func _reset_combo() -> void:
+	combo_count = 0
+	combo_timer = 0.0
+	var was_fever = is_fever_active
+	fever_multiplier = 1
+	is_fever_active = false
+	if was_fever:
+		fever_state_changed.emit(false, 1)
+	combo_updated.emit(0, 1, 0.0)
 
 func add_score(amount: int) -> void:
 	if not is_level_active:
 		return
-	current_score += amount
+	var final_amount = amount * fever_multiplier
+	current_score += final_amount
 	var level_data = get_current_level_data()
 	score_changed.emit(current_score, level_data["star_thresholds"])
 
@@ -91,6 +71,13 @@ func _process(delta: float) -> void:
 	time_remaining -= delta
 	var level_data = get_current_level_data()
 	level_timer_updated.emit(max(0.0, time_remaining), level_data["time_limit"])
+	
+	# Cập nhật đếm ngược Combo Timer
+	if combo_timer > 0.0:
+		combo_timer -= delta
+		combo_updated.emit(combo_count, fever_multiplier, combo_timer)
+		if combo_timer <= 0.0:
+			_reset_combo()
 	
 	if time_remaining <= 0.0:
 		finish_level()

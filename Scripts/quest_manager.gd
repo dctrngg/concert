@@ -83,6 +83,8 @@ func complete_quest(quest: NPCQuestData) -> void:
 
 	var gm = get_node_or_null("/root/GameManager")
 	if gm:
+		if gm.has_method("register_quest_completion"):
+			gm.register_quest_completion()
 		gm.add_score(quest.reward_points)
 		
 	# Bắn Pháo hoa Kim tuyến Confetti chúc mừng khi hoàn thành nhiệm vụ!

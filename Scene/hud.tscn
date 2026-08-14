@@ -167,6 +167,62 @@ text = "🏆 Điểm: 0 (☆☆☆)"
 label_settings = SubResource("LabelSettings_score")
 horizontal_alignment = 1
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fever_panel"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.95, 0.45, 0.05, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.9, 0.3, 0.95)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+
+[sub_resource type="LabelSettings" id="LabelSettings_fever"]
+font = ExtResource("8_pixel_font")
+font_size = 20
+font_color = Color(1, 0.98, 0.3, 1)
+outline_size = 4
+outline_color = Color(0, 0, 0, 1)
+
+[node name="FeverPanel" type="PanelContainer" parent="Control"]
+visible = false
+custom_minimum_size = Vector2(320, 45)
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -160.0
+offset_top = 102.0
+offset_right = 160.0
+offset_bottom = 147.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_fever_panel")
+
+[node name="VBox" type="VBoxContainer" parent="Control/FeverPanel"]
+layout_mode = 2
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="FeverLabel" type="Label" parent="Control/FeverPanel/VBox"]
+layout_mode = 2
+text = "🔥 FEVER MODE x2 (COMBO 2!) 🔥"
+label_settings = SubResource("LabelSettings_fever")
+horizontal_alignment = 1
+
+[node name="ComboBar" type="ProgressBar" parent="Control/FeverPanel/VBox"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxTexture_bar_bg")
+theme_override_styles/fill = SubResource("StyleBoxTexture_stamina_fill")
+value = 100.0
+show_percentage = false
+
 [node name="QuestListContainer" type="VBoxContainer" parent="Control"]
 layout_mode = 0
 offset_left = -510.0
