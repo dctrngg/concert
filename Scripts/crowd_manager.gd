@@ -323,12 +323,15 @@ func _process(delta: float) -> void:
 	var view_rect = _get_camera_view_rect()
 	var player = get_node_or_null("../Player") as Node2D
 
-	# Y của Player trong local space của CrowdManager — dùng để quyết định mỗi
-	# NPC nền nên vẽ trước (mm_front) hay sau (mm_back) Player frame này.
-	# Không có Player -> mặc định mọi NPC ở buffer "back".
+	# Y của điểm CHÂN (Feet) Player trong local space của CrowdManager — dùng để quyết định mỗi
+	# NPC nền nên vẽ trước (mm_front) hay sau (mm_back) Player frame này với độ chính xác pixel tuyệt đối.
 	var player_local_y: float = INF
 	if player:
-		player_local_y = to_local(player.global_position).y
+		var player_feet_global = player.global_position
+		var player_col = player.get_node_or_null("CollisionShape2D")
+		if player_col:
+			player_feet_global += player_col.position
+		player_local_y = to_local(player_feet_global).y
 
 	var hidden_xform := Transform2D(0.0, Vector2(-999999.0, -999999.0))
 
@@ -437,7 +440,9 @@ func _process(delta: float) -> void:
 			
 		# Offscreen optimization & state cache check (giảm 85% C++ calls cho 60 FPS)
 		var in_view = view_rect.has_point(positions[i])
-		var use_front_buffer: bool = (positions[i].y > player_local_y) and (is_vip[i] == 0)
+		# So sánh điểm chân NPC (positions[i].y + 10px) với điểm chân Player để quyết định layer trước/sau chuẩn xác 100%
+		var npc_feet_y = positions[i].y + 10.0
+		var use_front_buffer: bool = (npc_feet_y > player_local_y) and (is_vip[i] == 0)
 		var front_flag: int = 1 if use_front_buffer else 0
 		
 		if not in_view:
@@ -1081,6 +1086,9 @@ func _promote_npc(i: int) -> void:
 	npc_node.process_mode = Node.PROCESS_MODE_INHERIT
 	npc_node.collision_layer = 2
 	npc_node.collision_mask = 7
+	npc_node.z_as_relative = true
+	npc_node.z_index = 0
+	npc_node.y_sort_enabled = true
 	
 	promoted_nodes[i] = npc_node
 	is_promoted[i] = 1
@@ -1199,7 +1207,11 @@ func release_fight_crowd(occupied_indices: Array[int], new_global_positions: Arr
 	var player = get_node_or_null("../Player") as Node2D
 	var player_local_y: float = INF
 	if player:
-		player_local_y = to_local(player.global_position).y
+		var p_feet = player.global_position
+		var p_col = player.get_node_or_null("CollisionShape2D")
+		if p_col:
+			p_feet += p_col.position
+		player_local_y = to_local(p_feet).y
 		
 	for i in range(occupied_indices.size()):
 		var idx: int = occupied_indices[i]
@@ -1219,7 +1231,8 @@ func release_fight_crowd(occupied_indices: Array[int], new_global_positions: Arr
 			
 			var xform := Transform2D(0.0, positions[idx])
 			var hidden_xform := Transform2D(0.0, Vector2(-999999.0, -999999.0))
-			var use_front_buffer: bool = (positions[idx].y > player_local_y) and (is_vip[idx] == 0)
+			var npc_feet_y = positions[idx].y + 10.0
+			var use_front_buffer: bool = (npc_feet_y > player_local_y) and (is_vip[idx] == 0)
 			if use_front_buffer:
 				mm_front.multimesh.set_instance_transform_2d(idx, xform)
 				mm_back.multimesh.set_instance_transform_2d(idx, hidden_xform)
