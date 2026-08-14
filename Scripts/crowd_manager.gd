@@ -1361,7 +1361,7 @@ func _build_standalone_obstacle_cells() -> void:
 			if not obstacle_nodes.has(n):
 				obstacle_nodes.append(n)
 			
-	for path in ["../Flaggg", "../Flag", "../flag"]:
+	for path in ["../Tree", "../Trees", "../tree", "../trees", "../TreeColliders", "../Flaggg", "../Flag", "../flag"]:
 		var node = get_node_or_null(path)
 		if node != null and not obstacle_nodes.has(node):
 			obstacle_nodes.append(node)
@@ -1375,8 +1375,19 @@ func _register_node_obstacle_cells(node: Node) -> void:
 	var col_shapes = _find_collision_shapes(node)
 	for cs in col_shapes:
 		var shape2d = cs.shape
+		var rect_size: Vector2 = Vector2.ZERO
+		
 		if shape2d is RectangleShape2D:
-			var rect_size: Vector2 = shape2d.size
+			rect_size = shape2d.size
+		elif shape2d is CircleShape2D:
+			var r = shape2d.radius
+			rect_size = Vector2(r * 2.0, r * 2.0)
+		elif shape2d is CapsuleShape2D:
+			var r = shape2d.radius
+			var h = shape2d.height
+			rect_size = Vector2(r * 2.0, h)
+			
+		if rect_size != Vector2.ZERO:
 			var half_size: Vector2 = rect_size / 2.0
 			
 			var g_tl: Vector2 = cs.to_global(-half_size)

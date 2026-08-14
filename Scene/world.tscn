@@ -8970,7 +8970,7 @@ sources/1 = SubResource("TileSetAtlasSource_pbc3o")
 sources/2 = SubResource("TileSetAtlasSource_q32hj")
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_tree_foot"]
-radius = 59.03389
+radius = 79.40403
 
 [node name="World" type="Node2D" unique_id=2048086502]
 position = Vector2(-1223, 706)
@@ -8981,7 +8981,7 @@ scale = Vector2(3, 3)
 walk_speed = 300.0
 run_speed = 400.0
 intro_zoom_start = 3.0
-intro_zoom_delay = 1.0
+intro_zoom_delay = 5.0
 
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=1040013179]
 
