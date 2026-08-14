@@ -10,10 +10,6 @@ class_name HUD
 var _quest_item_scene: PackedScene = preload("res://Scene/quest_hud_item.tscn")
 var _active_hud_items: Dictionary = {}  # quest_id -> QuestHudItem node
 
-@onready var fever_panel: PanelContainer = $Control/FeverPanel
-@onready var fever_label: Label = $Control/FeverPanel/VBox/FeverLabel
-@onready var combo_bar: ProgressBar = $Control/FeverPanel/VBox/ComboBar
-
 func _ready() -> void:
 	await get_tree().process_frame
 
@@ -43,11 +39,6 @@ func _ready() -> void:
 	if gm:
 		gm.score_changed.connect(_on_score_changed)
 		gm.level_timer_updated.connect(_on_level_timer_updated)
-		if gm.has_signal("fever_state_changed"):
-			gm.fever_state_changed.connect(_on_fever_state_changed)
-		if gm.has_signal("combo_updated"):
-			gm.combo_updated.connect(_on_combo_updated)
-			
 		var lvl_data = gm.get_current_level_data()
 		_on_score_changed(gm.current_score, lvl_data["star_thresholds"])
 		_on_level_timer_updated(gm.time_remaining, lvl_data["time_limit"])
@@ -67,28 +58,6 @@ func _on_mobile_toggle_pressed() -> void:
 	var mc = get_node_or_null("MobileControls")
 	if mc and mc.has_method("toggle_mobile_controls"):
 		mc.toggle_mobile_controls()
-
-func _on_fever_state_changed(is_fever: bool, multiplier: int) -> void:
-	if fever_panel:
-		fever_panel.visible = is_fever
-	if fever_label:
-		fever_label.text = "🔥 FEVER MODE x%d MULTIPLIER! 🔥" % multiplier
-
-func _on_combo_updated(combo_count: int, multiplier: int, time_left: float) -> void:
-	if combo_count >= 2:
-		if fever_panel:
-			fever_panel.visible = true
-		if fever_label:
-			var title_str = "🔥 FEVER x%d (COMBO %d!) 🔥" % [multiplier, combo_count]
-			if multiplier >= 4:
-				title_str = "⚡ MAX DISCO FEVER x4 (COMBO %d!) ⚡" % combo_count
-			fever_label.text = title_str
-		if combo_bar:
-			combo_bar.max_value = 14.0
-			combo_bar.value = time_left
-	else:
-		if fever_panel:
-			fever_panel.visible = false
 
 # ─── Stamina & Stress ───────────────────────────────────────────────────────
 

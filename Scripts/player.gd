@@ -52,35 +52,12 @@ var _next_frame_contact_mult: float = 1.0
 var stats: PlayerStats = null
 var inventory: PlayerInventory = null
 
-var _fever_aura: Node2D = null
-
 func _ready() -> void:
 	add_to_group("player")
 	if _point_light:
 		_point_light.energy = light_energy
 		_point_light.texture_scale = light_scale
 	crowd_manager = get_node_or_null("../CrowdManager")
-	
-	_setup_fever_aura()
-
-func _setup_fever_aura() -> void:
-	_fever_aura = Node2D.new()
-	_fever_aura.name = "FeverAura"
-	_fever_aura.z_index = -1
-	_fever_aura.visible = false
-	add_child(_fever_aura)
-	_fever_aura.draw.connect(_on_draw_fever_aura)
-
-func _on_draw_fever_aura() -> void:
-	if not _fever_aura or not _fever_aura.visible:
-		return
-	var time_p = Time.get_ticks_msec() / 1000.0
-	var hue = fmod(time_p * 0.8, 1.0)
-	var aura_color = Color.from_hsv(hue, 0.95, 1.0, 0.65)
-	var aura_radius = 28.0 + sin(time_p * 8.0) * 4.0
-	
-	_fever_aura.draw_circle(Vector2(0, 4), aura_radius, aura_color)
-	_fever_aura.draw_circle(Vector2(0, 4), aura_radius + 6.0, Color(aura_color.r, aura_color.g, aura_color.b, 0.3))
 	
 	stats = get_node_or_null("PlayerStats")
 	if not stats:
@@ -333,19 +310,9 @@ var _shake_time: float = 0.0
 
 func apply_camera_shake(intensity: float = 8.0) -> void:
 	shake_amount = max(shake_amount, intensity)
-	var stage_node = get_tree().get_first_node_in_group("concert_stage")
-	if stage_node and stage_node.has_method("burst_confetti"):
-		stage_node.burst_confetti()
 
 func _process(delta: float) -> void:
 	_update_camera_shake(delta)
-	
-	var gm = get_node_or_null("/root/GameManager")
-	var is_fever = (gm != null and "is_fever_active" in gm and gm.is_fever_active)
-	if _fever_aura:
-		_fever_aura.visible = is_fever
-		if is_fever:
-			_fever_aura.queue_redraw()
 
 func _update_camera_shake(delta: float) -> void:
 	var cam = get_node_or_null("Camera2D") as Camera2D

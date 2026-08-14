@@ -5,9 +5,6 @@ signal level_timer_updated(time_remaining: float, time_limit: float)
 signal level_completed(score: int, stars_earned: int, is_passed: bool)
 signal level_started(level_info: Dictionary)
 
-signal fever_state_changed(is_fever: bool, multiplier: int)
-signal combo_updated(combo_count: int, multiplier: int, time_left: float)
-
 # Cấu hình Cấp độ / Map
 const LEVEL_CONFIGS: Array[Dictionary] = [
 	{
@@ -42,13 +39,6 @@ var time_remaining: float = 300.0
 var is_level_active: bool = false
 var is_paused: bool = false
 
-# FEVER MODE & COMBO STREAK
-var combo_count: int = 0
-var combo_timer: float = 0.0
-var fever_multiplier: int = 1
-var is_fever_active: bool = false
-const COMBO_WINDOW_DURATION: float = 14.0
-
 # Dữ liệu lưu tiến trình mở khóa & số sao cao nhất
 var unlocked_levels: Array = [1] # Mặc định level 1 đã mở khóa
 var level_stars: Dictionary = {}      # level_id -> stars (int 0..3)
@@ -77,62 +67,20 @@ func start_level(level_id: int) -> void:
 	is_level_active = true
 	is_paused = false
 	get_tree().paused = false
-	_reset_combo()
 	
 	score_changed.emit(current_score, level_data["star_thresholds"])
 	level_timer_updated.emit(time_remaining, level_data["time_limit"])
 	level_started.emit(level_data)
 	
+	# Load scene nếu chưa nằm đúng scene
 	var target_scene = level_data["scene_path"]
 	if get_tree().current_scene and get_tree().current_scene.scene_file_path != target_scene:
 		get_tree().change_scene_to_file(target_scene)
 
-func register_quest_completion() -> void:
-	if not is_level_active:
-		return
-		
-	combo_count += 1
-	combo_timer = COMBO_WINDOW_DURATION
-	
-	var old_multiplier = fever_multiplier
-	var old_fever = is_fever_active
-	
-	if combo_count >= 5:
-		fever_multiplier = 4
-		is_fever_active = true
-	elif combo_count >= 3:
-		fever_multiplier = 3
-		is_fever_active = true
-	elif combo_count >= 2:
-		fever_multiplier = 2
-		is_fever_active = true
-	else:
-		fever_multiplier = 1
-		is_fever_active = false
-		
-	if old_fever != is_fever_active or old_multiplier != fever_multiplier:
-		fever_state_changed.emit(is_fever_active, fever_multiplier)
-		var stage_node = get_tree().get_first_node_in_group("concert_stage")
-		if stage_node and stage_node.has_method("burst_confetti"):
-			stage_node.burst_confetti()
-			
-	combo_updated.emit(combo_count, fever_multiplier, combo_timer)
-
-func _reset_combo() -> void:
-	combo_count = 0
-	combo_timer = 0.0
-	var was_fever = is_fever_active
-	fever_multiplier = 1
-	is_fever_active = false
-	if was_fever:
-		fever_state_changed.emit(false, 1)
-	combo_updated.emit(0, 1, 0.0)
-
 func add_score(amount: int) -> void:
 	if not is_level_active:
 		return
-	var final_amount = amount * fever_multiplier
-	current_score += final_amount
+	current_score += amount
 	var level_data = get_current_level_data()
 	score_changed.emit(current_score, level_data["star_thresholds"])
 
@@ -143,12 +91,6 @@ func _process(delta: float) -> void:
 	time_remaining -= delta
 	var level_data = get_current_level_data()
 	level_timer_updated.emit(max(0.0, time_remaining), level_data["time_limit"])
-	
-	if combo_timer > 0.0:
-		combo_timer -= delta
-		combo_updated.emit(combo_count, fever_multiplier, combo_timer)
-		if combo_timer <= 0.0:
-			_reset_combo()
 	
 	if time_remaining <= 0.0:
 		finish_level()
@@ -173,14 +115,17 @@ func finish_level() -> void:
 	
 	var level_id: int = level_data["level_id"]
 	
+	# Lưu điểm cao nhất và sao cao nhất
 	if stars > level_stars.get(level_id, 0):
 		level_stars[level_id] = stars
 	if current_score > level_high_scores.get(level_id, 0):
 		level_high_scores[level_id] = current_score
 		
+	# Mở khóa level tiếp theo nếu đạt tối thiểu 1 sao
 	if is_passed:
 		var next_level_id = level_id + 1
 		if not (next_level_id in unlocked_levels):
+			# Kiểm tra xem next_level_id có tồn tại trong LEVEL_CONFIGS không
 			for cfg in LEVEL_CONFIGS:
 				if cfg["level_id"] == next_level_id:
 					unlocked_levels.append(next_level_id)
@@ -205,6 +150,8 @@ func has_next_level() -> bool:
 		if cfg["level_id"] == next_id:
 			return true
 	return false
+
+# ─── SAVE / LOAD ─────────────────────────────────────────────────────────────
 
 func save_progress() -> void:
 	var config = ConfigFile.new()
