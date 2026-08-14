@@ -218,14 +218,17 @@ func _on_draw_stage_fog() -> void:
 	_stage_fog.draw_circle(Vector2(-180 + fog_offset_x, fog_y), 160.0, fog_color)
 	_stage_fog.draw_circle(Vector2(180 - fog_offset_x, fog_y), 160.0, fog_color)
 
+var _climax_confetti_timer: float = 0.0
+
 func trigger_climax() -> void:
 	is_climax_active = true
 	_climax_timer = climax_duration
 	_climax_interval_timer = 0.0
+	_climax_confetti_timer = 0.0
 	climax_started.emit()
 	print("[ConcertStage] 🔥 CAO TRÀO SÂN KHẤU BẮT ĐẦU! CA SĨ BÙNG NỔ!")
 	
-	# Bắn Pháo Hoa Kim Tuyến 2 bên Sân Khấu khi vào Cao Trào!
+	# Bắn Pháo Hoa Kim Tuyến Toàn Màn Hình ngập tràn khi bắt đầu Cao Trào!
 	burst_confetti()
 
 	# Kích hoạt cú Rung Camera Bùng Nổ sôi động khi Cao Trào bắt đầu
@@ -237,6 +240,7 @@ func end_climax() -> void:
 	is_climax_active = false
 	_climax_timer = 0.0
 	_climax_interval_timer = 0.0
+	_climax_confetti_timer = 0.0
 	climax_ended.emit()
 	print("[ConcertStage] Cao trào kết thúc, trả về nhịp điệu bình thường.")
 
@@ -249,6 +253,12 @@ func _process(delta: float) -> void:
 				trigger_climax()
 		else:
 			_climax_timer -= delta
+			# Bắn Pháo Hoa Kim Tuyến dồn dập lặp lại cùng nhịp rung camera trong suốt thời gian cao trào!
+			_climax_confetti_timer += delta
+			if _climax_confetti_timer >= 3.2:
+				_climax_confetti_timer = 0.0
+				burst_confetti()
+				
 			if _climax_timer <= 0.0:
 				end_climax()
 

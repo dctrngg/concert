@@ -304,6 +304,9 @@ var _shake_time: float = 0.0
 
 func apply_camera_shake(intensity: float = 8.0) -> void:
 	shake_amount = max(shake_amount, intensity)
+	var stage_node = get_tree().get_first_node_in_group("concert_stage")
+	if stage_node and stage_node.has_method("burst_confetti"):
+		stage_node.burst_confetti()
 
 func _process(delta: float) -> void:
 	_update_camera_shake(delta)
