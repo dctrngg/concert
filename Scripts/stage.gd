@@ -48,8 +48,7 @@ var _artist_target_x: Array[float] = []
 var _artist_state_timer: Array[float] = []
 var _artist_action_state: Array[int] = []
 
-var _confetti_left: CPUParticles2D = null
-var _confetti_right: CPUParticles2D = null
+var _confetti_cannons: Array[CPUParticles2D] = []
 var _dust_motes: CPUParticles2D = null
 var _stage_fog: Node2D = null
 
