@@ -1718,24 +1718,43 @@ func _trigger_random_crowd_speech_bubble(view_rect: Rect2, is_climax: bool) -> v
 	_spawn_floating_emoji_bubble(positions[idx] + Vector2(0, -28), emoji)
 
 func _spawn_floating_emoji_bubble(local_pos: Vector2, emoji: String) -> void:
+	var container = PanelContainer.new()
+	container.position = local_pos - Vector2(14, 18)
+	container.z_index = 20
+	
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.1, 0.1, 0.14, 0.85)
+	style.corner_radius_top_left = 6
+	style.corner_radius_top_right = 6
+	style.corner_radius_bottom_left = 6
+	style.corner_radius_bottom_right = 6
+	style.content_margin_left = 4
+	style.content_margin_right = 4
+	style.content_margin_top = 2
+	style.content_margin_bottom = 2
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.border_color = Color(1.0, 0.85, 0.3, 0.9)
+	container.add_theme_stylebox_override("panel", style)
+	
 	var bubble = Label.new()
 	bubble.text = emoji
-	bubble.position = local_pos
-	bubble.z_index = 10
+	bubble.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	bubble.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	
 	var settings = LabelSettings.new()
-	var custom_font = load("res://0307-LNTH-TwistyPixel.ttf")
-	if custom_font:
-		settings.font = custom_font
-	settings.font_size = 16
-	settings.outline_size = 3
+	settings.font_size = 18
+	settings.outline_size = 2
 	settings.outline_color = Color.BLACK
 	bubble.label_settings = settings
 	
-	add_child(bubble)
+	container.add_child(bubble)
+	add_child(container)
 	
 	var tween = create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(bubble, "position:y", local_pos.y - 22.0, 1.8).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
-	tween.tween_property(bubble, "modulate:a", 0.0, 1.8).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
-	tween.finished.connect(func(): if is_instance_valid(bubble): bubble.queue_free())
+	tween.tween_property(container, "position:y", local_pos.y - 45.0, 2.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	tween.tween_property(container, "modulate:a", 0.0, 2.2).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	tween.finished.connect(func(): if is_instance_valid(container): container.queue_free())

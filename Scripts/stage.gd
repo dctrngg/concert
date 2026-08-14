@@ -130,21 +130,21 @@ func _setup_stage_artists() -> void:
 		_stage_artist_sprites.append(artist)
 
 func _setup_confetti_and_atmosphere() -> void:
-	# 1. Hạt Bụi Đèn Spotlight Lơ Lửng (Ambient Dust Motes)
+	# 1. Hạt Bụi Đèn Spotlight Lơ Lửng Rực Rỡ (Ambient Dust Motes)
 	_dust_motes = CPUParticles2D.new()
 	_dust_motes.name = "DustMotes"
 	_dust_motes.z_index = 4
-	_dust_motes.amount = 65
+	_dust_motes.amount = 80
 	_dust_motes.lifetime = 5.0
 	_dust_motes.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
-	_dust_motes.emission_rect_extents = Vector2(650, 450)
+	_dust_motes.emission_rect_extents = Vector2(750, 500)
 	_dust_motes.position = Vector2(0, -350)
-	_dust_motes.gravity = Vector2(0, -8.0)
-	_dust_motes.initial_velocity_min = 5.0
-	_dust_motes.initial_velocity_max = 18.0
-	_dust_motes.scale_amount_min = 2.0
-	_dust_motes.scale_amount_max = 4.5
-	_dust_motes.color = Color(1.0, 0.96, 0.85, 0.35)
+	_dust_motes.gravity = Vector2(0, -10.0)
+	_dust_motes.initial_velocity_min = 8.0
+	_dust_motes.initial_velocity_max = 24.0
+	_dust_motes.scale_amount_min = 4.0
+	_dust_motes.scale_amount_max = 8.0
+	_dust_motes.color = Color(1.0, 0.98, 0.75, 0.65)
 	add_child(_dust_motes)
 
 	# 2. Pháo Hoa Giấy Kim Tuyến Sân Khấu (Stage Confetti Celebration)
@@ -157,6 +157,9 @@ func _setup_confetti_and_atmosphere() -> void:
 	_stage_fog.z_index = 2
 	add_child(_stage_fog)
 	_stage_fog.draw.connect(_on_draw_stage_fog)
+
+	# Tự động nổ pháo hoa Confetti chào mừng sau 1 giây khi vừa vào Đêm Nhạc!
+	get_tree().create_timer(1.0).timeout.connect(burst_confetti)
 
 func _create_confetti_cannon(pos: Vector2, dir: Vector2) -> CPUParticles2D:
 	var cannon = CPUParticles2D.new()
