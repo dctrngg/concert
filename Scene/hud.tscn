@@ -1,6 +1,6 @@
 [gd_scene load_steps=16 format=3 uid="uid://beplx2gmqpvh3"]
 
-[ext_resource type="Script" path="res://Scripts/hud.gd" id="1_hud_script"]
+[ext_resource type="Script" uid="uid://ca23g3w7lyx5" path="res://Scripts/hud.gd" id="1_hud_script"]
 [ext_resource type="PackedScene" uid="uid://c6v2n7x4k8q1j" path="res://Scene/level_result_dialog.tscn" id="2_result_dialog"]
 [ext_resource type="Texture2D" path="res://Sprites/UI_Flat_Bar01a.png" id="3_bar_bg"]
 [ext_resource type="Texture2D" path="res://Sprites/UI_Flat_BarFill01g.png" id="4_stamina_fill"]
@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" path="res://Sprites/UI_Flat_Banner02a.png" id="6_banner_tex"]
 [ext_resource type="Texture2D" path="res://Sprites/UI_Flat_Frame03a.png" id="7_stats_frame"]
 [ext_resource type="FontFile" path="res://0307-LNTH-TwistyPixel.ttf" id="8_pixel_font"]
+[ext_resource type="PackedScene" uid="uid://dm0b7x4k8q1j2" path="res://Scene/mobile_controls.tscn" id="9_mobile_controls"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_stats_panel"]
 texture = ExtResource("7_stats_frame")
@@ -176,10 +177,6 @@ anchor_right = 1.0
 grow_horizontal = 0
 theme_override_constants/separation = 14
 
-[ext_resource type="PackedScene" uid="uid://dm0b7x4k8q1j2" path="res://Scene/mobile_controls.tscn" id="9_mobile_controls"]
-
-[node name="MobileControls" parent="." instance=ExtResource("9_mobile_controls")]
-
 [node name="MobileToggleButton" type="Button" parent="Control"]
 layout_mode = 0
 offset_left = 20.0
@@ -190,5 +187,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("8_pixel_font")
 theme_override_font_sizes/font_size = 17
 text = "📱 Touch UI"
+
+[node name="MobileControls" parent="." instance=ExtResource("9_mobile_controls")]
 
 [node name="LevelResultDialog" parent="." instance=ExtResource("2_result_dialog")]
