@@ -40,14 +40,58 @@ func _get_active_target_position() -> Vector2:
 	if active_quests.is_empty():
 		return Vector2.INF
 
-	# Sắp xếp ưu tiên nhiệm vụ gần hết thời gian nhất (thời gian nhận trước / cấp bách trước)
-	active_quests.sort_custom(func(a, b): return a.time_remaining < b.time_remaining)
+	# ─────────────────────────────────────────────────────────────────────────
+	# GIAI ĐOẠN 1: BATCH PICKUP (Gom tất cả vật phẩm chưa lấy trước khi đi giao)
+	# ─────────────────────────────────────────────────────────────────────────
+	var pending_pickup_quests: Array[NPCQuestData] = []
+	for quest in active_quests:
+		if not quest.is_item_picked_up and quest.quest_type in [
+			NPCQuestData.QuestType.FOOD_DELIVERY,
+			NPCQuestData.QuestType.SEAT_FINDER,
+			NPCQuestData.QuestType.MERCH_SELLING
+		]:
+			pending_pickup_quests.append(quest)
+			
+	if pending_pickup_quests.size() > 0:
+		# Sắp xếp ưu tiên quest gom hàng gần hết thời gian nhất
+		pending_pickup_quests.sort_custom(func(a, b): return a.time_remaining < b.time_remaining)
+		var target_pickup_quest = pending_pickup_quests[0]
 		
-	# Lấy nhiệm vụ cấp bách nhất đang kích hoạt trong túi đồ
-	var quest: NPCQuestData = active_quests[0]
-	if quest == null:
-		return Vector2.INF
+		# Lấy vị trí Nguồn Cung Cấp (Quầy Đồ Ăn / Kho Ghế / Quầy Merch) cho quest gom hàng này
+		match target_pickup_quest.quest_type:
+			NPCQuestData.QuestType.FOOD_DELIVERY:
+				return _get_target_food_source_position(target_pickup_quest)
+			NPCQuestData.QuestType.SEAT_FINDER:
+				return _get_nearest_chair_source_position()
+			NPCQuestData.QuestType.MERCH_SELLING:
+				var merch_stalls = get_tree().get_nodes_in_group("merch_stall")
+				if merch_stalls.size() > 0:
+					return merch_stalls[0].global_position
 
+	# ─────────────────────────────────────────────────────────────────────────
+	# GIAI ĐOẠN 2: NEAREST DELIVERY ROUTING (Giao hàng theo vị trí NPC gần nhất)
+	# ─────────────────────────────────────────────────────────────────────────
+	# Khi đã gom đủ hàng (hoặc quest không cần gom hàng như Lost Child / Intervention),
+	# chọn điểm giao hàng / xử lý GẦN NHẤT so với vị trí hiện tại của Player!
+	var player_pos = player.global_position
+	var nearest_target_pos = Vector2.INF
+	var min_dist = INF
+
+	for quest in active_quests:
+		var target_pos = _get_quest_delivery_position(quest)
+		if target_pos != Vector2.INF:
+			var d = player_pos.distance_to(target_pos)
+			# Cấp thưởng khoảng cách ưu tiên cho quest gần hết giờ (dưới 10s)
+			if quest.time_remaining < 10.0:
+				d -= 400.0
+				
+			if d < min_dist:
+				min_dist = d
+				nearest_target_pos = target_pos
+
+	return nearest_target_pos
+
+func _get_quest_delivery_position(quest: NPCQuestData) -> Vector2:
 	match quest.quest_type:
 		NPCQuestData.QuestType.LOST_CHILD:
 			if quest.parent_global_pos != Vector2.INF:
@@ -57,22 +101,13 @@ func _get_active_target_position() -> Vector2:
 		NPCQuestData.QuestType.MERCH_SELLING:
 			if quest.is_item_picked_up:
 				return _get_nearest_merch_buyer_position()
-			else:
-				var merch_stalls = get_tree().get_nodes_in_group("merch_stall")
-				if merch_stalls.size() > 0:
-					return merch_stalls[0].global_position
-				return Vector2.INF
 
 		NPCQuestData.QuestType.FOOD_DELIVERY:
-			if not quest.is_item_picked_up:
-				return _get_target_food_source_position(quest)
-			else:
+			if quest.is_item_picked_up:
 				return _get_npc_quest_giver_position(quest)
 
 		NPCQuestData.QuestType.SEAT_FINDER:
-			if not quest.is_item_picked_up:
-				return _get_nearest_chair_source_position()
-			else:
+			if quest.is_item_picked_up:
 				return _get_npc_quest_giver_position(quest)
 
 		NPCQuestData.QuestType.INTERVENTION:
@@ -80,7 +115,6 @@ func _get_active_target_position() -> Vector2:
 			for fight in fight_events:
 				if fight.get("quest_data") == quest or not fight.get("is_resolved"):
 					return fight.global_position
-			return Vector2.INF
 
 	return Vector2.INF
 
