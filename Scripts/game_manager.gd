@@ -8,12 +8,84 @@ signal level_started(level_info: Dictionary)
 signal fever_state_changed(is_fever: bool, multiplier: int)
 signal combo_updated(combo_count: int, multiplier: int, time_left: float)
 
+# Cấu hình Cấp độ / Map
+const LEVEL_CONFIGS: Array[Dictionary] = [
+	{
+		"level_id": 1,
+		"title": "Cấp độ 1: Đêm Diễn Khởi Đầu",
+		"description": "Làm quen với không khí concert. Phục vụ khán giả và đảm bảo an ninh!",
+		"scene_path": "res://Scene/world.tscn",
+		"time_limit": 300.0, # 5 phút
+		"star_thresholds": [150, 350, 600] # Mốc 1 sao, 2 sao, 3 sao
+	},
+	{
+		"level_id": 2,
+		"title": "Cấp độ 2: Sức Nóng Đỉnh Điểm",
+		"description": "Đám đông cuồng nhiệt hơn, nhiều sự cố ẩu đả phát sinh!",
+		"scene_path": "res://Scene/world.tscn",
+		"time_limit": 300.0, # 5 phút
+		"star_thresholds": [200, 450, 750]
+	},
+	{
+		"level_id": 3,
+		"title": "Cấp độ 3: Đêm Đại Ca Nhạc",
+		"description": "Thử thách lớn nhất! Đòi hỏi khả năng xử lý tình huống cực kỳ nhanh nhạy.",
+		"scene_path": "res://Scene/world.tscn",
+		"time_limit": 300.0, # 5 phút
+		"star_thresholds": [250, 550, 900]
+	}
+]
+
+var current_level_index: int = 0
+var current_score: int = 0
+var time_remaining: float = 300.0
+var is_level_active: bool = false
+var is_paused: bool = false
+
 # FEVER MODE & COMBO STREAK
 var combo_count: int = 0
 var combo_timer: float = 0.0
 var fever_multiplier: int = 1
 var is_fever_active: bool = false
 const COMBO_WINDOW_DURATION: float = 14.0
+
+# Dữ liệu lưu tiến trình mở khóa & số sao cao nhất
+var unlocked_levels: Array = [1] # Mặc định level 1 đã mở khóa
+var level_stars: Dictionary = {}      # level_id -> stars (int 0..3)
+var level_high_scores: Dictionary = {}# level_id -> score (int)
+
+const SAVE_PATH = "user://save_game.cfg"
+
+func _ready() -> void:
+	load_progress()
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
+func get_current_level_data() -> Dictionary:
+	if current_level_index >= 0 and current_level_index < LEVEL_CONFIGS.size():
+		return LEVEL_CONFIGS[current_level_index]
+	return LEVEL_CONFIGS[0]
+
+func start_level(level_id: int) -> void:
+	for i in range(LEVEL_CONFIGS.size()):
+		if LEVEL_CONFIGS[i]["level_id"] == level_id:
+			current_level_index = i
+			break
+			
+	var level_data = get_current_level_data()
+	current_score = 0
+	time_remaining = level_data["time_limit"]
+	is_level_active = true
+	is_paused = false
+	get_tree().paused = false
+	_reset_combo()
+	
+	score_changed.emit(current_score, level_data["star_thresholds"])
+	level_timer_updated.emit(time_remaining, level_data["time_limit"])
+	level_started.emit(level_data)
+	
+	var target_scene = level_data["scene_path"]
+	if get_tree().current_scene and get_tree().current_scene.scene_file_path != target_scene:
+		get_tree().change_scene_to_file(target_scene)
 
 func register_quest_completion() -> void:
 	if not is_level_active:
@@ -72,7 +144,6 @@ func _process(delta: float) -> void:
 	var level_data = get_current_level_data()
 	level_timer_updated.emit(max(0.0, time_remaining), level_data["time_limit"])
 	
-	# Cập nhật đếm ngược Combo Timer
 	if combo_timer > 0.0:
 		combo_timer -= delta
 		combo_updated.emit(combo_count, fever_multiplier, combo_timer)
@@ -102,17 +173,14 @@ func finish_level() -> void:
 	
 	var level_id: int = level_data["level_id"]
 	
-	# Lưu điểm cao nhất và sao cao nhất
 	if stars > level_stars.get(level_id, 0):
 		level_stars[level_id] = stars
 	if current_score > level_high_scores.get(level_id, 0):
 		level_high_scores[level_id] = current_score
 		
-	# Mở khóa level tiếp theo nếu đạt tối thiểu 1 sao
 	if is_passed:
 		var next_level_id = level_id + 1
 		if not (next_level_id in unlocked_levels):
-			# Kiểm tra xem next_level_id có tồn tại trong LEVEL_CONFIGS không
 			for cfg in LEVEL_CONFIGS:
 				if cfg["level_id"] == next_level_id:
 					unlocked_levels.append(next_level_id)
@@ -137,8 +205,6 @@ func has_next_level() -> bool:
 		if cfg["level_id"] == next_id:
 			return true
 	return false
-
-# ─── SAVE / LOAD ─────────────────────────────────────────────────────────────
 
 func save_progress() -> void:
 	var config = ConfigFile.new()

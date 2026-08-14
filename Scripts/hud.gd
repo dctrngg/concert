@@ -63,6 +63,11 @@ func _ready() -> void:
 	if mobile_btn:
 		mobile_btn.pressed.connect(_on_mobile_toggle_pressed)
 
+func _on_mobile_toggle_pressed() -> void:
+	var mc = get_node_or_null("MobileControls")
+	if mc and mc.has_method("toggle_mobile_controls"):
+		mc.toggle_mobile_controls()
+
 func _on_fever_state_changed(is_fever: bool, multiplier: int) -> void:
 	if fever_panel:
 		fever_panel.visible = is_fever
