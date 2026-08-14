@@ -340,6 +340,8 @@ func _update_camera_shake(delta: float) -> void:
 	else:
 		cam.offset = lerp(cam.offset, Vector2.ZERO, delta * 10.0)
 
+var mobile_input_vector: Vector2 = Vector2.ZERO
+
 func _physics_process(_delta: float) -> void:
 	if is_camera_intro_active:
 		velocity = Vector2.ZERO
@@ -350,7 +352,11 @@ func _physics_process(_delta: float) -> void:
 	var input_vector := Vector2.ZERO
 	input_vector.x = Input.get_axis("move_left", "move_right")
 	input_vector.y = Input.get_axis("move_up", "move_down")
-	input_vector = input_vector.normalized()
+	
+	if mobile_input_vector != Vector2.ZERO:
+		input_vector += mobile_input_vector
+		
+	input_vector = input_vector.limit_length(1.0)
 
 	var is_running := Input.is_action_pressed("run")
 	

@@ -33,7 +33,10 @@ window/stretch/mode="canvas_items"
 [gui]
 
 theme/custom_font="res://0307-LNTH-TwistyPixel.ttf"
-theme/custom_font_size=20
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+pointing/emulate_mouse_from_touch=true
 
 [input]
 

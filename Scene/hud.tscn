@@ -176,4 +176,19 @@ anchor_right = 1.0
 grow_horizontal = 0
 theme_override_constants/separation = 14
 
+[ext_resource type="PackedScene" uid="uid://dm0b7x4k8q1j2" path="res://Scene/mobile_controls.tscn" id="9_mobile_controls"]
+
+[node name="MobileControls" parent="." instance=ExtResource("9_mobile_controls")]
+
+[node name="MobileToggleButton" type="Button" parent="Control"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 135.0
+offset_right = 145.0
+offset_bottom = 175.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("8_pixel_font")
+theme_override_font_sizes/font_size = 17
+text = "📱 Touch UI"
+
 [node name="LevelResultDialog" parent="." instance=ExtResource("2_result_dialog")]
