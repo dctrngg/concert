@@ -25,15 +25,7 @@ func _ready() -> void:
 	if sound_mgr and sound_mgr.has_method("resume_music"):
 		sound_mgr.resume_music()
 
-	# Cấu hình Stylebox Pixel cho các nút bấm
-	_apply_pixel_button_styles(start_button)
-	_apply_pixel_button_styles(level_select_button)
-	_apply_pixel_button_styles(settings_button)
-	_apply_pixel_button_styles(quit_button)
-	_apply_pixel_button_styles(close_settings_btn)
-	_apply_pixel_button_styles(test_sfx_btn)
-
-	# Kết nối tín hiệu nút bấm
+	# Cấu hình âm thanh & tín hiệu nút bấm
 	start_button.pressed.connect(_on_start_pressed)
 	level_select_button.pressed.connect(_on_level_select_pressed)
 	settings_button.pressed.connect(_on_settings_pressed)

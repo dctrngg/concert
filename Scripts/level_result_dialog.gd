@@ -40,6 +40,9 @@ func _on_level_completed(score: int, stars: int, is_passed: bool) -> void:
 	if is_passed:
 		result_status_label.text = "🎉 VƯỢT QUA VÒNG CHƠI! 🎉"
 		result_status_label.modulate = Color(0.3, 1.0, 0.5)
+		var stage_node = get_tree().get_first_node_in_group("concert_stage")
+		if stage_node and stage_node.has_method("burst_confetti"):
+			stage_node.burst_confetti()
 	else:
 		result_status_label.text = "❌ CHƯA ĐẠT YÊU CẦU MÀN CHƠI!"
 		result_status_label.modulate = Color(1.0, 0.35, 0.35)

@@ -8970,7 +8970,7 @@ sources/1 = SubResource("TileSetAtlasSource_pbc3o")
 sources/2 = SubResource("TileSetAtlasSource_q32hj")
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_tree_foot"]
-radius = 79.40403
+radius = 59.03389
 
 [node name="World" type="Node2D" unique_id=2048086502]
 position = Vector2(-1223, 706)
@@ -8981,14 +8981,14 @@ scale = Vector2(3, 3)
 walk_speed = 300.0
 run_speed = 400.0
 intro_zoom_start = 3.0
-intro_zoom_delay = 5.0
+intro_zoom_delay = 1.0
 
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=1040013179]
 
 [node name="CrowdManager" type="Node2D" parent="." unique_id=1218005740]
 scale = Vector2(3, 3)
 script = ExtResource("2_crowd")
-npc_count = 1000
+npc_count = 1200
 npc_speed = 40.0
 min_wander_time = 2.0
 tree_trunk_width_ratio = 1.0
