@@ -63,6 +63,72 @@ func _ready() -> void:
 	_setup_stage_artists()
 	_setup_confetti_and_atmosphere()
 
+func _setup_led_and_laser_effects() -> void:
+	_led_display = Node2D.new()
+	_led_display.name = "LEDDisplay"
+	_led_display.z_index = 1
+	add_child(_led_display)
+	_led_display.draw.connect(_on_draw_led_display)
+	
+	_laser_beams = Node2D.new()
+	_laser_beams.name = "LaserBeams"
+	_laser_beams.z_index = 2
+	add_child(_laser_beams)
+	_laser_beams.draw.connect(_on_draw_laser_beams)
+
+@export var artist_scale: Vector2 = Vector2(6.0, 6.0)
+@export var artist_offsets: Array[Vector2] = [
+	Vector2(0, -420),     # Ca sĩ chính (Giữa sân khấu)
+	Vector2(-240, -460),  # Nhạc công Trái (Cánh trái)
+	Vector2(240, -460)    # Nhạc công Phải (Cánh phải)
+]
+
+func _setup_stage_artists() -> void:
+	_artists_container = Node2D.new()
+	_artists_container.name = "ArtistsContainer"
+	_artists_container.z_index = 3
+	add_child(_artists_container)
+	
+	await get_tree().process_frame
+	
+	var cm = get_tree().get_first_node_in_group("crowd_manager")
+	
+	for i in range(artist_offsets.size()):
+		var base_pos = artist_offsets[i]
+		_artist_base_positions.append(base_pos)
+		_artist_current_x.append(base_pos.x)
+		_artist_target_x.append(base_pos.x)
+		_artist_state_timer.append(randf_range(1.0, 4.0))
+		_artist_action_state.append(0)
+		
+		var artist = AnimatedSprite2D.new()
+		artist.name = "StageArtist_%d" % i
+		artist.position = base_pos
+		artist.scale = artist_scale
+		
+		var sf: SpriteFrames = null
+		if cm and cm.has_method("get_random_outfit_sprite_frames"):
+			sf = cm.get_random_outfit_sprite_frames()
+			
+		if sf == null:
+			var player_scene = load("res://Scene/Player.tscn")
+			if player_scene:
+				var dummy = player_scene.instantiate()
+				var p_sprite = dummy.get_node_or_null("AnimatedSprite2D")
+				if p_sprite and p_sprite.sprite_frames:
+					sf = p_sprite.sprite_frames
+				dummy.queue_free()
+				
+		if sf != null:
+			artist.sprite_frames = sf
+			if sf.has_animation("idle_down"):
+				artist.play("idle_down")
+			elif sf.has_animation("walk_down"):
+				artist.play("walk_down")
+				
+		_artists_container.add_child(artist)
+		_stage_artist_sprites.append(artist)
+
 func _setup_confetti_and_atmosphere() -> void:
 	# 1. Hạt Bụi Đèn Spotlight Lơ Lửng (Ambient Dust Motes)
 	_dust_motes = CPUParticles2D.new()
