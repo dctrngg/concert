@@ -85,6 +85,8 @@ func _ready() -> void:
 	
 	_start_camera_intro()
 
+signal camera_intro_finished
+
 func _start_camera_intro() -> void:
 	is_camera_intro_active = true
 	var cam = get_node_or_null("Camera2D") as Camera2D
@@ -99,9 +101,13 @@ func _start_camera_intro() -> void:
 	var tween = create_tween()
 	tween.tween_interval(intro_zoom_delay)
 	tween.tween_property(cam, "zoom", Vector2(intro_zoom_end, intro_zoom_end), intro_zoom_duration).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	# Mở khóa di chuyển ngay khi Camera Zoom kết thúc để người chơi tự do vừa chơi vừa xem hướng dẫn
+	# Mở khóa di chuyển và KÍCH HOẠT PHÁO HOA CẦU VỒNG ngay khi Camera Zoom vừa kết thúc!
 	tween.tween_callback(func():
 		is_camera_intro_active = false
+		camera_intro_finished.emit()
+		var stage_node = get_tree().get_first_node_in_group("concert_stage")
+		if stage_node and stage_node.has_method("burst_confetti"):
+			stage_node.burst_confetti()
 	)
 
 func _load_player_character() -> void:

@@ -160,8 +160,7 @@ func _setup_confetti_and_atmosphere() -> void:
 	add_child(_stage_fog)
 	_stage_fog.draw.connect(_on_draw_stage_fog)
 
-	# Tự động nổ dàn pháo hoa Confetti rực rỡ chào mừng ngay sau 0.8 giây!
-	get_tree().create_timer(0.8).timeout.connect(burst_confetti)
+	# Note: Màn pháo hoa Confetti chào mừng đầu tiên sẽ nổ chuẩn xác ngay khi Camera Intro Zoom kết thúc!
 
 func _create_confetti_cannon(pos: Vector2, dir: Vector2) -> CPUParticles2D:
 	var cannon = CPUParticles2D.new()
