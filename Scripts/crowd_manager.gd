@@ -564,7 +564,7 @@ func _apply_separations(player_local_pos: Vector2) -> void:
 	var dt := get_process_delta_time()
 	var density := 0
 
-	# --- 1. Player → NPC: nhường nhẹ + đo mật độ ---
+	# --- 1. Player → NPC: nhường nhẹ mượt mà + đo mật độ ---
 	for i in range(npc_count):
 		if is_promoted[i] == 1:
 			continue
@@ -572,9 +572,9 @@ func _apply_separations(player_local_pos: Vector2) -> void:
 		var dist: float = diff.length()
 		if dist < crowd_resistance_radius and dist > 0.5:
 			density += 1
-			var nudge: float = (1.0 - dist / crowd_resistance_radius) * npc_yield_strength
+			var nudge: float = min((1.0 - dist / crowd_resistance_radius) * npc_yield_strength * dt, 1.2)
 			var push_dir = diff / dist
-			var new_pos = positions[i] + push_dir * nudge * dt
+			var new_pos = positions[i] + push_dir * nudge
 			
 			if is_vip[i] == 1:
 				positions[i] = new_pos
@@ -587,7 +587,7 @@ func _apply_separations(player_local_pos: Vector2) -> void:
 
 	_last_crowd_density = density
 
-	# --- 2. O(1) Spatial Hash Grid: NPC ↔ NPC Giãn cách & Steer-Right tự nhiên ---
+	# --- 2. O(1) Spatial Hash Grid: NPC ↔ NPC Giãn cách mượt mà không bị rung bouncing ---
 	var cell_size: float = 24.0 # Kích thước ô lưới cá nhân
 	var grid: Dictionary = {} # Key Vector2i -> Array[int]
 	
@@ -601,7 +601,8 @@ func _apply_separations(player_local_pos: Vector2) -> void:
 			grid[key] = []
 		grid[key].append(i)
 
-	var max_separation: float = 20.0 # Bán kính né tránh tự nhiên (20px)
+	var max_separation: float = 16.0 # Bán kính né tránh tự nhiên (16px)
+	var min_deadzone: float = 2.5 # Deadzone buffer: Không đẩy khi chênh lệch nhỏ hơn 2.5px để triệt tiêu hoàn toàn giật bouncing
 	
 	for key in grid.keys():
 		var cell_npcs: Array = grid[key]
@@ -621,20 +622,24 @@ func _apply_separations(player_local_pos: Vector2) -> void:
 					var diff: Vector2 = positions[i] - positions[j]
 					var dist: float = diff.length()
 					
-					if dist < max_separation and dist > 0.1:
+					if dist < max_separation and dist > min_deadzone:
 						var push_dir: Vector2 = diff / dist
-						var force: float = (max_separation - dist) * 22.0 * dt
+						var overlap: float = max_separation - dist
+						# Giới hạn lực đẩy tối đa 0.8px / frame để xóa bỏ ping-pong jitter
+						var force: float = min(overlap * 2.5 * dt, 0.8)
 						var push: Vector2 = push_dir * force
 						
-						# Logic nhường đường né sang bên phải khi 2 NPC đi đâm đầu vào nhau
+						# Logic nhường đường né nhẹ khi 2 NPC đi đâm đầu vào nhau
 						if is_walking[i] == 1 and is_walking[j] == 1:
 							var move_i = velocities[i].normalized()
 							var move_j = velocities[j].normalized()
-							if move_i.dot(move_j) < -0.2: # Đối đầu nhau
-								var steer_right = Vector2(-push_dir.y, push_dir.x) * 10.0 * dt
+							if move_i.dot(move_j) < -0.2:
+								var steer_right = Vector2(-push_dir.y, push_dir.x) * 0.3 * dt
 								push += steer_right
+								
+						push = push.limit_length(0.8)
 
-						# Đẩy nhẹ 2 NPC ra xa nhau, không cho đè đè lớp lên nhau
+						# Đẩy nhẹ mượt mà 2 NPC ra xa nhau
 						if is_vip[i] == 0:
 							var next_i = positions[i] + push
 							if not _is_barrier_tile(next_i):
@@ -644,7 +649,7 @@ func _apply_separations(player_local_pos: Vector2) -> void:
 							if not _is_barrier_tile(next_j):
 								positions[j] = _clamp_to_assigned_zone(j, next_j)
 
-	# --- 3. NPC Tương tác (Promoted NPC) dạt NPC đám đông ra xung quanh ---
+	# --- 3. NPC Tương tác (Promoted NPC) dạt NPC đám đông ra xung quanh mượt mà ---
 	for p_idx in promoted_nodes.keys():
 		var p_node = promoted_nodes[p_idx]
 		if is_instance_valid(p_node) and p_node.visible:
@@ -658,8 +663,9 @@ func _apply_separations(player_local_pos: Vector2) -> void:
 						for i in grid[key]:
 							var diff = positions[i] - p_pos
 							var dist = diff.length()
-							if dist < 22.0 and dist > 0.1:
-								var push = (diff / dist) * (22.0 - dist) * 18.0 * dt
+							if dist < 20.0 and dist > 1.5:
+								var overlap = 20.0 - dist
+								var push = (diff / dist) * min(overlap * 2.0 * dt, 0.8)
 								if is_vip[i] == 0:
 									var next_i = positions[i] + push
 									if not _is_barrier_tile(next_i):

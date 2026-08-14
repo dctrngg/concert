@@ -8988,7 +8988,7 @@ intro_zoom_delay = 1.0
 [node name="CrowdManager" type="Node2D" parent="." unique_id=1218005740]
 scale = Vector2(3, 3)
 script = ExtResource("2_crowd")
-npc_count = 700
+npc_count = 900
 npc_speed = 40.0
 min_wander_time = 2.0
 tree_trunk_width_ratio = 1.0
