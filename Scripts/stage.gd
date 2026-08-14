@@ -134,22 +134,25 @@ func _setup_confetti_and_atmosphere() -> void:
 	_dust_motes = CPUParticles2D.new()
 	_dust_motes.name = "DustMotes"
 	_dust_motes.z_index = 4
-	_dust_motes.amount = 80
+	_dust_motes.amount = 90
 	_dust_motes.lifetime = 5.0
 	_dust_motes.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
-	_dust_motes.emission_rect_extents = Vector2(750, 500)
+	_dust_motes.emission_rect_extents = Vector2(800, 550)
 	_dust_motes.position = Vector2(0, -350)
 	_dust_motes.gravity = Vector2(0, -10.0)
 	_dust_motes.initial_velocity_min = 8.0
-	_dust_motes.initial_velocity_max = 24.0
+	_dust_motes.initial_velocity_max = 25.0
 	_dust_motes.scale_amount_min = 4.0
 	_dust_motes.scale_amount_max = 8.0
 	_dust_motes.color = Color(1.0, 0.98, 0.75, 0.65)
 	add_child(_dust_motes)
 
-	# 2. Pháo Hoa Giấy Kim Tuyến Sân Khấu (Stage Confetti Celebration)
-	_confetti_left = _create_confetti_cannon(Vector2(-360, -520), Vector2(0.4, -1.0))
-	_confetti_right = _create_confetti_cannon(Vector2(360, -520), Vector2(-0.4, -1.0))
+	# 2. Dàn 4 Khẩu Pháo Hoa Giấy Kim Tuyến Sân Khấu Bắn Toàn Màn Hình Nhiều Màu (Full-Screen Rainbow Confetti)
+	_confetti_cannons.clear()
+	_confetti_cannons.append(_create_confetti_cannon(Vector2(-520, -460), Vector2(0.7, -0.9)))  # Cánh Trái (Phun chéo rộng)
+	_confetti_cannons.append(_create_confetti_cannon(Vector2(-180, -520), Vector2(0.2, -1.0)))  # Giữa Trái (Phun cao)
+	_confetti_cannons.append(_create_confetti_cannon(Vector2(180, -520), Vector2(-0.2, -1.0)))  # Giữa Phải (Phun cao)
+	_confetti_cannons.append(_create_confetti_cannon(Vector2(520, -460), Vector2(-0.7, -0.9)))  # Cánh Phải (Phun chéo rộng)
 
 	# 3. Lớp Khói Sân Khấu Trôi Nhè Nhẹ (Stage Fog)
 	_stage_fog = Node2D.new()
@@ -158,36 +161,52 @@ func _setup_confetti_and_atmosphere() -> void:
 	add_child(_stage_fog)
 	_stage_fog.draw.connect(_on_draw_stage_fog)
 
-	# Tự động nổ pháo hoa Confetti chào mừng sau 1 giây khi vừa vào Đêm Nhạc!
-	get_tree().create_timer(1.0).timeout.connect(burst_confetti)
+	# Tự động nổ dàn pháo hoa Confetti rực rỡ chào mừng ngay sau 0.8 giây!
+	get_tree().create_timer(0.8).timeout.connect(burst_confetti)
 
 func _create_confetti_cannon(pos: Vector2, dir: Vector2) -> CPUParticles2D:
 	var cannon = CPUParticles2D.new()
 	cannon.position = pos
-	cannon.z_index = 6
-	cannon.amount = 100
-	cannon.lifetime = 3.2
+	cannon.z_index = 25 # Hiện trên đỉnh màn hình
+	cannon.amount = 350 # Phun 350 hạt kim tuyến mỗi súng -> Tổng 1,400 hạt cực kỳ dày đặc!
+	cannon.lifetime = 4.2
 	cannon.one_shot = true
-	cannon.explosiveness = 0.92
+	cannon.explosiveness = 0.95
 	cannon.direction = dir
-	cannon.spread = 40.0
-	cannon.gravity = Vector2(0, 360.0)
-	cannon.initial_velocity_min = 320.0
-	cannon.initial_velocity_max = 520.0
-	cannon.scale_amount_min = 4.0
-	cannon.scale_amount_max = 8.5
-	cannon.color = Color(1.0, 0.2, 0.6, 1.0)
+	cannon.spread = 65.0
+	cannon.gravity = Vector2(0, 320.0)
+	cannon.initial_velocity_min = 450.0
+	cannon.initial_velocity_max = 950.0
+	cannon.scale_amount_min = 5.0
+	cannon.scale_amount_max = 12.0
+	
+	# Gradient nhiều màu rực rỡ bùng nổ (Magenta, Cyan, Gold, Mint, Purple, Coral)
+	var grad = Gradient.new()
+	grad.offsets = PackedFloat32Array([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+	grad.colors = PackedColorArray([
+		Color(1.0, 0.05, 0.55, 1.0), # Magenta
+		Color(0.0, 0.9, 1.0, 1.0),   # Electric Cyan
+		Color(1.0, 0.88, 0.1, 1.0),  # Bright Gold
+		Color(0.1, 0.95, 0.45, 1.0), # Mint Green
+		Color(0.65, 0.25, 1.0, 1.0), # Deep Purple
+		Color(1.0, 0.35, 0.15, 1.0)  # Coral Flame
+	])
+	cannon.color_initial_ramp = grad
 	add_child(cannon)
 	return cannon
 
 func burst_confetti() -> void:
-	if _confetti_left:
-		_confetti_left.color = _neon_colors[randi() % _neon_colors.size()]
-		_confetti_left.restart()
-	if _confetti_right:
-		_confetti_right.color = _neon_colors[randi() % _neon_colors.size()]
-		_confetti_right.restart()
-	print("[ConcertStage] 🎆 BẮN PHÁO HOA GIẤY KIM TUYẾN SÂN KHẤU BÙNG NỔ!")
+	for cannon in _confetti_cannons:
+		if is_instance_valid(cannon):
+			cannon.restart()
+			
+	# Bắn tiếp đợt 2 bùng nổ sau 0.3s để phủ kín toàn màn hình!
+	get_tree().create_timer(0.3).timeout.connect(func():
+		for cannon in _confetti_cannons:
+			if is_instance_valid(cannon):
+				cannon.emitting = true
+	)
+	print("[ConcertStage] 🎆 DÀN 1,400 PHÁO HOA KIM TUYẾN BẮN PHỦ KÍN TOÀN MÀN HÌNH!")
 
 func _on_draw_stage_fog() -> void:
 	if not is_concert_active:
