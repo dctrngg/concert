@@ -195,6 +195,18 @@ func _create_confetti_cannon(pos: Vector2, dir: Vector2) -> CPUParticles2D:
 	return cannon
 
 func burst_confetti() -> void:
+	var player = get_tree().get_first_node_in_group("player") as Node2D
+	var center_pos = global_position + Vector2(0, -450.0)
+	if player:
+		center_pos = player.global_position + Vector2(0, -320.0) # Đỉnh màn hình hiện tại của Player
+
+	# Cập nhật vị trí 4 khẩu pháo hoa kim tuyến bám theo màn hình Player ở bất kỳ đâu trên bản đồ (khu đồ ăn, lấy ghế, dắt trẻ...)
+	if _confetti_cannons.size() >= 4:
+		_confetti_cannons[0].global_position = center_pos + Vector2(-550, 0)
+		_confetti_cannons[1].global_position = center_pos + Vector2(-200, -60)
+		_confetti_cannons[2].global_position = center_pos + Vector2(200, -60)
+		_confetti_cannons[3].global_position = center_pos + Vector2(550, 0)
+
 	for cannon in _confetti_cannons:
 		if is_instance_valid(cannon):
 			cannon.restart()
@@ -205,7 +217,7 @@ func burst_confetti() -> void:
 			if is_instance_valid(cannon):
 				cannon.emitting = true
 	)
-	print("[ConcertStage] 🎆 DÀN 1,400 PHÁO HOA KIM TUYẾN BẮN PHỦ KÍN TOÀN MÀN HÌNH!")
+	print("[ConcertStage] 🎆 DÀN 1,400 PHÁO HOA KIM TUYẾN BẮN PHỦ KÍN MÀN HÌNH PLAYER TẠI POS: ", center_pos)
 
 func _on_draw_stage_fog() -> void:
 	if not is_concert_active:
