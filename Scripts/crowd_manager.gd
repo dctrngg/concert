@@ -315,6 +315,8 @@ func _ready() -> void:
 	_init_debug_overlay()
 
 
+var _crowd_bubble_timer: float = 0.0
+
 func _process(delta: float) -> void:
 	_update_cached_zones()
 	_time_accum += delta
@@ -323,8 +325,7 @@ func _process(delta: float) -> void:
 	var view_rect = _get_camera_view_rect()
 	var player = get_node_or_null("../Player") as Node2D
 
-	# Y của điểm CHÂN (Feet) Player trong local space của CrowdManager — dùng để quyết định mỗi
-	# NPC nền nên vẽ trước (mm_front) hay sau (mm_back) Player frame này với độ chính xác pixel tuyệt đối.
+	# Y của điểm CHÂN (Feet) Player trong local space của CrowdManager
 	var player_local_y: float = INF
 	if player:
 		var player_feet_global = player.global_position
@@ -332,6 +333,13 @@ func _process(delta: float) -> void:
 		if player_col:
 			player_feet_global += player_col.position
 		player_local_y = to_local(player_feet_global).y
+
+	# Quản lý tự động hiện bong bóng cảm xúc ngẫu nhiên trên đầu khán giả đám đông (Overhead Emoji Speech Bubbles)
+	_crowd_bubble_timer += delta
+	var bubble_interval = 1.2 if is_stage_climax else 3.2
+	if _crowd_bubble_timer >= bubble_interval:
+		_crowd_bubble_timer = 0.0
+		_trigger_random_crowd_speech_bubble(view_rect, is_stage_climax)
 
 	var hidden_xform := Transform2D(0.0, Vector2(-999999.0, -999999.0))
 
@@ -1691,3 +1699,43 @@ func _get_zone_rect(node: Node) -> Rect2:
 		var lpos = to_local(node.global_position)
 		return Rect2(lpos - Vector2(100, 100), Vector2(200, 200))
 	return default_vip_box_left
+
+# ─── OVERHEAD EMOJI SPEECH BUBBLES SYSTEM ───────────────────────────────────
+
+func _trigger_random_crowd_speech_bubble(view_rect: Rect2, is_climax: bool) -> void:
+	var visible_indices: Array[int] = []
+	for i in range(npc_count):
+		if is_promoted[i] == 0 and view_rect.has_point(positions[i]):
+			visible_indices.append(i)
+			
+	if visible_indices.size() == 0:
+		return
+		
+	var idx = visible_indices[randi() % visible_indices.size()]
+	var emojis = ["🎵", "🔥", "🤘", "🎉", "✨", "❤️"] if is_climax else ["🎵", "🍿", "🥤", "💬", "✨"]
+	var emoji = emojis[randi() % emojis.size()]
+	
+	_spawn_floating_emoji_bubble(positions[idx] + Vector2(0, -28), emoji)
+
+func _spawn_floating_emoji_bubble(local_pos: Vector2, emoji: String) -> void:
+	var bubble = Label.new()
+	bubble.text = emoji
+	bubble.position = local_pos
+	bubble.z_index = 10
+	
+	var settings = LabelSettings.new()
+	var custom_font = load("res://0307-LNTH-TwistyPixel.ttf")
+	if custom_font:
+		settings.font = custom_font
+	settings.font_size = 16
+	settings.outline_size = 3
+	settings.outline_color = Color.BLACK
+	bubble.label_settings = settings
+	
+	add_child(bubble)
+	
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(bubble, "position:y", local_pos.y - 22.0, 1.8).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	tween.tween_property(bubble, "modulate:a", 0.0, 1.8).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	tween.finished.connect(func(): if is_instance_valid(bubble): bubble.queue_free())

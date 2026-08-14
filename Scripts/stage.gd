@@ -48,6 +48,11 @@ var _artist_target_x: Array[float] = []
 var _artist_state_timer: Array[float] = []
 var _artist_action_state: Array[int] = []
 
+var _confetti_left: CPUParticles2D = null
+var _confetti_right: CPUParticles2D = null
+var _dust_motes: CPUParticles2D = null
+var _stage_fog: Node2D = null
+
 func _ready() -> void:
 	add_to_group("concert_stage")
 	if audience_area:
@@ -56,72 +61,75 @@ func _ready() -> void:
 		
 	_setup_led_and_laser_effects()
 	_setup_stage_artists()
+	_setup_confetti_and_atmosphere()
 
-func _setup_led_and_laser_effects() -> void:
-	_led_display = Node2D.new()
-	_led_display.name = "LEDDisplay"
-	_led_display.z_index = 1
-	add_child(_led_display)
-	_led_display.draw.connect(_on_draw_led_display)
-	
-	_laser_beams = Node2D.new()
-	_laser_beams.name = "LaserBeams"
-	_laser_beams.z_index = 2
-	add_child(_laser_beams)
-	_laser_beams.draw.connect(_on_draw_laser_beams)
+func _setup_confetti_and_atmosphere() -> void:
+	# 1. Hạt Bụi Đèn Spotlight Lơ Lửng (Ambient Dust Motes)
+	_dust_motes = CPUParticles2D.new()
+	_dust_motes.name = "DustMotes"
+	_dust_motes.z_index = 4
+	_dust_motes.amount = 65
+	_dust_motes.lifetime = 5.0
+	_dust_motes.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	_dust_motes.emission_rect_extents = Vector2(650, 450)
+	_dust_motes.position = Vector2(0, -350)
+	_dust_motes.gravity = Vector2(0, -8.0)
+	_dust_motes.initial_velocity_min = 5.0
+	_dust_motes.initial_velocity_max = 18.0
+	_dust_motes.scale_amount_min = 2.0
+	_dust_motes.scale_amount_max = 4.5
+	_dust_motes.color = Color(1.0, 0.96, 0.85, 0.35)
+	add_child(_dust_motes)
 
-@export var artist_scale: Vector2 = Vector2(6.0, 6.0)
-@export var artist_offsets: Array[Vector2] = [
-	Vector2(0, -420),     # Ca sĩ chính (Giữa sân khấu)
-	Vector2(-240, -460),  # Nhạc công Trái (Cánh trái)
-	Vector2(240, -460)    # Nhạc công Phải (Cánh phải)
-]
+	# 2. Pháo Hoa Giấy Kim Tuyến Sân Khấu (Stage Confetti Celebration)
+	_confetti_left = _create_confetti_cannon(Vector2(-360, -520), Vector2(0.4, -1.0))
+	_confetti_right = _create_confetti_cannon(Vector2(360, -520), Vector2(-0.4, -1.0))
 
-func _setup_stage_artists() -> void:
-	_artists_container = Node2D.new()
-	_artists_container.name = "ArtistsContainer"
-	_artists_container.z_index = 3
-	add_child(_artists_container)
+	# 3. Lớp Khói Sân Khấu Trôi Nhè Nhẹ (Stage Fog)
+	_stage_fog = Node2D.new()
+	_stage_fog.name = "StageFog"
+	_stage_fog.z_index = 2
+	add_child(_stage_fog)
+	_stage_fog.draw.connect(_on_draw_stage_fog)
+
+func _create_confetti_cannon(pos: Vector2, dir: Vector2) -> CPUParticles2D:
+	var cannon = CPUParticles2D.new()
+	cannon.position = pos
+	cannon.z_index = 6
+	cannon.amount = 100
+	cannon.lifetime = 3.2
+	cannon.one_shot = true
+	cannon.explosiveness = 0.92
+	cannon.direction = dir
+	cannon.spread = 40.0
+	cannon.gravity = Vector2(0, 360.0)
+	cannon.initial_velocity_min = 320.0
+	cannon.initial_velocity_max = 520.0
+	cannon.scale_amount_min = 4.0
+	cannon.scale_amount_max = 8.5
+	cannon.color = Color(1.0, 0.2, 0.6, 1.0)
+	add_child(cannon)
+	return cannon
+
+func burst_confetti() -> void:
+	if _confetti_left:
+		_confetti_left.color = _neon_colors[randi() % _neon_colors.size()]
+		_confetti_left.restart()
+	if _confetti_right:
+		_confetti_right.color = _neon_colors[randi() % _neon_colors.size()]
+		_confetti_right.restart()
+	print("[ConcertStage] 🎆 BẮN PHÁO HOA GIẤY KIM TUYẾN SÂN KHẤU BÙNG NỔ!")
+
+func _on_draw_stage_fog() -> void:
+	if not is_concert_active:
+		return
+	var fog_y = -320.0
+	var fog_alpha = (sin(_time_passed * 0.8) + 1.0) * 0.04 + 0.05
+	var fog_color = Color(0.85, 0.92, 1.0, fog_alpha)
+	var fog_offset_x = sin(_time_passed * 0.4) * 40.0
 	
-	await get_tree().process_frame
-	
-	var cm = get_tree().get_first_node_in_group("crowd_manager")
-	
-	for i in range(artist_offsets.size()):
-		var base_pos = artist_offsets[i]
-		_artist_base_positions.append(base_pos)
-		_artist_current_x.append(base_pos.x)
-		_artist_target_x.append(base_pos.x)
-		_artist_state_timer.append(randf_range(1.0, 4.0))
-		_artist_action_state.append(0)
-		
-		var artist = AnimatedSprite2D.new()
-		artist.name = "StageArtist_%d" % i
-		artist.position = base_pos
-		artist.scale = artist_scale
-		
-		var sf: SpriteFrames = null
-		if cm and cm.has_method("get_random_outfit_sprite_frames"):
-			sf = cm.get_random_outfit_sprite_frames()
-			
-		if sf == null:
-			var player_scene = load("res://Scene/Player.tscn")
-			if player_scene:
-				var dummy = player_scene.instantiate()
-				var p_sprite = dummy.get_node_or_null("AnimatedSprite2D")
-				if p_sprite and p_sprite.sprite_frames:
-					sf = p_sprite.sprite_frames
-				dummy.queue_free()
-				
-		if sf != null:
-			artist.sprite_frames = sf
-			if sf.has_animation("idle_down"):
-				artist.play("idle_down")
-			elif sf.has_animation("walk_down"):
-				artist.play("walk_down")
-				
-		_artists_container.add_child(artist)
-		_stage_artist_sprites.append(artist)
+	_stage_fog.draw_circle(Vector2(-180 + fog_offset_x, fog_y), 160.0, fog_color)
+	_stage_fog.draw_circle(Vector2(180 - fog_offset_x, fog_y), 160.0, fog_color)
 
 func trigger_climax() -> void:
 	is_climax_active = true
@@ -130,6 +138,9 @@ func trigger_climax() -> void:
 	climax_started.emit()
 	print("[ConcertStage] 🔥 CAO TRÀO SÂN KHẤU BẮT ĐẦU! CA SĨ BÙNG NỔ!")
 	
+	# Bắn Pháo Hoa Kim Tuyến 2 bên Sân Khấu khi vào Cao Trào!
+	burst_confetti()
+
 	# Kích hoạt cú Rung Camera Bùng Nổ sôi động khi Cao Trào bắt đầu
 	var player = get_tree().get_first_node_in_group("player")
 	if player and player.has_method("apply_camera_shake"):
@@ -213,6 +224,8 @@ func _process(delta: float) -> void:
 			_led_display.queue_redraw()
 		if _laser_beams:
 			_laser_beams.queue_redraw()
+		if _stage_fog:
+			_stage_fog.queue_redraw()
 
 ## Bật/Tắt chế độ trình diễn Concert
 func set_concert_active(active: bool) -> void:

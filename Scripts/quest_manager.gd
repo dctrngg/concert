@@ -85,6 +85,11 @@ func complete_quest(quest: NPCQuestData) -> void:
 	if gm:
 		gm.add_score(quest.reward_points)
 		
+	# Bắn Pháo hoa Kim tuyến Confetti chúc mừng khi hoàn thành nhiệm vụ!
+	var stage_node = get_tree().get_first_node_in_group("concert_stage")
+	if stage_node and stage_node.has_method("burst_confetti"):
+		stage_node.burst_confetti()
+
 	quest_completed.emit(quest)
 
 func fail_quest(quest: NPCQuestData) -> void:
