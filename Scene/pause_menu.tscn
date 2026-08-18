@@ -1,0 +1,307 @@
+[gd_scene format=3 uid="uid://p6vlq0s2y2og"]
+
+[ext_resource type="Script" path="res://Scripts/pause_menu.gd" id="1_pause_script"]
+[ext_resource type="FontFile" path="res://0307-LNTH-TwistyPixel.ttf" id="2_pixel_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+content_margin_left = 28.0
+content_margin_top = 22.0
+content_margin_right = 28.0
+content_margin_bottom = 22.0
+bg_color = Color(0.99, 0.97, 0.94, 0.98)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.48, 0.28, 0.12, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_left = 20
+corner_radius_bottom_right = 20
+shadow_color = Color(0.18, 0.1, 0.04, 0.4)
+shadow_size = 12
+shadow_offset = Vector2(0, 6)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
+content_margin_top = 8.0
+content_margin_bottom = 8.0
+bg_color = Color(0.43, 0.25, 0.1, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.29, 0.15, 0.04, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_left = 12
+corner_radius_bottom_right = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_wood"]
+content_margin_top = 8.0
+content_margin_bottom = 8.0
+bg_color = Color(0.48, 0.28, 0.12, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.16, 0.05, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_left = 12
+corner_radius_bottom_right = 12
+shadow_color = Color(0.18, 0.1, 0.04, 0.3)
+shadow_size = 4
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_wood_hover"]
+content_margin_top = 8.0
+content_margin_bottom = 8.0
+bg_color = Color(0.58, 0.35, 0.15, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.16, 0.05, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_left = 12
+corner_radius_bottom_right = 12
+shadow_color = Color(0.18, 0.1, 0.04, 0.4)
+shadow_size = 5
+shadow_offset = Vector2(0, 3)
+
+[sub_resource type="LabelSettings" id="LabelSettings_setting_label"]
+font = ExtResource("2_pixel_font")
+font_size = 20
+font_color = Color(0.28, 0.14, 0.05, 1)
+
+[node name="PauseMenu" type="CanvasLayer"]
+layer = 20
+script = ExtResource("1_pause_script")
+
+[node name="DimOverlay" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.55)
+
+[node name="CenterContainer" type="MarginContainer" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -230.0
+offset_top = -265.0
+offset_right = 230.0
+offset_bottom = 265.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainCard" type="PanelContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(460, 530)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainCard"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="HeaderPanel" type="PanelContainer" parent="CenterContainer/MainCard/VBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_header")
+
+[node name="TitleLabel" type="Label" parent="CenterContainer/MainCard/VBox/HeaderPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.97, 0.9, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 32
+text = "⏸️  GAME TẠM DỪNG"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MainButtonsVBox" type="VBoxContainer" parent="CenterContainer/MainCard/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="ResumeButton" type="Button" parent="CenterContainer/MainCard/VBox/MainButtonsVBox"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_wood")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_wood_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_wood")
+text = "▶️  CHƠI TIẾP"
+
+[node name="SettingsButton" type="Button" parent="CenterContainer/MainCard/VBox/MainButtonsVBox"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_wood")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_wood_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_wood")
+text = "⚙️  CÀI ĐẶT"
+
+[node name="RestartButton" type="Button" parent="CenterContainer/MainCard/VBox/MainButtonsVBox"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_wood")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_wood_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_wood")
+text = "🔄  CHƠI LẠI"
+
+[node name="MainMenuButton" type="Button" parent="CenterContainer/MainCard/VBox/MainButtonsVBox"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_wood")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_wood_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_wood")
+text = "🏠  VỀ MENU CHÍNH"
+
+[node name="SettingsVBox" type="VBoxContainer" parent="CenterContainer/MainCard/VBox"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="BGMRow" type="VBoxContainer" parent="CenterContainer/MainCard/VBox/SettingsVBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="BGMLabel" type="Label" parent="CenterContainer/MainCard/VBox/SettingsVBox/BGMRow"]
+layout_mode = 2
+text = "🎶 Nhạc nền (BGM): 80%"
+label_settings = SubResource("LabelSettings_setting_label")
+
+[node name="BGMControls" type="HBoxContainer" parent="CenterContainer/MainCard/VBox/SettingsVBox/BGMRow"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BGMMinusBtn" type="Button" parent="CenterContainer/MainCard/VBox/SettingsVBox/BGMRow/BGMControls"]
+custom_minimum_size = Vector2(44, 38)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_wood")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_wood_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_wood")
+text = "➖"
+
+[node name="BGMSlider" type="HSlider" parent="CenterContainer/MainCard/VBox/SettingsVBox/BGMRow/BGMControls"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+min_value = -30.0
+max_value = 6.0
+step = 1.0
+value = -4.0
+
+[node name="BGMPlusBtn" type="Button" parent="CenterContainer/MainCard/VBox/SettingsVBox/BGMRow/BGMControls"]
+custom_minimum_size = Vector2(44, 38)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_wood")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_wood_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_wood")
+text = "➕"
+
+[node name="SFXRow" type="VBoxContainer" parent="CenterContainer/MainCard/VBox/SettingsVBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="SFXLabel" type="Label" parent="CenterContainer/MainCard/VBox/SettingsVBox/SFXRow"]
+layout_mode = 2
+text = "🔔 Hiệu ứng âm thanh (SFX): 80%"
+label_settings = SubResource("LabelSettings_setting_label")
+
+[node name="SFXControls" type="HBoxContainer" parent="CenterContainer/MainCard/VBox/SettingsVBox/SFXRow"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SFXMinusBtn" type="Button" parent="CenterContainer/MainCard/VBox/SettingsVBox/SFXRow/SFXControls"]
+custom_minimum_size = Vector2(44, 38)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_wood")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_wood_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_wood")
+text = "➖"
+
+[node name="SFXSlider" type="HSlider" parent="CenterContainer/MainCard/VBox/SettingsVBox/SFXRow/SFXControls"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+min_value = -30.0
+max_value = 12.0
+step = 1.0
+value = 6.0
+
+[node name="SFXPlusBtn" type="Button" parent="CenterContainer/MainCard/VBox/SettingsVBox/SFXRow/SFXControls"]
+custom_minimum_size = Vector2(44, 38)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_wood")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_wood_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_wood")
+text = "➕"
+
+[node name="TestSFXBtn" type="Button" parent="CenterContainer/MainCard/VBox/SettingsVBox"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_wood")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_wood_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_wood")
+text = "🔊 THỬ ÂM THANH"
+
+[node name="TouchUIButton" type="Button" parent="CenterContainer/MainCard/VBox/SettingsVBox"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_wood")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_wood_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_wood")
+text = "📱 Touch UI: TẮT"
+
+[node name="BackButton" type="Button" parent="CenterContainer/MainCard/VBox/SettingsVBox"]
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_wood")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_wood_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_wood")
+text = "⬅️  QUAY LẠI"

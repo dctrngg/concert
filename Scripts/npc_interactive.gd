@@ -62,7 +62,8 @@ func _physics_process(delta: float) -> void:
 		_yield_offset = _yield_offset.move_toward(Vector2.ZERO, yield_speed * delta)
 
 	var target_pos = base_position + _yield_offset
-	var crowd_mgr = get_tree().get_first_node_in_group("crowd_manager")
+	var tree = get_tree()
+	var crowd_mgr = tree.get_first_node_in_group("crowd_manager") if tree else null
 	if crowd_mgr and crowd_mgr.has_method("_is_barrier_tile"):
 		var local_pos = crowd_mgr.to_local(to_global(target_pos))
 		if crowd_mgr._is_barrier_tile(local_pos):
@@ -105,13 +106,7 @@ func setup(p_npc_index: int, p_outfit_id: int, p_has_quest: bool, p_quest_data: 
 	if p_sprite_frames != null and animated_sprite:
 		animated_sprite.sprite_frames = p_sprite_frames
 	elif animated_sprite and (animated_sprite.sprite_frames == null or not animated_sprite.sprite_frames.has_animation("idle_down")):
-		var player_scene = load("res://Scene/Player.tscn")
-		if player_scene:
-			var dummy_player = player_scene.instantiate()
-			var player_sprite = dummy_player.get_node_or_null("AnimatedSprite2D")
-			if player_sprite and player_sprite.sprite_frames:
-				animated_sprite.sprite_frames = player_sprite.sprite_frames
-			dummy_player.queue_free()
+		animated_sprite.sprite_frames = _get_fallback_sprite_frames()
 
 	if animated_sprite:
 		animated_sprite.scale = Vector2(1.3, 1.3)
@@ -126,6 +121,19 @@ func setup(p_npc_index: int, p_outfit_id: int, p_has_quest: bool, p_quest_data: 
 			animated_sprite.play("idle_right")
 	
 	update_quest_indicator()
+
+static var _fallback_sprite_frames: SpriteFrames = null
+
+static func _get_fallback_sprite_frames() -> SpriteFrames:
+	if _fallback_sprite_frames == null:
+		var player_scene = load("res://Scene/Player.tscn")
+		if player_scene:
+			var dummy_player = player_scene.instantiate()
+			var player_sprite = dummy_player.get_node_or_null("AnimatedSprite2D")
+			if player_sprite and player_sprite.sprite_frames:
+				_fallback_sprite_frames = player_sprite.sprite_frames.duplicate()
+			dummy_player.queue_free()
+	return _fallback_sprite_frames
 
 func update_quest_indicator() -> void:
 	if quest_indicator:
@@ -179,7 +187,8 @@ func interact() -> void:
 					
 					var sound_mgr = get_node_or_null("/root/SoundManager")
 					if not sound_mgr:
-						sound_mgr = get_tree().get_first_node_in_group("sound_manager")
+						var tree = get_tree()
+						sound_mgr = tree.get_first_node_in_group("sound_manager") if tree else null
 					if sound_mgr and sound_mgr.has_method("play_merch_sell_sfx"):
 						sound_mgr.play_merch_sell_sfx()
 					

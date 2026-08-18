@@ -12,6 +12,11 @@ var chair_source: Node2D = null
 var merch_stall: Node2D = null
 
 func _ready() -> void:
+	z_index = 100
+	z_as_relative = false
+	if arrow_sprite:
+		arrow_sprite.z_index = 100
+		arrow_sprite.z_as_relative = false
 	player = get_parent() as CharacterBody2D
 	visible = false
 

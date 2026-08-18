@@ -1,9 +1,11 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://Scripts/overhead_item_bar.gd" id="1_bar_script"]
-[ext_resource type="Texture2D" path="res://Sprites/UI_Flat_FrameSlot01a.png" id="2_frame_tex"]
+[ext_resource type="Texture2D" path="res://Spritesheets/DEMO_Cozy_UI_Pack_doboui/Inventory/ItemSlots/ItemSlotsDefault/ItemSlot1.png" id="2_frame_tex"]
 
 [node name="OverheadItemBar" type="Control"]
+z_index = 100
+z_as_relative = false
 layout_mode = 3
 anchors_preset = 0
 offset_left = -30.0

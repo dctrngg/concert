@@ -1,11 +1,11 @@
 extends PanelContainer
 class_name QuestHudItem
 
-@onready var quest_title_label: Label = $MarginContainer/VBox/TitleRow/QuestTitle
-@onready var time_label: Label = $MarginContainer/VBox/TitleRow/TimeLabel
-@onready var quest_icon: TextureRect = $MarginContainer/VBox/TitleRow/QuestIcon
-@onready var progress_bar: ProgressBar = $MarginContainer/VBox/TimeBar
-@onready var status_label: Label = $MarginContainer/VBox/StatusLabel
+@onready var quest_title_label: Label = find_child("QuestTitle", true, false) as Label
+@onready var time_label: Label = find_child("TimeLabel", true, false) as Label
+@onready var quest_icon: TextureRect = find_child("QuestIcon", true, false) as TextureRect
+@onready var progress_bar: ProgressBar = find_child("TimeBar", true, false) as ProgressBar
+@onready var status_label: Label = find_child("StatusLabel", true, false) as Label
 
 var _quest_data: NPCQuestData = null
 

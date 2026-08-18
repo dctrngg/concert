@@ -11,7 +11,8 @@ var _popup_merch_timer: float = 0.0
 @export var auto_merch_popup_interval: float = 85.0
 
 func get_player() -> Node2D:
-	return get_tree().get_first_node_in_group("player") as Node2D
+	var tree = get_tree()
+	return tree.get_first_node_in_group("player") as Node2D if tree else null
 
 func get_player_stats() -> PlayerStats:
 	var player = get_player()
@@ -84,8 +85,38 @@ func complete_quest(quest: NPCQuestData) -> void:
 	var gm = get_node_or_null("/root/GameManager")
 	if gm:
 		gm.add_score(quest.reward_points)
+		if gm.has_method("reduce_chaos"):
+			gm.reduce_chaos(8.0)
 		
+	var player = get_player()
+	if player:
+		if player.has_method("apply_camera_shake"):
+			player.apply_camera_shake(7.0)
+		_spawn_quest_complete_sparks(player.global_position)
+
 	quest_completed.emit(quest)
+
+func _spawn_quest_complete_sparks(pos: Vector2) -> void:
+	var particles = CPUParticles2D.new()
+	particles.global_position = pos + Vector2(0, -20)
+	particles.emitting = false
+	particles.one_shot = true
+	particles.explosiveness = 0.9
+	particles.amount = 24
+	particles.lifetime = 0.5
+	particles.spread = 180.0
+	particles.gravity = Vector2(0, 80)
+	particles.initial_velocity_min = 80.0
+	particles.initial_velocity_max = 160.0
+	particles.scale_amount_min = 3.0
+	particles.scale_amount_max = 5.0
+	particles.color = Color(1.0, 0.85, 0.2, 0.95) # Gold sparkles
+	
+	var scene = get_tree().current_scene
+	if scene:
+		scene.add_child(particles)
+		particles.emitting = true
+		get_tree().create_timer(1.0).timeout.connect(particles.queue_free)
 
 func fail_quest(quest: NPCQuestData) -> void:
 	if not (quest in active_quests):
@@ -100,11 +131,24 @@ func fail_quest(quest: NPCQuestData) -> void:
 		
 	var stats = get_player_stats()
 	if stats:
-		stats.add_stress(20.0) # stress_per_timeout
+		stats.add_stress(10.0) # stress_per_timeout
+		
+	var gm = get_node_or_null("/root/GameManager")
+	if gm and gm.has_method("add_chaos"):
+		gm.add_chaos(5.0)
 		
 	quest_failed.emit(quest)
 
 func _process(delta: float) -> void:
+	var gm = get_node_or_null("/root/GameManager")
+	if gm:
+		if ("is_gameplay_started" in gm) and not gm.is_gameplay_started:
+			return
+		if ("is_level_active" in gm) and not gm.is_level_active:
+			return
+	if get_tree().paused:
+		return
+
 	# 1. Quản lý tự động phát sinh nhiệm vụ đột xuất Bán Merch định kỳ (85s)
 	_popup_merch_timer += delta
 	if _popup_merch_timer >= auto_merch_popup_interval:

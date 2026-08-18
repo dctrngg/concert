@@ -1,22 +1,58 @@
-[gd_scene load_steps=6 format=3 uid="uid://d3dialoguebox"]
+[gd_scene load_steps=8 format=3 uid="uid://d3dialoguebox"]
 
 [ext_resource type="Script" path="res://Scripts/dialogue_box.gd" id="1_dialogue_script"]
 [ext_resource type="FontFile" path="res://0307-LNTH-TwistyPixel.ttf" id="2_pixel_font"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dialogue_card"]
+content_margin_left = 24.0
+content_margin_top = 18.0
+content_margin_right = 24.0
+content_margin_bottom = 18.0
+bg_color = Color(0.99, 0.97, 0.94, 0.98)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.48, 0.28, 0.12, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_left = 16
+corner_radius_bottom_right = 16
+shadow_color = Color(0.18, 0.1, 0.04, 0.35)
+shadow_size = 8
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_name_badge"]
+content_margin_left = 14.0
+content_margin_top = 4.0
+content_margin_right = 14.0
+content_margin_bottom = 4.0
+bg_color = Color(0.43, 0.25, 0.1, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.29, 0.15, 0.04, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+shadow_color = Color(0.12, 0.06, 0.02, 0.3)
+shadow_size = 4
+shadow_offset = Vector2(0, 2)
+
 [sub_resource type="LabelSettings" id="LabelSettings_speaker"]
 font = ExtResource("2_pixel_font")
-font_size = 34
-font_color = Color(1, 0.88, 0.15, 1)
-outline_size = 6
-outline_color = Color(0, 0, 0, 1)
+font_size = 22
+font_color = Color(1, 0.97, 0.9, 1)
+outline_size = 2
+outline_color = Color(0.23, 0.11, 0.03, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_text"]
 font = ExtResource("2_pixel_font")
-font_size = 30
-font_color = Color(1, 1, 1, 1)
-outline_size = 4
-outline_color = Color(0, 0, 0, 1)
-line_spacing = 8
+font_size = 28
+font_color = Color(0.17, 0.08, 0.02, 1)
+line_spacing = 14
 
 [node name="DialogueBox" type="CanvasLayer"]
 layer = 15
@@ -38,35 +74,37 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -450.0
-offset_top = -230.0
-offset_right = 450.0
-offset_bottom = -15.0
+offset_left = -340.0
+offset_top = -200.0
+offset_right = 340.0
+offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 0
 
 [node name="DialoguePanel" type="PanelContainer" parent="Control/MarginContainer"]
-custom_minimum_size = Vector2(900, 215)
+custom_minimum_size = Vector2(680, 180)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_dialogue_card")
 
-[node name="Margin" type="MarginContainer" parent="Control/MarginContainer/DialoguePanel"]
+[node name="VBox" type="VBoxContainer" parent="Control/MarginContainer/DialoguePanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 28
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 28
-theme_override_constants/margin_bottom = 18
+theme_override_constants/separation = 16
 
-[node name="VBox" type="VBoxContainer" parent="Control/MarginContainer/DialoguePanel/Margin"]
+[node name="BadgeRow" type="HBoxContainer" parent="Control/MarginContainer/DialoguePanel/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 28
 
-[node name="SpeakerNameLabel" type="Label" parent="Control/MarginContainer/DialoguePanel/Margin/VBox"]
+[node name="NameBadgePanel" type="PanelContainer" parent="Control/MarginContainer/DialoguePanel/VBox/BadgeRow"]
 layout_mode = 2
-text = "Player (Bảo Vệ)"
+theme_override_styles/panel = SubResource("StyleBoxFlat_name_badge")
+
+[node name="SpeakerNameLabel" type="Label" parent="Control/MarginContainer/DialoguePanel/VBox/BadgeRow/NameBadgePanel"]
+layout_mode = 2
+text = "dctrng"
 label_settings = SubResource("LabelSettings_speaker")
+vertical_alignment = 1
 
-[node name="TextLabel" type="Label" parent="Control/MarginContainer/DialoguePanel/Margin/VBox"]
+[node name="TextLabel" type="Label" parent="Control/MarginContainer/DialoguePanel/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
 text = "Tôi là Bảo Vệ đêm nhạc. Tôi sẽ hỗ trợ khán giả và giữ gìn an ninh!"

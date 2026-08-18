@@ -32,10 +32,12 @@ func _try_pickup_chair() -> void:
 			
 	if picked_up_any:
 		inventory.inventory_changed.emit()
-		get_tree().call_group("npc_interactive", "update_quest_indicator")
+		var tree = get_tree()
+		if tree:
+			tree.call_group("npc_interactive", "update_quest_indicator")
 		var sound_mgr = get_node_or_null("/root/SoundManager")
-		if not sound_mgr:
-			sound_mgr = get_tree().get_first_node_in_group("sound_manager")
+		if not sound_mgr and tree:
+			sound_mgr = tree.get_first_node_in_group("sound_manager")
 		if sound_mgr and sound_mgr.has_method("play_chair_pickup_sfx"):
 			sound_mgr.play_chair_pickup_sfx()
 	else:

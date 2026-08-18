@@ -18,6 +18,7 @@ outline_size = 4
 outline_color = Color(0.1, 0.1, 0.1, 1)
 
 [node name="NPCInteractive" type="CharacterBody2D"]
+y_sort_enabled = true
 collision_layer = 2
 collision_mask = 7
 script = ExtResource("1_script")

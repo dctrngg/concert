@@ -23,14 +23,19 @@ signal playlist_finished()
 	set(val):
 		music_volume_db = val
 		if is_node_ready() and _music_player:
-			_music_player.volume_db = val
+			_music_player.volume_db = -80.0 if val <= -29.0 else val
 
 @export_group("Sound Effects (SFX) - Tùy chỉnh âm thanh sự kiện")
 ## Âm lượng tổng cho tất cả hiệu ứng SFX (dB, ví dụ: 0.0 là chuẩn, 6.0 là to gấp đôi, 12.0 là rất to)
-@export_range(-80.0, 24.0) var sfx_volume_db: float = 6.0
+@export_range(-80.0, 24.0) var sfx_volume_db: float = 6.0:
+	set(val):
+		sfx_volume_db = val
 
 ## Tăng riêng âm lượng khi LẤY ĐỒ ÁN / LẤY GHẾ / BÁN HÀNG (dB, cộng thêm vào sfx_volume_db, mặc định +6.0 dB)
 @export_range(-24.0, 24.0) var pickup_volume_boost: float = 6.0
+
+## Giảm riêng âm lượng khi HOÀN THÀNH NHIỆM VỤ (dB, mặc định -8.0 dB để âm thanh nhỏ bớt vừa nghe)
+@export_range(-30.0, 12.0) var quest_complete_volume_offset: float = -8.0
 
 ## File âm thanh khi nhận nhiệm vụ (Kéo thả file .mp3 / .wav / .ogg)
 @export var quest_accept_sfx: AudioStream
@@ -54,13 +59,17 @@ var current_track_index: int = -1
 var _music_player: AudioStreamPlayer = null
 
 func _ready() -> void:
+	if get_tree().root.has_node("SoundManager") and get_tree().root.get_node("SoundManager") != self:
+		queue_free()
+		return
+		
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	
 	# Khởi tạo Node AudioStreamPlayer cho nhạc nền
 	_music_player = AudioStreamPlayer.new()
 	_music_player.name = "BackgroundMusicPlayer"
 	_music_player.bus = "Master"
-	_music_player.volume_db = music_volume_db
+	_music_player.volume_db = -80.0 if music_volume_db <= -29.0 else music_volume_db
 	_music_player.finished.connect(_on_music_track_finished)
 	add_child(_music_player)
 	
@@ -90,7 +99,8 @@ func _connect_quest_manager() -> void:
 
 ## Tự động quét tìm tất cả file .mp3, .ogg, .wav trong thư mục auto_scan_folder
 func _auto_scan_music_files() -> void:
-	var folders_to_check = [auto_scan_folder, "res://Audio/", "res://Sound/", "res://"]
+	var folders_to_check = [auto_scan_folder, "res://sound/", "res://music/", "res://Audio/", "res://Sound/", "res://"]
+	var sfx_keywords = ["pick", "done", "job", "accept", "complete", "fail", "sell", "coin"]
 	for folder in folders_to_check:
 		if DirAccess.dir_exists_absolute(folder):
 			var dir = DirAccess.open(folder)
@@ -100,13 +110,20 @@ func _auto_scan_music_files() -> void:
 				while file_name != "":
 					if not dir.current_is_dir():
 						var ext = file_name.get_extension().to_lower()
+						var base = file_name.get_basename().to_lower()
 						if ext in ["mp3", "ogg", "wav"]:
-							var file_path = folder.path_join(file_name)
-							if ResourceLoader.exists(file_path):
-								var stream = load(file_path) as AudioStream
-								if stream and not music_playlist.has(stream):
-									music_playlist.append(stream)
-									print("[SoundManager] 🎵 Đã tự động nạp bài nhạc: ", file_name)
+							var is_sfx = false
+							for kw in sfx_keywords:
+								if kw in base:
+									is_sfx = true
+									break
+							if not is_sfx:
+								var file_path = folder.path_join(file_name)
+								if ResourceLoader.exists(file_path):
+									var stream = load(file_path) as AudioStream
+									if stream and not music_playlist.has(stream):
+										music_playlist.append(stream)
+										print("[SoundManager] 🎵 Đã tự động nạp bài nhạc BGM: ", file_name)
 					file_name = dir.get_next()
 				dir.list_dir_end()
 		if not music_playlist.is_empty():
@@ -205,14 +222,28 @@ func set_playlist(tracks: Array[AudioStream]) -> void:
 ## Điều chỉnh âm lượng nhạc nền (dB, ví dụ: 0.0 là chuẩn, -10.0 là nhỏ bớt, -80.0 là tắt hẳn)
 func set_music_volume(volume_db: float) -> void:
 	music_volume_db = volume_db
+	if _music_player:
+		_music_player.volume_db = -80.0 if volume_db <= -29.0 else volume_db
+		if not _music_player.playing and not music_playlist.is_empty():
+			resume_music()
 
-## Phát hiệu ứng âm thanh SFX một lần (Sound Effect)
-func play_sfx(stream: AudioStream, volume_db: float = 0.0, pitch_scale: float = 1.0) -> void:
+## Điều chỉnh âm lượng hiệu ứng (dB)
+func set_sfx_volume(volume_db: float) -> void:
+	sfx_volume_db = volume_db
+
+## Phát hiệu ứng âm thanh SFX một lần (Sound Effect - Chấp nhận cả AudioStream lẫn đường dẫn String)
+func play_sfx(sound_arg: Variant, volume_db: float = 0.0, pitch_scale: float = 1.0) -> void:
+	var stream: AudioStream = null
+	if sound_arg is AudioStream:
+		stream = sound_arg
+	elif sound_arg is String and ResourceLoader.exists(sound_arg):
+		stream = load(sound_arg) as AudioStream
+		
 	if not stream:
 		return
 	var sfx_player = AudioStreamPlayer.new()
 	sfx_player.stream = stream
-	sfx_player.volume_db = volume_db
+	sfx_player.volume_db = sfx_volume_db + volume_db
 	sfx_player.pitch_scale = pitch_scale
 	sfx_player.finished.connect(sfx_player.queue_free)
 	add_child(sfx_player)
@@ -232,25 +263,26 @@ func _on_quest_failed(_quest: NPCQuestData) -> void:
 func play_quest_accept_sfx(volume_db: float = NAN) -> void:
 	var stream = quest_accept_sfx
 	if stream:
-		play_sfx(stream, sfx_volume_db if is_nan(volume_db) else volume_db)
+		play_sfx(stream, 0.0 if is_nan(volume_db) else volume_db)
 	else:
 		print("[SoundManager] 🔊 (SFX Event) Nhận nhiệm vụ! (Chưa gán quest_accept_sfx trong Inspector)")
 
 func play_quest_complete_sfx(volume_db: float = NAN) -> void:
 	var stream = quest_complete_sfx
 	if stream:
-		play_sfx(stream, sfx_volume_db if is_nan(volume_db) else volume_db)
+		var vol = quest_complete_volume_offset if is_nan(volume_db) else volume_db
+		play_sfx(stream, vol)
 	else:
 		print("[SoundManager] 🔊 (SFX Event) Hoàn thành nhiệm vụ! (Chưa gán quest_complete_sfx trong Inspector)")
 
 func play_quest_fail_sfx(volume_db: float = NAN) -> void:
 	if quest_fail_sfx:
-		play_sfx(quest_fail_sfx, sfx_volume_db if is_nan(volume_db) else volume_db)
+		play_sfx(quest_fail_sfx, 0.0 if is_nan(volume_db) else volume_db)
 
 func play_food_pickup_sfx(volume_db: float = NAN) -> void:
 	var stream = food_pickup_sfx if food_pickup_sfx else (chair_pickup_sfx if chair_pickup_sfx else merch_sell_sfx)
 	if stream:
-		var vol = (sfx_volume_db + pickup_volume_boost) if is_nan(volume_db) else volume_db
+		var vol = pickup_volume_boost if is_nan(volume_db) else volume_db
 		play_sfx(stream, vol)
 	else:
 		print("[SoundManager] 🔊 (SFX Event) Lấy đồ ăn thành công! (Chưa gán food_pickup_sfx trong Inspector)")
@@ -258,7 +290,7 @@ func play_food_pickup_sfx(volume_db: float = NAN) -> void:
 func play_chair_pickup_sfx(volume_db: float = NAN) -> void:
 	var stream = chair_pickup_sfx if chair_pickup_sfx else (food_pickup_sfx if food_pickup_sfx else merch_sell_sfx)
 	if stream:
-		var vol = (sfx_volume_db + pickup_volume_boost) if is_nan(volume_db) else volume_db
+		var vol = pickup_volume_boost if is_nan(volume_db) else volume_db
 		play_sfx(stream, vol)
 	else:
 		print("[SoundManager] 🔊 (SFX Event) Lấy ghế thành công! (Chưa gán chair_pickup_sfx trong Inspector)")
@@ -266,7 +298,7 @@ func play_chair_pickup_sfx(volume_db: float = NAN) -> void:
 func play_merch_sell_sfx(volume_db: float = NAN) -> void:
 	var stream = merch_sell_sfx if merch_sell_sfx else (food_pickup_sfx if food_pickup_sfx else chair_pickup_sfx)
 	if stream:
-		var vol = (sfx_volume_db + pickup_volume_boost) if is_nan(volume_db) else volume_db
+		var vol = pickup_volume_boost if is_nan(volume_db) else volume_db
 		play_sfx(stream, vol)
 	else:
 		print("[SoundManager] 🔊 (SFX Event) Bán merchandise thành công!")

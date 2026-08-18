@@ -5,9 +5,9 @@ signal tutorial_completed()
 signal line_advanced(line_index: int)
 
 @onready var control_root: Control = $Control
-@onready var dialogue_panel: PanelContainer = $Control/MarginContainer/DialoguePanel
-@onready var speaker_name_label: Label = $Control/MarginContainer/DialoguePanel/Margin/VBox/SpeakerNameLabel
-@onready var text_label: Label = $Control/MarginContainer/DialoguePanel/Margin/VBox/TextLabel
+@onready var dialogue_panel: PanelContainer = find_child("DialoguePanel", true, false) as PanelContainer
+@onready var speaker_name_label: Label = find_child("SpeakerNameLabel", true, false) as Label
+@onready var text_label: Label = find_child("TextLabel", true, false) as Label
 
 @export var player_name: String = "dctrng"
 
@@ -39,8 +39,6 @@ enum TutorialState { WELCOME, GREETING, QUEST_ACCEPTED, ITEM_PICKED_UP, COMPLETE
 var current_phase: DialoguePhase = DialoguePhase.TUTORIAL_GUIDE
 var tutorial_state: TutorialState = TutorialState.WELCOME
 
-var tex_frame_dialogue: Texture2D = preload("res://Sprites/UI_Flat_Frame01a.png")
-
 var _last_random_index: int = -1
 var _is_typing: bool = false
 var _visible_chars_float: float = 0.0
@@ -50,20 +48,30 @@ var _current_text: String = ""
 func _ready() -> void:
 	layer = 15 # Hiển thị trên cùng đè lên HUD
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	if control_root:
+		control_root.visible = false
 	
 	_apply_styles()
-	call_deferred("_start_auto_dialogue")
+	call_deferred("_check_level_start_dialog")
 	call_deferred("_connect_quest_signals")
 
+func _check_level_start_dialog() -> void:
+	var tree = get_tree()
+	if not tree:
+		_start_auto_dialogue()
+		return
+	var start_dialog = tree.get_first_node_in_group("level_start_dialog")
+	if not start_dialog and tree.root:
+		start_dialog = tree.root.find_child("LevelStartDialog", true, false)
+		
+	if start_dialog:
+		if not start_dialog.play_pressed.is_connected(_start_auto_dialogue):
+			start_dialog.play_pressed.connect(_start_auto_dialogue)
+	else:
+		_start_auto_dialogue()
+
 func _apply_styles() -> void:
-	if dialogue_panel:
-		var style_d = StyleBoxTexture.new()
-		style_d.texture = tex_frame_dialogue
-		style_d.texture_margin_left = 16
-		style_d.texture_margin_top = 14
-		style_d.texture_margin_right = 16
-		style_d.texture_margin_bottom = 14
-		dialogue_panel.add_theme_stylebox_override("panel", style_d)
+	pass
 
 func _connect_quest_signals() -> void:
 	var quest_mgr = get_node_or_null("/root/QuestManager")
@@ -73,7 +81,8 @@ func _connect_quest_signals() -> void:
 		if not quest_mgr.quest_completed.is_connected(_on_quest_completed):
 			quest_mgr.quest_completed.connect(_on_quest_completed)
 			
-	var player = get_tree().get_first_node_in_group("player")
+	var tree = get_tree()
+	var player = tree.get_first_node_in_group("player") if tree else null
 	if player and player.get("inventory"):
 		var inv = player.get("inventory")
 		if inv and inv.has_signal("inventory_changed"):

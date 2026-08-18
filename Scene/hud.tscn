@@ -1,21 +1,35 @@
-[gd_scene load_steps=16 format=3 uid="uid://beplx2gmqpvh3"]
+[gd_scene load_steps=17 format=3 uid="uid://beplx2gmqpvh3"]
 
 [ext_resource type="Script" uid="uid://ca23g3w7lyx5" path="res://Scripts/hud.gd" id="1_hud_script"]
 [ext_resource type="PackedScene" uid="uid://c6v2n7x4k8q1j" path="res://Scene/level_result_dialog.tscn" id="2_result_dialog"]
 [ext_resource type="Texture2D" path="res://Sprites/UI_Flat_Bar01a.png" id="3_bar_bg"]
 [ext_resource type="Texture2D" path="res://Sprites/UI_Flat_BarFill01g.png" id="4_stamina_fill"]
 [ext_resource type="Texture2D" path="res://Sprites/UI_Flat_BarFill01e.png" id="5_stress_fill"]
-[ext_resource type="Texture2D" path="res://Sprites/UI_Flat_Banner02a.png" id="6_banner_tex"]
-[ext_resource type="Texture2D" path="res://Sprites/UI_Flat_Frame03a.png" id="7_stats_frame"]
-[ext_resource type="FontFile" path="res://0307-LNTH-TwistyPixel.ttf" id="8_pixel_font"]
-[ext_resource type="PackedScene" uid="uid://dm0b7x4k8q1j2" path="res://Scene/mobile_controls.tscn" id="9_mobile_controls"]
+[ext_resource type="FontFile" path="res://0307-LNTH-TwistyPixel.ttf" id="6_pixel_font"]
+[ext_resource type="PackedScene" uid="uid://dm0b7x4k8q1j2" path="res://Scene/mobile_controls.tscn" id="7_mobile_controls"]
+[ext_resource type="Texture2D" path="res://Spritesheets/DEMO_Cozy_UI_Pack_doboui/Buttons/Square/SquareButton1_wood.png" id="8_btn_wood"]
+[ext_resource type="PackedScene" path="res://Scene/pause_menu.tscn" id="9_pause_menu"]
+[ext_resource type="PackedScene" path="res://Scene/level_start_dialog.tscn" id="10_start_dialog"]
+[ext_resource type="PackedScene" path="res://Scene/weather_manager.tscn" id="11_weather_mgr"]
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_stats_panel"]
-texture = ExtResource("7_stats_frame")
-texture_margin_left = 14.0
-texture_margin_top = 12.0
-texture_margin_right = 14.0
-texture_margin_bottom = 12.0
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stats_panel"]
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+bg_color = Color(0.99, 0.97, 0.94, 0.98)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.48, 0.28, 0.12, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_left = 16
+corner_radius_bottom_right = 16
+shadow_color = Color(0.18, 0.1, 0.04, 0.35)
+shadow_size = 6
+shadow_offset = Vector2(0, 3)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bar_bg"]
 texture = ExtResource("3_bar_bg")
@@ -39,39 +53,64 @@ texture_margin_right = 2.0
 texture_margin_bottom = 2.0
 
 [sub_resource type="LabelSettings" id="LabelSettings_stamina"]
-font = ExtResource("8_pixel_font")
-font_size = 24
-font_color = Color(1, 0.88, 0.25, 1)
-outline_size = 5
-outline_color = Color(0, 0, 0, 1)
+font = ExtResource("6_pixel_font")
+font_size = 19
+font_color = Color(0.35, 0.18, 0.06, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_stress"]
-font = ExtResource("8_pixel_font")
-font_size = 24
-font_color = Color(1, 0.45, 0.35, 1)
-outline_size = 5
-outline_color = Color(0, 0, 0, 1)
+font = ExtResource("6_pixel_font")
+font_size = 19
+font_color = Color(0.75, 0.2, 0.1, 1)
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_top_panel"]
-texture = ExtResource("6_banner_tex")
-texture_margin_left = 16.0
-texture_margin_top = 8.0
-texture_margin_right = 16.0
-texture_margin_bottom = 8.0
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_chaos_fill"]
+bg_color = Color(0.9, 0.15, 0.2, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+
+[sub_resource type="LabelSettings" id="LabelSettings_chaos"]
+font = ExtResource("6_pixel_font")
+font_size = 19
+font_color = Color(0.9, 0.15, 0.2, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_top_panel"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(1, 0.98, 0.95, 0.98)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.52, 0.32, 0.14, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_left = 18
+corner_radius_bottom_right = 18
+shadow_color = Color(0.18, 0.1, 0.04, 0.35)
+shadow_size = 6
+shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_wood"]
+texture = ExtResource("8_btn_wood")
+texture_margin_left = 12.0
+texture_margin_top = 10.0
+texture_margin_right = 12.0
+texture_margin_bottom = 10.0
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 1
 
 [sub_resource type="LabelSettings" id="LabelSettings_timer"]
-font = ExtResource("8_pixel_font")
-font_size = 32
-font_color = Color(1, 0.96, 0.4, 1)
-outline_size = 5
-outline_color = Color(0, 0, 0, 1)
+font = ExtResource("6_pixel_font")
+font_size = 24
+font_color = Color(0.28, 0.14, 0.05, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_score"]
-font = ExtResource("8_pixel_font")
-font_size = 24
-font_color = Color(1, 0.85, 0.1, 1)
-outline_size = 4
-outline_color = Color(0, 0, 0, 1)
+font = ExtResource("6_pixel_font")
+font_size = 18
+font_color = Color(0.52, 0.3, 0.08, 1)
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_hud_script")
@@ -88,28 +127,29 @@ mouse_filter = 2
 [node name="StatsPanel" type="PanelContainer" parent="Control"]
 layout_mode = 0
 offset_left = 20.0
-offset_top = 15.0
-offset_right = 380.0
-offset_bottom = 125.0
-theme_override_styles/panel = SubResource("StyleBoxTexture_stats_panel")
+offset_top = 20.0
+offset_right = 360.0
+offset_bottom = 165.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_stats_panel")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Control/StatsPanel"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 alignment = 1
 
 [node name="StaminaContainer" type="HBoxContainer" parent="Control/StatsPanel/VBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 10
 
 [node name="Label" type="Label" parent="Control/StatsPanel/VBoxContainer/StaminaContainer"]
-custom_minimum_size = Vector2(115, 0)
+custom_minimum_size = Vector2(105, 0)
 layout_mode = 2
 text = "⚡ THỂ LỰC"
 label_settings = SubResource("LabelSettings_stamina")
+vertical_alignment = 1
 
 [node name="StaminaBar" type="ProgressBar" parent="Control/StatsPanel/VBoxContainer/StaminaContainer"]
-custom_minimum_size = Vector2(0, 24)
+custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
@@ -120,16 +160,17 @@ show_percentage = false
 
 [node name="StressContainer" type="HBoxContainer" parent="Control/StatsPanel/VBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 10
 
 [node name="Label" type="Label" parent="Control/StatsPanel/VBoxContainer/StressContainer"]
-custom_minimum_size = Vector2(115, 0)
+custom_minimum_size = Vector2(105, 0)
 layout_mode = 2
 text = "🔥 STRESS"
 label_settings = SubResource("LabelSettings_stress")
+vertical_alignment = 1
 
 [node name="StressBar" type="ProgressBar" parent="Control/StatsPanel/VBoxContainer/StressContainer"]
-custom_minimum_size = Vector2(0, 24)
+custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
@@ -137,22 +178,38 @@ theme_override_styles/background = SubResource("StyleBoxTexture_bar_bg")
 theme_override_styles/fill = SubResource("StyleBoxTexture_stress_fill")
 show_percentage = false
 
+[node name="ChaosContainer" type="HBoxContainer" parent="Control/StatsPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="Control/StatsPanel/VBoxContainer/ChaosContainer"]
+custom_minimum_size = Vector2(105, 0)
+layout_mode = 2
+text = "💥 HỖN LOẠN"
+label_settings = SubResource("LabelSettings_chaos")
+vertical_alignment = 1
+
+[node name="ChaosBar" type="ProgressBar" parent="Control/StatsPanel/VBoxContainer/ChaosContainer"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_styles/background = SubResource("StyleBoxTexture_bar_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_chaos_fill")
+show_percentage = false
+
 [node name="TopCenterPanel" type="PanelContainer" parent="Control"]
-custom_minimum_size = Vector2(340, 85)
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -170.0
-offset_top = 10.0
-offset_right = 170.0
-offset_bottom = 95.0
-grow_horizontal = 2
-theme_override_styles/panel = SubResource("StyleBoxTexture_top_panel")
+custom_minimum_size = Vector2(340, 75)
+layout_mode = 0
+offset_left = 20.0
+offset_top = 175.0
+offset_right = 360.0
+offset_bottom = 250.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_top_panel")
 
 [node name="VBox" type="VBoxContainer" parent="Control/TopCenterPanel"]
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 2
 alignment = 1
 
 [node name="TimerLabel" type="Label" parent="Control/TopCenterPanel/VBox"]
@@ -160,34 +217,46 @@ layout_mode = 2
 text = "⏱️ 05:00"
 label_settings = SubResource("LabelSettings_timer")
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="ScoreLabel" type="Label" parent="Control/TopCenterPanel/VBox"]
 layout_mode = 2
 text = "🏆 Điểm: 0 (☆☆☆)"
 label_settings = SubResource("LabelSettings_score")
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="QuestListContainer" type="VBoxContainer" parent="Control"]
 layout_mode = 0
-offset_left = -510.0
-offset_top = 15.0
+offset_left = -370.0
+offset_top = 20.0
 offset_right = -20.0
 anchor_left = 1.0
 anchor_right = 1.0
 grow_horizontal = 0
-theme_override_constants/separation = 14
+theme_override_constants/separation = 10
 
 [node name="MobileToggleButton" type="Button" parent="Control"]
 layout_mode = 0
 offset_left = 20.0
-offset_top = 135.0
-offset_right = 145.0
-offset_bottom = 175.0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_fonts/font = ExtResource("8_pixel_font")
-theme_override_font_sizes/font_size = 17
+offset_top = 260.0
+offset_right = 150.0
+offset_bottom = 305.0
+theme_override_colors/font_color = Color(0.28, 0.16, 0.06, 1)
+theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("6_pixel_font")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_wood")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_wood")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_wood")
 text = "📱 Touch UI"
 
-[node name="MobileControls" parent="." instance=ExtResource("9_mobile_controls")]
+[node name="MobileControls" parent="." instance=ExtResource("7_mobile_controls")]
 
 [node name="LevelResultDialog" parent="." instance=ExtResource("2_result_dialog")]
+
+[node name="PauseMenu" parent="." instance=ExtResource("9_pause_menu")]
+
+[node name="LevelStartDialog" parent="." instance=ExtResource("10_start_dialog")]
+
+[node name="WeatherManager" parent="." instance=ExtResource("11_weather_mgr")]

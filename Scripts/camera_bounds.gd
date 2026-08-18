@@ -7,11 +7,14 @@ class_name CameraBounds
 
 func _ready() -> void:
 	await get_tree().process_frame
+	if not is_inside_tree() or get_tree() == null:
+		return
 	_apply_camera_limits()
 
 func _apply_camera_limits() -> void:
 	if not camera:
-		var player = get_tree().get_first_node_in_group("player")
+		var tree = get_tree()
+		var player = tree.get_first_node_in_group("player") if tree else null
 		if player:
 			camera = player.get_node_or_null("Camera2D") as Camera2D
 			

@@ -2,7 +2,7 @@ extends CharacterBody2D
 class_name LostChildNPC
 
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
-@onready var quest_indicator: Label = $QuestIndicator
+@onready var overhead_ui: Control = get_node_or_null("OverheadUI") as Control
 
 var quest_data: NPCQuestData = null
 var is_player_nearby: bool = false
@@ -76,17 +76,13 @@ func _setup_quest_data() -> void:
 	update_indicator()
 
 func update_indicator() -> void:
-	if not quest_indicator:
+	if not overhead_ui:
 		return
 		
-	if quest_data.state == NPCQuestData.QuestState.OFFERED:
-		quest_indicator.text = "👶"
-		quest_indicator.visible = true
-	elif is_following:
-		quest_indicator.text = "👶"
-		quest_indicator.visible = true
+	if quest_data and (quest_data.state == NPCQuestData.QuestState.OFFERED or is_following):
+		overhead_ui.visible = true
 	else:
-		quest_indicator.visible = false
+		overhead_ui.visible = false
 
 func interact() -> void:
 	if quest_data.state == NPCQuestData.QuestState.OFFERED:
@@ -114,13 +110,17 @@ func interact() -> void:
 					
 				print("[LostChild] Đã nhận nhiệm vụ dắt trẻ lạc về với Ba Mẹ!")
 
+var _stuck_time: float = 0.0
+var _last_stuck_pos: Vector2 = Vector2.ZERO
+
 func _physics_process(delta: float) -> void:
 	_indicator_time += delta
-	if quest_indicator and quest_indicator.visible:
-		quest_indicator.position.y = -34.0 + sin(_indicator_time * 6.0) * 3.0
+	if overhead_ui and overhead_ui.visible:
+		overhead_ui.position.y = -26.0 + sin(_indicator_time * 6.0) * 2.0
 
 	if not player:
-		player = get_tree().get_first_node_in_group("player") as CharacterBody2D
+		var tree = get_tree()
+		player = tree.get_first_node_in_group("player") as CharacterBody2D if tree else null
 		
 	if player and not is_following:
 		var d = global_position.distance_to(player.global_position)
@@ -130,16 +130,54 @@ func _physics_process(delta: float) -> void:
 		return
 		
 	var dist_to_player = global_position.distance_to(player.global_position)
-	if dist_to_player > follow_distance:
+	var icon_label = get_node_or_null("OverheadUI/SlotFrame/IconLabel") as Label
+
+	# 1. Ý tưởng giữ khoảng cách (Maintain Distance Mechanic):
+	if dist_to_player > 220.0:
+		# Player chạy quá xa -> Em bé dừng lại khóc nhè, buộc Player phải quay lại dắt bé!
+		velocity = Vector2.ZERO
+		_update_idle_animation()
+		if icon_label:
+			icon_label.text = "😭"
+		return
+	elif dist_to_player > 140.0:
+		# Player đi hơi xa -> Em bé chạy nhanh hơn để bắt kịp
+		var dir = (player.global_position - global_position).normalized()
+		velocity = dir * (follow_speed * 1.35)
+		move_and_slide()
+		_update_walk_animation(dir)
+		if icon_label:
+			icon_label.text = "🏃"
+	elif dist_to_player > follow_distance:
+		# Khoảng cách lý tưởng -> Đi theo bình thường
 		var dir = (player.global_position - global_position).normalized()
 		velocity = dir * follow_speed
 		move_and_slide()
 		_update_walk_animation(dir)
+		if icon_label:
+			icon_label.text = "👶"
 	else:
+		# Đã sát cạnh Player -> Đứng yên
 		velocity = Vector2.ZERO
 		_update_idle_animation()
+		if icon_label:
+			icon_label.text = "👶"
 
-	# Kiểm tra khi dắt bé đến gần vị trí Ba Mẹ
+	# 2. Xử lý chống kẹt góc tường (Anti-Stuck Nudge):
+	if velocity.length_squared() > 100.0:
+		if global_position.distance_to(_last_stuck_pos) < 2.0:
+			_stuck_time += delta
+			if _stuck_time > 0.6:
+				var nudge_dir = (player.global_position - global_position).normalized()
+				global_position += nudge_dir * (follow_speed * delta * 1.2)
+				_stuck_time = 0.0
+		else:
+			_stuck_time = 0.0
+			_last_stuck_pos = global_position
+	else:
+		_stuck_time = 0.0
+
+	# 3. Kiểm tra khi dắt bé đến gần vị trí Ba Mẹ
 	if parent_global_pos != Vector2.INF:
 		var dist_to_parent = global_position.distance_to(parent_global_pos)
 		if dist_to_parent <= 68.0:
@@ -173,7 +211,9 @@ func _update_idle_animation() -> void:
 func _reunite_with_parents() -> void:
 	is_following = false
 	velocity = Vector2.ZERO
-	quest_indicator.text = "❤️"
+	var icon_label = get_node_or_null("OverheadUI/SlotFrame/IconLabel") as Label
+	if icon_label:
+		icon_label.text = "❤️"
 	
 	var quest_mgr = get_node_or_null("/root/QuestManager")
 	if quest_mgr and quest_data:

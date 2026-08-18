@@ -4,6 +4,8 @@ signal score_changed(current_score: int, target_stars: Array)
 signal level_timer_updated(time_remaining: float, time_limit: float)
 signal level_completed(score: int, stars_earned: int, is_passed: bool)
 signal level_started(level_info: Dictionary)
+signal chaos_changed(current_chaos: float, max_chaos: float)
+signal game_over(reason: String)
 
 # Cấu hình Cấp độ / Map
 const LEVEL_CONFIGS: Array[Dictionary] = [
@@ -36,6 +38,9 @@ const LEVEL_CONFIGS: Array[Dictionary] = [
 var current_level_index: int = 0
 var current_score: int = 0
 var time_remaining: float = 300.0
+var current_chaos: float = 0.0
+var max_chaos: float = 100.0
+var game_over_reason: String = ""
 var is_level_active: bool = false
 var is_paused: bool = false
 
@@ -49,11 +54,22 @@ const SAVE_PATH = "user://save_game.cfg"
 func _ready() -> void:
 	load_progress()
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_setup_custom_mouse_cursor()
+
+func _setup_custom_mouse_cursor() -> void:
+	var cursor_normal = load("res://Spritesheets/DEMO_Cozy_UI_Pack_doboui/Cursors/Cursors_Crosshairs/Cursors_32px/Cursor2_42px.png")
+	var cursor_click = load("res://Spritesheets/DEMO_Cozy_UI_Pack_doboui/Cursors/Cursors_Crosshairs/Cursors_32px/Cursor2Clicked_42px.png")
+	if cursor_normal:
+		Input.set_custom_mouse_cursor(cursor_normal, Input.CURSOR_ARROW, Vector2(0, 0))
+	if cursor_click:
+		Input.set_custom_mouse_cursor(cursor_click, Input.CURSOR_POINTING_HAND, Vector2(0, 0))
 
 func get_current_level_data() -> Dictionary:
 	if current_level_index >= 0 and current_level_index < LEVEL_CONFIGS.size():
 		return LEVEL_CONFIGS[current_level_index]
 	return LEVEL_CONFIGS[0]
+
+var is_gameplay_started: bool = false
 
 func start_level(level_id: int) -> void:
 	for i in range(LEVEL_CONFIGS.size()):
@@ -63,12 +79,16 @@ func start_level(level_id: int) -> void:
 			
 	var level_data = get_current_level_data()
 	current_score = 0
+	current_chaos = 0.0
+	game_over_reason = ""
 	time_remaining = level_data["time_limit"]
 	is_level_active = true
+	is_gameplay_started = false # Chờ bấm PLAY ở màn hình Intro mới bắt đầu tính giờ!
 	is_paused = false
 	get_tree().paused = false
 	
 	score_changed.emit(current_score, level_data["star_thresholds"])
+	chaos_changed.emit(current_chaos, max_chaos)
 	level_timer_updated.emit(time_remaining, level_data["time_limit"])
 	level_started.emit(level_data)
 	
@@ -77,6 +97,10 @@ func start_level(level_id: int) -> void:
 	if get_tree().current_scene and get_tree().current_scene.scene_file_path != target_scene:
 		get_tree().change_scene_to_file(target_scene)
 
+func start_gameplay() -> void:
+	is_gameplay_started = true
+	print("[GameManager] ⏱️ Bắt đầu đếm ngược thời gian màn chơi!")
+
 func add_score(amount: int) -> void:
 	if not is_level_active:
 		return
@@ -84,9 +108,37 @@ func add_score(amount: int) -> void:
 	var level_data = get_current_level_data()
 	score_changed.emit(current_score, level_data["star_thresholds"])
 
-func _process(delta: float) -> void:
-	if not is_level_active or is_paused or get_tree().paused:
+func add_chaos(amount: float) -> void:
+	if not is_level_active or not is_gameplay_started:
 		return
+	current_chaos = clamp(current_chaos + amount, 0.0, max_chaos)
+	chaos_changed.emit(current_chaos, max_chaos)
+	if current_chaos >= max_chaos and is_level_active:
+		trigger_game_over("CONCERT_CHAOS_MAXED")
+
+func reduce_chaos(amount: float) -> void:
+	if not is_level_active:
+		return
+	current_chaos = clamp(current_chaos - amount, 0.0, max_chaos)
+	chaos_changed.emit(current_chaos, max_chaos)
+
+func trigger_game_over(reason: String) -> void:
+	if not is_level_active:
+		return
+	is_level_active = false
+	game_over_reason = reason
+	print("[GameManager] ❌ GAME OVER! Lý do: ", reason)
+	game_over.emit(reason)
+	level_completed.emit(current_score, 0, false)
+
+func _process(delta: float) -> void:
+	if not is_level_active or not is_gameplay_started or is_paused or get_tree().paused:
+		return
+		
+	# Tự động hạ Chaos mượt mà khi concert đang ổn định (-0.4%/s)
+	if current_chaos > 0.0:
+		current_chaos = max(0.0, current_chaos - delta * 0.4)
+		chaos_changed.emit(current_chaos, max_chaos)
 		
 	time_remaining -= delta
 	var level_data = get_current_level_data()

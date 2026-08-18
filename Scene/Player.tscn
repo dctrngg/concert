@@ -365,6 +365,8 @@ radius = 4.0
 height = 10.0
 
 [node name="Player" type="CharacterBody2D" unique_id=2093694816]
+y_sort_enabled = true
+y_sort_origin = 10
 collision_mask = 7
 script = ExtResource("1_mud5u")
 

@@ -27,15 +27,17 @@ func _on_timer_timeout() -> void:
 	print("[FightSpawner] Vụ ẩu đả tiếp theo dự kiến sau %.1fs." % next_interval)
 
 func _try_spawn_fight() -> void:
-	# Kiểm tra xem hiện tại có vụ ẩu đả nào chưa giải quyết hay không
-	var existing_fights = get_tree().get_nodes_in_group("fight_event")
+	var tree = get_tree()
+	if not tree:
+		return
+	var existing_fights = tree.get_nodes_in_group("fight_event")
 	for fight in existing_fights:
 		if not fight.get("is_resolved"):
 			# Đang có vụ ẩu đả chưa dẹp -> Không spawn thêm
 			return
 			
 	# Spawn vụ ẩu đả tại vị trí của khán giả đám đông nền
-	var crowd_manager = get_tree().get_first_node_in_group("crowd_manager")
+	var crowd_manager = tree.get_first_node_in_group("crowd_manager")
 	var spawn_pos: Vector2
 	if crowd_manager and crowd_manager.has_method("get_fight_spawn_position"):
 		spawn_pos = crowd_manager.get_fight_spawn_position()

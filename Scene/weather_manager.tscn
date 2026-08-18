@@ -1,0 +1,70 @@
+[gd_scene load_steps=7 format=3 uid="uid://c3weathermanagerscene"]
+
+[ext_resource type="Script" path="res://Scripts/weather_manager.gd" id="1_weather_script"]
+[ext_resource type="Texture2D" path="res://Spritesheets/Backgrounds/Tilesets/Rain.png" id="2_rain_tex"]
+[ext_resource type="Texture2D" path="res://Spritesheets/Backgrounds/Tilesets/RainOnFloor.png" id="3_splash_tex"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_single_rain_dash"]
+atlas = ExtResource("2_rain_tex")
+region = Rect2(0, 0, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_splash_rings"]
+atlas = ExtResource("3_splash_tex")
+region = Rect2(0, 0, 24, 8)
+
+[sub_resource type="Gradient" id="Gradient_rain_fade"]
+colors = PackedColorArray(1, 1, 1, 0.95, 1, 1, 1, 0)
+
+[node name="WeatherManager" type="CanvasLayer"]
+layer = 15
+script = ExtResource("1_weather_script")
+
+[node name="RainTintOverlay" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.1, 0.15, 0.25, 0)
+
+[node name="RainParticles" type="CPUParticles2D" parent="."]
+position = Vector2(960, -50)
+emitting = false
+amount = 85
+texture = SubResource("AtlasTexture_single_rain_dash")
+lifetime = 1.6
+preprocess = 1.2
+emission_shape = 3
+emission_rect_extents = Vector2(1400, 50)
+direction = Vector2(-0.6, 1)
+spread = 0.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 420.0
+initial_velocity_max = 480.0
+scale_amount_min = 4.4
+scale_amount_max = 5.6
+color = Color(1, 1, 1, 0.95)
+
+[node name="SplashParticles" type="CPUParticles2D" parent="."]
+position = Vector2(960, 540)
+emitting = false
+amount = 45
+texture = SubResource("AtlasTexture_splash_rings")
+lifetime = 0.45
+preprocess = 0.4
+emission_shape = 3
+emission_rect_extents = Vector2(1100, 600)
+direction = Vector2(0, -1)
+spread = 180.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 0.0
+initial_velocity_max = 0.0
+scale_amount_min = 2.2
+scale_amount_max = 2.8
+color = Color(1, 1, 1, 0.9)
+color_ramp = SubResource("Gradient_rain_fade")
+anim_h_frames = 3
+anim_v_frames = 1
+anim_speed_min = 2.5
+anim_speed_max = 3.5

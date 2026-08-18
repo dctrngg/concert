@@ -1,174 +1,96 @@
-[gd_scene load_steps=18 format=3 uid="uid://c6v2n7x4k8q1j"]
+[gd_scene load_steps=8 format=3 uid="uid://c6v2n7x4k8q1j"]
 
-[ext_resource type="Script" uid="uid://c7wxach1qanvo" path="res://Scripts/level_result_dialog.gd" id="1_result_script"]
+[ext_resource type="Script" path="res://Scripts/level_result_dialog.gd" id="1_result_script"]
 [ext_resource type="FontFile" path="res://0307-LNTH-TwistyPixel.ttf" id="2_pixel_font"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal_panel"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
 content_margin_left = 28.0
-content_margin_top = 28.0
+content_margin_top = 24.0
 content_margin_right = 28.0
-content_margin_bottom = 28.0
-bg_color = Color(0.08, 0.09, 0.14, 0.96)
+content_margin_bottom = 24.0
+bg_color = Color(0.99, 0.97, 0.94, 0.98)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.48, 0.28, 0.12, 1)
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_left = 24
+corner_radius_bottom_right = 24
+shadow_color = Color(0.18, 0.1, 0.04, 0.45)
+shadow_size = 14
+shadow_offset = Vector2(0, 7)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
+content_margin_top = 10.0
+content_margin_bottom = 10.0
+bg_color = Color(0.43, 0.25, 0.1, 1)
 border_width_left = 3
 border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
-border_color = Color(0.95, 0.75, 0.15, 0.95)
+border_color = Color(0.29, 0.15, 0.04, 1)
 corner_radius_top_left = 14
 corner_radius_top_right = 14
 corner_radius_bottom_left = 14
 corner_radius_bottom_right = 14
-shadow_color = Color(0, 0, 0, 0.65)
-shadow_size = 20
 
-[sub_resource type="LabelSettings" id="LabelSettings_header"]
-font = ExtResource("2_pixel_font")
-font_size = 26
-font_color = Color(1, 0.88, 0.25, 1)
-outline_size = 4
-outline_color = Color(0, 0, 0, 1)
-line_spacing = 10.0
-
-[sub_resource type="LabelSettings" id="LabelSettings_subtitle"]
-font = ExtResource("2_pixel_font")
-font_size = 19
-font_color = Color(0.7, 0.9, 1, 1)
-outline_size = 3
-outline_color = Color(0, 0, 0, 1)
-line_spacing = 8.0
-
-[sub_resource type="LabelSettings" id="LabelSettings_status"]
-font = ExtResource("2_pixel_font")
-font_size = 22
-outline_size = 4
-outline_color = Color(0, 0, 0, 1)
-line_spacing = 8.0
-
-[sub_resource type="LabelSettings" id="LabelSettings_stars"]
-font = ExtResource("2_pixel_font")
-font_size = 28
-font_color = Color(1, 0.82, 0.15, 1)
-outline_size = 4
-outline_color = Color(0, 0, 0, 1)
-line_spacing = 8.0
-
-[sub_resource type="LabelSettings" id="LabelSettings_score"]
-font = ExtResource("2_pixel_font")
-font_size = 20
-font_color = Color(1, 1, 1, 1)
-outline_size = 3
-outline_color = Color(0, 0, 0, 1)
-line_spacing = 8.0
-
-[sub_resource type="LabelSettings" id="LabelSettings_req_score"]
-font = ExtResource("2_pixel_font")
-font_size = 17
-font_color = Color(0.8, 0.82, 0.88, 1)
-outline_size = 2
-outline_color = Color(0, 0, 0, 1)
-line_spacing = 8.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_retry"]
-content_margin_left = 14.0
-content_margin_top = 10.0
-content_margin_right = 14.0
-content_margin_bottom = 10.0
-bg_color = Color(0.18, 0.25, 0.45, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stars_card"]
+content_margin_left = 20.0
+content_margin_top = 16.0
+content_margin_right = 20.0
+content_margin_bottom = 16.0
+bg_color = Color(0.95, 0.91, 0.83, 0.9)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.4, 0.6, 0.95, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_left = 6
-corner_radius_bottom_right = 6
+border_color = Color(0.6, 0.4, 0.2, 0.8)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_left = 14
+corner_radius_bottom_right = 14
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_retry_hover"]
-content_margin_left = 14.0
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_wood"]
 content_margin_top = 10.0
-content_margin_right = 14.0
 content_margin_bottom = 10.0
-bg_color = Color(0.25, 0.38, 0.65, 1)
+bg_color = Color(0.48, 0.28, 0.12, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.6, 0.8, 1, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_left = 6
-corner_radius_bottom_right = 6
+border_color = Color(0.3, 0.16, 0.05, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_left = 14
+corner_radius_bottom_right = 14
+shadow_color = Color(0.18, 0.1, 0.04, 0.35)
+shadow_size = 5
+shadow_offset = Vector2(0, 3)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_next"]
-content_margin_left = 14.0
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_wood_hover"]
 content_margin_top = 10.0
-content_margin_right = 14.0
 content_margin_bottom = 10.0
-bg_color = Color(0.12, 0.52, 0.28, 1)
+bg_color = Color(0.58, 0.35, 0.15, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.3, 0.85, 0.45, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_left = 6
-corner_radius_bottom_right = 6
+border_color = Color(0.3, 0.16, 0.05, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_left = 14
+corner_radius_bottom_right = 14
+shadow_color = Color(0.18, 0.1, 0.04, 0.45)
+shadow_size = 6
+shadow_offset = Vector2(0, 4)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_next_hover"]
-content_margin_left = 14.0
-content_margin_top = 10.0
-content_margin_right = 14.0
-content_margin_bottom = 10.0
-bg_color = Color(0.18, 0.68, 0.38, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.5, 1, 0.65, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_left = 6
-corner_radius_bottom_right = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_select"]
-content_margin_left = 14.0
-content_margin_top = 10.0
-content_margin_right = 14.0
-content_margin_bottom = 10.0
-bg_color = Color(0.32, 0.18, 0.42, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.7, 0.4, 0.85, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_left = 6
-corner_radius_bottom_right = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_select_hover"]
-content_margin_left = 14.0
-content_margin_top = 10.0
-content_margin_right = 14.0
-content_margin_bottom = 10.0
-bg_color = Color(0.45, 0.25, 0.6, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.88, 0.58, 1, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_left = 6
-corner_radius_bottom_right = 6
-
-[node name="LevelResultDialog" type="CanvasLayer" unique_id=1177145096]
-layer = 10
+[node name="LevelResultDialog" type="CanvasLayer"]
+layer = 22
 script = ExtResource("1_result_script")
 
-[node name="Control" type="Control" parent="." unique_id=517556087]
+[node name="Control" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -176,118 +98,140 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="ColorRect" type="ColorRect" parent="Control" unique_id=1334336216]
+[node name="ColorRect" type="ColorRect" parent="Control"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.76)
+color = Color(0, 0, 0, 0.6)
 
-[node name="Panel" type="PanelContainer" parent="Control" unique_id=1717596964]
-custom_minimum_size = Vector2(500, 440)
+[node name="CenterContainer" type="MarginContainer" parent="Control"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -250.0
-offset_top = -220.0
-offset_right = 250.0
-offset_bottom = 220.0
+offset_left = -280.0
+offset_top = -290.0
+offset_right = 280.0
+offset_bottom = 290.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_modal_panel")
 
-[node name="VBox" type="VBoxContainer" parent="Control/Panel" unique_id=549007023]
+[node name="Panel" type="PanelContainer" parent="Control/CenterContainer"]
+custom_minimum_size = Vector2(560, 580)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="Control/CenterContainer/Panel"]
 layout_mode = 2
 theme_override_constants/separation = 16
+
+[node name="HeaderPanel" type="PanelContainer" parent="Control/CenterContainer/Panel/VBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_header")
+
+[node name="HeaderLabel" type="Label" parent="Control/CenterContainer/Panel/VBox/HeaderPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.97, 0.9, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 32
+text = "🏆 KẾT QUẢ MÀN CHƠI"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SubTitleLabel" type="Label" parent="Control/CenterContainer/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.42, 0.23, 0.08, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 22
+text = "🎮 MÀN 1: ĐÊM ĐẠI NHẠC HỘI"
+horizontal_alignment = 1
+
+[node name="ResultStatusLabel" type="Label" parent="Control/CenterContainer/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.18, 0.55, 0.22, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 28
+text = "🎉 CHÚC MỪNG VƯỢT MÀN! 🎉"
+horizontal_alignment = 1
+
+[node name="StarsCard" type="PanelContainer" parent="Control/CenterContainer/Panel/VBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_stars_card")
+
+[node name="VBox" type="VBoxContainer" parent="Control/CenterContainer/Panel/VBox/StarsCard"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="StarsLabel" type="Label" parent="Control/CenterContainer/Panel/VBox/StarsCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.51, 0.0, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 32
+text = "★★★ (3/3 Sao - Xuất Sắc!)"
+horizontal_alignment = 1
+
+[node name="ScoreLabel" type="Label" parent="Control/CenterContainer/Panel/VBox/StarsCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.28, 0.14, 0.05, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 22
+text = "Tổng điểm đạt được: 850 điểm"
+horizontal_alignment = 1
+
+[node name="ReqScoreLabel" type="Label" parent="Control/CenterContainer/Panel/VBox/StarsCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.46, 0.27, 0.13, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 18
+text = "(Mục tiêu 1 Sao: 250 điểm)"
+horizontal_alignment = 1
+
+[node name="ButtonHBox" type="HBoxContainer" parent="Control/CenterContainer/Panel/VBox"]
+layout_mode = 2
+size_flags_vertical = 10
+theme_override_constants/separation = 12
 alignment = 1
 
-[node name="HeaderLabel" type="Label" parent="Control/Panel/VBox" unique_id=1719065864]
+[node name="RetryButton" type="Button" parent="Control/CenterContainer/Panel/VBox/ButtonHBox"]
+custom_minimum_size = Vector2(150, 56)
 layout_mode = 2
-theme_override_constants/line_spacing = 12
-text = "TỔNG KẾT MÀN CHƠI"
-label_settings = SubResource("LabelSettings_header")
-horizontal_alignment = 1
-
-[node name="SubTitleLabel" type="Label" parent="Control/Panel/VBox" unique_id=1719065865]
-layout_mode = 2
-theme_override_constants/line_spacing = 10
-text = "Cấp độ 1: Đêm Diễn Khởi Đầu"
-label_settings = SubResource("LabelSettings_subtitle")
-horizontal_alignment = 1
-
-[node name="HSeparator" type="HSeparator" parent="Control/Panel/VBox" unique_id=957007736]
-layout_mode = 2
-
-[node name="ResultStatusLabel" type="Label" parent="Control/Panel/VBox" unique_id=1829214140]
-layout_mode = 2
-theme_override_constants/line_spacing = 10
-text = "🎉 VƯỢT QUA VÒNG CHƠI! 🎉"
-label_settings = SubResource("LabelSettings_status")
-horizontal_alignment = 1
-
-[node name="StarsLabel" type="Label" parent="Control/Panel/VBox" unique_id=228198032]
-layout_mode = 2
-theme_override_constants/line_spacing = 10
-text = "★★★ (3/3 Sao)"
-label_settings = SubResource("LabelSettings_stars")
-horizontal_alignment = 1
-
-[node name="ScoreLabel" type="Label" parent="Control/Panel/VBox" unique_id=512480827]
-layout_mode = 2
-theme_override_constants/line_spacing = 10
-text = "Tổng điểm đạt được: 450 điểm"
-label_settings = SubResource("LabelSettings_score")
-horizontal_alignment = 1
-
-[node name="ReqScoreLabel" type="Label" parent="Control/Panel/VBox" unique_id=512480828]
-layout_mode = 2
-theme_override_constants/line_spacing = 10
-text = "(Yêu cầu 1 Sao: 150 điểm)"
-label_settings = SubResource("LabelSettings_req_score")
-horizontal_alignment = 1
-
-[node name="HSeparator2" type="HSeparator" parent="Control/Panel/VBox" unique_id=2018010467]
-layout_mode = 2
-
-[node name="ButtonHBox" type="HBoxContainer" parent="Control/Panel/VBox" unique_id=209506575]
-layout_mode = 2
-theme_override_constants/separation = 16
-alignment = 1
-
-[node name="RetryButton" type="Button" parent="Control/Panel/VBox/ButtonHBox" unique_id=1096093301]
-custom_minimum_size = Vector2(116, 44)
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("2_pixel_font")
-theme_override_font_sizes/font_size = 17
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_retry")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_retry_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_retry")
-text = "🔄 Thử Lại"
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_wood")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_wood_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_wood")
+text = "🔄  CHƠI LẠI"
 
-[node name="NextButton" type="Button" parent="Control/Panel/VBox/ButtonHBox" unique_id=1564639378]
-custom_minimum_size = Vector2(136, 44)
+[node name="NextButton" type="Button" parent="Control/CenterContainer/Panel/VBox/ButtonHBox"]
+custom_minimum_size = Vector2(160, 56)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("2_pixel_font")
-theme_override_font_sizes/font_size = 17
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_next")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_next_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_next")
-text = "▶️ Màn Tiếp"
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_wood")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_wood_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_wood")
+text = "▶️  MÀN TIẾP"
 
-[node name="SelectMenuButton" type="Button" parent="Control/Panel/VBox/ButtonHBox" unique_id=670832220]
-custom_minimum_size = Vector2(126, 44)
+[node name="SelectMenuButton" type="Button" parent="Control/CenterContainer/Panel/VBox/ButtonHBox"]
+custom_minimum_size = Vector2(160, 56)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("2_pixel_font")
-theme_override_font_sizes/font_size = 17
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_select")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_select_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_select")
-text = "📋 Chọn Màn"
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_wood")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_wood_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_wood")
+text = "🏠  CHỌN MÀN"

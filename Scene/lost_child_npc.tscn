@@ -1,7 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://d3lostchildnpc"]
+[gd_scene load_steps=7 format=3 uid="uid://d3lostchildnpc"]
 
 [ext_resource type="Script" path="res://Scripts/lost_child_npc.gd" id="1_child_script"]
 [ext_resource type="FontFile" path="res://0307-LNTH-TwistyPixel.ttf" id="2_pixel_font"]
+[ext_resource type="Texture2D" path="res://Spritesheets/DEMO_Cozy_UI_Pack_doboui/Inventory/ItemSlots/ItemSlotsDefault/ItemSlot1.png" id="3_slot_tex"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_child"]
 radius = 8.0
@@ -12,14 +13,15 @@ radius = 36.0
 
 [sub_resource type="LabelSettings" id="LabelSettings_indicator"]
 font = ExtResource("2_pixel_font")
-font_size = 20
-font_color = Color(1, 0.9, 0.2, 1)
-outline_size = 4
+font_size = 9
+font_color = Color(1, 0.95, 0.4, 1)
+outline_size = 2
 outline_color = Color(0, 0, 0, 1)
 
 [node name="LostChildNPC" type="CharacterBody2D" groups=["lost_child_npc", "npc_interactive"]]
+y_sort_enabled = true
 collision_layer = 2
-collision_mask = 7
+collision_mask = 5
 script = ExtResource("1_child_script")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
@@ -35,11 +37,35 @@ collision_mask = 1
 [node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionArea"]
 shape = SubResource("CircleShape2D_interact")
 
-[node name="QuestIndicator" type="Label" parent="."]
-offset_left = -30.0
-offset_top = -28.0
-offset_right = 30.0
-offset_bottom = -5.0
+[node name="OverheadUI" type="Control" parent="."]
+z_index = 100
+z_as_relative = false
+layout_mode = 3
+anchors_preset = 0
+offset_left = -8.0
+offset_top = -26.0
+offset_right = 8.0
+offset_bottom = -10.0
+
+[node name="SlotFrame" type="TextureRect" parent="OverheadUI"]
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_slot_tex")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="IconLabel" type="Label" parent="OverheadUI/SlotFrame"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 text = "👶"
 label_settings = SubResource("LabelSettings_indicator")
 horizontal_alignment = 1

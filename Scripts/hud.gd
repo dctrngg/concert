@@ -1,24 +1,33 @@
 extends CanvasLayer
 class_name HUD
 
-@onready var stamina_bar: ProgressBar = $Control/StatsPanel/VBoxContainer/StaminaContainer/StaminaBar
-@onready var stress_bar: ProgressBar = $Control/StatsPanel/VBoxContainer/StressContainer/StressBar
-@onready var quest_list_container: VBoxContainer = $Control/QuestListContainer
-@onready var timer_label: Label = $Control/TopCenterPanel/VBox/TimerLabel
-@onready var score_label: Label = $Control/TopCenterPanel/VBox/ScoreLabel
+@onready var stamina_bar: ProgressBar = find_child("StaminaBar", true, false) as ProgressBar
+@onready var stress_bar: ProgressBar = find_child("StressBar", true, false) as ProgressBar
+@onready var chaos_bar: ProgressBar = find_child("ChaosBar", true, false) as ProgressBar
+@onready var quest_list_container: VBoxContainer = find_child("QuestListContainer", true, false) as VBoxContainer
+@onready var timer_label: Label = find_child("TimerLabel", true, false) as Label
+@onready var score_label: Label = find_child("ScoreLabel", true, false) as Label
+@onready var top_center_panel: PanelContainer = find_child("TopCenterPanel", true, false) as PanelContainer
+@onready var stats_panel: PanelContainer = find_child("StatsPanel", true, false) as PanelContainer
 
 var _quest_item_scene: PackedScene = preload("res://Scene/quest_hud_item.tscn")
 var _active_hud_items: Dictionary = {}  # quest_id -> QuestHudItem node
 
 func _ready() -> void:
 	await get_tree().process_frame
+	if not is_inside_tree() or get_tree() == null:
+		return
+		
+	var tree = get_tree()
 
 	# Kết nối PlayerStats
-	var player = get_tree().get_first_node_in_group("player")
+	var player = tree.get_first_node_in_group("player")
 	if player and player.get("stats"):
 		var stats: PlayerStats = player.stats
 		stats.stamina_changed.connect(_on_stamina_changed)
 		stats.stress_changed.connect(_on_stress_changed)
+		if stats.has_signal("player_fainted"):
+			stats.player_fainted.connect(_on_player_fainted)
 		_on_stamina_changed(stats.stamina, stats.max_stamina)
 		_on_stress_changed(stats.stress, stats.max_stress)
 	else:
@@ -39,11 +48,31 @@ func _ready() -> void:
 	if gm:
 		gm.score_changed.connect(_on_score_changed)
 		gm.level_timer_updated.connect(_on_level_timer_updated)
+		if gm.has_signal("chaos_changed"):
+			gm.chaos_changed.connect(_on_chaos_changed)
+			_on_chaos_changed(gm.current_chaos, gm.max_chaos)
 		var lvl_data = gm.get_current_level_data()
 		_on_score_changed(gm.current_score, lvl_data["star_thresholds"])
 		_on_level_timer_updated(gm.time_remaining, lvl_data["time_limit"])
-		if not gm.is_level_active:
-			gm.start_level(lvl_data["level_id"])
+
+	# Xử lý ẩn TOÀN BỘ UI HUD (Thanh thể lực/stress, Đếm ngược, Nút touch UI) khi LevelStartDialog xuất hiện ở đầu màn
+	var main_control = get_node_or_null("Control") as Control
+	var start_dialog = tree.get_first_node_in_group("level_start_dialog")
+	if start_dialog:
+		if main_control:
+			main_control.visible = false
+		if start_dialog.has_signal("play_pressed"):
+			start_dialog.play_pressed.connect(func():
+				if main_control:
+					main_control.visible = true
+				if gm and gm.has_method("start_gameplay"):
+					gm.start_gameplay()
+			)
+	else:
+		if main_control:
+			main_control.visible = true
+		if gm and gm.has_method("start_gameplay"):
+			gm.start_gameplay()
 
 	# Kết nối inventory_changed để cập nhật trạng thái mang vác
 	if player and player.get("inventory"):
@@ -70,6 +99,19 @@ func _on_stress_changed(current: float, max_val: float) -> void:
 	if stress_bar:
 		stress_bar.max_value = max_val
 		stress_bar.value = current
+
+func _on_chaos_changed(current: float, max_val: float) -> void:
+	if chaos_bar:
+		chaos_bar.max_value = max_val
+		chaos_bar.value = current
+		# Hiệu ứng đổi màu đỏ rực khi Chaos > 75%
+		if current / max_val > 0.75:
+			chaos_bar.modulate = Color(1.3, 0.4, 0.4, 1.0)
+		else:
+			chaos_bar.modulate = Color(1.0, 1.0, 1.0, 1.0)
+
+func _on_player_fainted(duration: float, count: int, max_faints: int) -> void:
+	print("[HUD] 😵 Bảo vệ bị choáng/ngất xỉu trong %.1fs (Lần %d/%d)" % [duration, count, max_faints])
 
 # ─── Level Timer & Score ───────────────────────────────────────────────────
 
@@ -115,8 +157,10 @@ func _on_quest_ended(quest: NPCQuestData) -> void:
 		item.queue_free()
 
 func _on_inventory_changed() -> void:
-	# Cập nhật trạng thái mang vác cho tất cả hud items đang hiển thị
-	var player = get_tree().get_first_node_in_group("player")
+	var tree = get_tree()
+	if not tree:
+		return
+	var player = tree.get_first_node_in_group("player")
 	if not player or not player.get("inventory"):
 		return
 	for quest in player.inventory.get_active_quests():

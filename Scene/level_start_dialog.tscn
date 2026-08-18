@@ -1,0 +1,202 @@
+[gd_scene load_steps=8 format=3 uid="uid://c7levelstartdialogscene"]
+
+[ext_resource type="Script" path="res://Scripts/level_start_dialog.gd" id="1_start_script"]
+[ext_resource type="FontFile" path="res://0307-LNTH-TwistyPixel.ttf" id="2_pixel_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+content_margin_left = 32.0
+content_margin_top = 28.0
+content_margin_right = 32.0
+content_margin_bottom = 28.0
+bg_color = Color(0.99, 0.97, 0.94, 0.98)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
+border_color = Color(0.48, 0.28, 0.12, 1)
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_left = 24
+corner_radius_bottom_right = 24
+shadow_color = Color(0.18, 0.1, 0.04, 0.45)
+shadow_size = 14
+shadow_offset = Vector2(0, 7)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
+content_margin_top = 12.0
+content_margin_bottom = 12.0
+bg_color = Color(0.43, 0.25, 0.1, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.29, 0.15, 0.04, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_left = 14
+corner_radius_bottom_right = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_obj"]
+content_margin_left = 20.0
+content_margin_top = 16.0
+content_margin_right = 20.0
+content_margin_bottom = 16.0
+bg_color = Color(0.94, 0.91, 0.84, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.6, 0.4, 0.2, 0.8)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_left = 14
+corner_radius_bottom_right = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_wood"]
+content_margin_top = 12.0
+content_margin_bottom = 12.0
+bg_color = Color(0.48, 0.28, 0.12, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.3, 0.16, 0.05, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_left = 16
+corner_radius_bottom_right = 16
+shadow_color = Color(0.18, 0.1, 0.04, 0.35)
+shadow_size = 6
+shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_wood_hover"]
+content_margin_top = 12.0
+content_margin_bottom = 12.0
+bg_color = Color(0.58, 0.35, 0.15, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.3, 0.16, 0.05, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_left = 16
+corner_radius_bottom_right = 16
+shadow_color = Color(0.18, 0.1, 0.04, 0.45)
+shadow_size = 7
+shadow_offset = Vector2(0, 4)
+
+[node name="LevelStartDialog" type="CanvasLayer"]
+layer = 18
+script = ExtResource("1_start_script")
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="RightMarginContainer" type="MarginContainer" parent="Control"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 30.0
+offset_top = -330.0
+offset_right = 650.0
+offset_bottom = 330.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainCard" type="PanelContainer" parent="Control/RightMarginContainer"]
+custom_minimum_size = Vector2(620, 660)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="Control/RightMarginContainer/MainCard"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="HeaderPanel" type="PanelContainer" parent="Control/RightMarginContainer/MainCard/VBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_header")
+
+[node name="LevelTitleLabel" type="Label" parent="Control/RightMarginContainer/MainCard/VBox/HeaderPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.97, 0.9, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 36
+text = "🎮 MÀN 1: ĐÊM ĐẠI NHẠC HỘI"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ObjectivesCard" type="PanelContainer" parent="Control/RightMarginContainer/MainCard/VBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_obj")
+
+[node name="VBox" type="VBoxContainer" parent="Control/RightMarginContainer/MainCard/VBox/ObjectivesCard"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ObjTitle" type="Label" parent="Control/RightMarginContainer/MainCard/VBox/ObjectivesCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.28, 0.14, 0.05, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 28
+text = "🎯 MỤC TIÊU NHIỆM VỤ:"
+
+[node name="Bullet1" type="Label" parent="Control/RightMarginContainer/MainCard/VBox/ObjectivesCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.21, 0.11, 0.04, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 24
+text = "• Hỗ trợ khán giả lấy Ghế & Đồ Ăn"
+
+[node name="Bullet2" type="Label" parent="Control/RightMarginContainer/MainCard/VBox/ObjectivesCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.21, 0.11, 0.04, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 24
+text = "• Dẹp các cuộc ẩu đả trong đám đông"
+
+[node name="Bullet3" type="Label" parent="Control/RightMarginContainer/MainCard/VBox/ObjectivesCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.21, 0.11, 0.04, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 24
+text = "• Tìm trẻ bị lạc về cho phụ huynh"
+
+[node name="InfoVBox" type="VBoxContainer" parent="Control/RightMarginContainer/MainCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TimeLabel" type="Label" parent="Control/RightMarginContainer/MainCard/VBox/InfoVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.24, 0.05, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 24
+text = "⏱️ Thời gian: 05:00"
+
+[node name="TargetLabel" type="Label" parent="Control/RightMarginContainer/MainCard/VBox/InfoVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.24, 0.05, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 24
+text = "🏆 Mục tiêu 1⭐: 150 điểm"
+
+[node name="PlayButton" type="Button" parent="Control/RightMarginContainer/MainCard/VBox"]
+custom_minimum_size = Vector2(0, 68)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_wood")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_wood_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_wood")
+text = "▶️  BẮT ĐẦU CHƠI"

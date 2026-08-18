@@ -16,6 +16,14 @@ signal climax_ended
 @export var climax_duration: float = 12.0
 @export var climax_interval: float = 35.0
 
+@export_group("Concert Fireworks Config")
+## Tự động bắn pháo hoa kim tuyến đều đặn định kỳ trong suốt concert (không cần đợi cao trào)
+@export var auto_fireworks_enabled: bool = true
+## Tần suất tự động bắn pháo hoa trong điều kiện bình thường (giây)
+@export var auto_fireworks_interval: float = 10.0
+## Cường độ rung camera nhẹ khi bắn pháo hoa định kỳ bình thường
+@export var auto_fireworks_shake_intensity: float = 3.5
+
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var audience_area: Area2D = $AudienceArea
 @onready var stage_lights: Node2D = $StageLights
@@ -25,6 +33,7 @@ var _is_player_in_zone: bool = false
 var _strobe_intensity: float = 0.0
 var _climax_timer: float = 0.0
 var _climax_interval_timer: float = 0.0
+var _auto_fireworks_timer: float = 0.0
 
 # Node vẽ hiệu ứng LED và Laser
 var _led_display: Node2D = null
@@ -62,6 +71,8 @@ func _ready() -> void:
 	_setup_stage_artists()
 	_setup_confetti_and_atmosphere()
 
+var _spotlights: Array[PointLight2D] = []
+
 func _setup_led_and_laser_effects() -> void:
 	_led_display = Node2D.new()
 	_led_display.name = "LEDDisplay"
@@ -74,6 +85,30 @@ func _setup_led_and_laser_effects() -> void:
 	_laser_beams.z_index = 2
 	add_child(_laser_beams)
 	_laser_beams.draw.connect(_on_draw_laser_beams)
+
+	_setup_dynamic_spotlights()
+
+func _setup_dynamic_spotlights() -> void:
+	var grad = Gradient.new()
+	grad.set_color(0, Color(1.0, 1.0, 1.0, 1.0))
+	grad.set_color(1, Color(1.0, 1.0, 1.0, 0.0))
+	var gtex = GradientTexture2D.new()
+	gtex.gradient = grad
+	gtex.fill = GradientTexture2D.FILL_RADIAL
+	gtex.fill_from = Vector2(0.5, 0.5)
+	gtex.fill_to = Vector2(1.0, 0.5)
+	gtex.width = 256
+	gtex.height = 256
+
+	for i in range(4):
+		var light = PointLight2D.new()
+		light.name = "LaserSpotlight_%d" % i
+		light.energy = 1.2
+		light.texture_scale = 3.5
+		light.shadow_enabled = false # Tắt shadow map 2D trên súng laser để đạt 60 FPS mượt mà
+		light.texture = gtex
+		add_child(light)
+		_spotlights.append(light)
 
 @export var artist_scale: Vector2 = Vector2(6.0, 6.0)
 @export var artist_offsets: Array[Vector2] = [
@@ -89,7 +124,9 @@ func _setup_stage_artists() -> void:
 	add_child(_artists_container)
 	
 	await get_tree().process_frame
-	
+	if not is_inside_tree() or get_tree() == null:
+		return
+		
 	var cm = get_tree().get_first_node_in_group("crowd_manager")
 	
 	for i in range(artist_offsets.size()):
@@ -194,7 +231,8 @@ func _create_confetti_cannon(pos: Vector2, dir: Vector2) -> CPUParticles2D:
 	return cannon
 
 func burst_confetti() -> void:
-	var player = get_tree().get_first_node_in_group("player") as Node2D
+	var tree = get_tree()
+	var player = tree.get_first_node_in_group("player") as Node2D if tree else null
 	var center_pos = global_position + Vector2(0, -450.0)
 	if player:
 		center_pos = player.global_position + Vector2(0, -320.0) # Đỉnh màn hình hiện tại của Player
@@ -211,11 +249,12 @@ func burst_confetti() -> void:
 			cannon.restart()
 			
 	# Bắn tiếp đợt 2 bùng nổ sau 0.3s để phủ kín toàn màn hình!
-	get_tree().create_timer(0.3).timeout.connect(func():
-		for cannon in _confetti_cannons:
-			if is_instance_valid(cannon):
-				cannon.emitting = true
-	)
+	if tree:
+		tree.create_timer(0.3).timeout.connect(func():
+			for cannon in _confetti_cannons:
+				if is_instance_valid(cannon):
+					cannon.emitting = true
+		)
 	print("[ConcertStage] 🎆 DÀN 1,400 PHÁO HOA KIM TUYẾN BẮN PHỦ KÍN MÀN HÌNH PLAYER TẠI POS: ", center_pos)
 
 func _on_draw_stage_fog() -> void:
@@ -230,6 +269,7 @@ func _on_draw_stage_fog() -> void:
 	_stage_fog.draw_circle(Vector2(180 - fog_offset_x, fog_y), 160.0, fog_color)
 
 var _climax_confetti_timer: float = 0.0
+var climax_weight: float = 0.0
 
 func trigger_climax() -> void:
 	is_climax_active = true
@@ -242,10 +282,11 @@ func trigger_climax() -> void:
 	# Bắn Pháo Hoa Kim Tuyến Toàn Màn Hình ngập tràn khi bắt đầu Cao Trào!
 	burst_confetti()
 
-	# Kích hoạt cú Rung Camera Bùng Nổ sôi động khi Cao Trào bắt đầu
-	var player = get_tree().get_first_node_in_group("player")
+	# Kích hoạt cú Rung Camera Bùng Nổ cực mạnh khi Cao Trào bắt đầu!
+	var tree = get_tree()
+	var player = tree.get_first_node_in_group("player") if tree else null
 	if player and player.has_method("apply_camera_shake"):
-		player.apply_camera_shake(8.5)
+		player.apply_camera_shake(12.0)
 
 func end_climax() -> void:
 	is_climax_active = false
@@ -253,28 +294,49 @@ func end_climax() -> void:
 	_climax_interval_timer = 0.0
 	_climax_confetti_timer = 0.0
 	climax_ended.emit()
-	print("[ConcertStage] Cao trào kết thúc, trả về nhịp điệu bình thường.")
+	print("[ConcertStage] Cao trào kết thúc, trả về nhịp điệu bình thường mượt mà.")
 
 func _process(delta: float) -> void:
 	if is_concert_active:
-		# Tự động kích hoạt Cao Trào Đêm Nhạc (Concert Climax) định kỳ
+		# 1. Tự động bắn Pháo hoa Kim Tuyến đều đặn định kỳ (không cần chờ cao trào)
+		if auto_fireworks_enabled:
+			_auto_fireworks_timer += delta
+			var target_interval = (auto_fireworks_interval * 0.45) if is_climax_active else auto_fireworks_interval
+			if _auto_fireworks_timer >= target_interval:
+				_auto_fireworks_timer = 0.0
+				burst_confetti()
+				var tree = get_tree()
+				var p = tree.get_first_node_in_group("player") if tree else null
+				if p and p.has_method("apply_camera_shake"):
+					p.apply_camera_shake(8.0 if is_climax_active else auto_fireworks_shake_intensity)
+
+		# 2. Tự động kích hoạt & đếm ngược Cao Trào Đêm Nhạc (Concert Climax)
 		if not is_climax_active:
 			_climax_interval_timer += delta
 			if _climax_interval_timer >= climax_interval:
 				trigger_climax()
 		else:
 			_climax_timer -= delta
-			# Bắn Pháo Hoa Kim Tuyến dồn dập lặp lại cùng nhịp rung camera trong suốt thời gian cao trào!
-			_climax_confetti_timer += delta
-			if _climax_confetti_timer >= 3.2:
-				_climax_confetti_timer = 0.0
-				burst_confetti()
-				
 			if _climax_timer <= 0.0:
 				end_climax()
 
-		var speed_mult = 3.2 if is_climax_active else 1.0
+		# Cập nhật climax_weight mượt mà (0.0 -> 1.0 khi vào cao trào, 1.0 -> 0.0 khi hết cao trào)
+		var target_weight = 1.0 if is_climax_active else 0.0
+		climax_weight = move_toward(climax_weight, target_weight, delta * 0.75)
+
+		var speed_mult = lerp(1.0, 3.2, climax_weight)
 		_time_passed += delta * light_pulse_speed * speed_mult
+		
+		# Animate 2D Laser Spotlights quét ngả nghiêng chiếu sáng đám đông
+		for i in range(_spotlights.size()):
+			var light = _spotlights[i]
+			if is_instance_valid(light):
+				var sweep_x = sin(_time_passed * 0.45 + float(i) * 1.5) * (500.0 + i * 40.0)
+				var sweep_y = sin(_time_passed * 0.8 + float(i) * 2.1) * 120.0 - 220.0
+				light.position = Vector2(sweep_x, sweep_y)
+				var col_idx = (int(_time_passed * 0.5) + i * 2) % _neon_colors.size()
+				light.color = _neon_colors[col_idx]
+				light.energy = 1.6 if is_climax_active else 1.0
 		
 		# Animate Stage Performers (Ca sĩ & Nhạc công trình diễn cực sống động trên sân khấu)
 		for i in range(_stage_artist_sprites.size()):
@@ -383,28 +445,30 @@ func _on_draw_led_display() -> void:
 		_led_display.draw_circle(Vector2(dot_x, strip_y), 4.5, dot_col)
 
 
+const LASER_EMITTERS: Array[Vector2] = [
+	Vector2(-640, -700),
+	Vector2(-500, -715),
+	Vector2(-360, -730),
+	Vector2(-220, -740),
+	Vector2(-70, -745),
+	Vector2(70, -745),
+	Vector2(220, -740),
+	Vector2(360, -730),
+	Vector2(500, -715),
+	Vector2(640, -700)
+]
+
+var _laser_poly_buffer: PackedVector2Array = PackedVector2Array([Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
+var _inner_poly_buffer: PackedVector2Array = PackedVector2Array([Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
+
 ## Vẽ 10 luồng đèn Laser & Spotlight rực rỡ chiếu cực sáng toàn bộ bản đồ
 func _on_draw_laser_beams() -> void:
 	if not is_concert_active:
 		return
 		
-	# 10 Vị trí súng phun Laser trên giàn đèn sân khấu
-	var emitters: Array[Vector2] = [
-		Vector2(-640, -700),
-		Vector2(-500, -715),
-		Vector2(-360, -730),
-		Vector2(-220, -740),
-		Vector2(-70, -745),
-		Vector2(70, -745),
-		Vector2(220, -740),
-		Vector2(360, -730),
-		Vector2(500, -715),
-		Vector2(640, -700)
-	]
-	
-	var num_emitters = emitters.size()
+	var num_emitters = LASER_EMITTERS.size()
 	for e in range(num_emitters):
-		var origin = emitters[e]
+		var origin = LASER_EMITTERS[e]
 		var base_angle = (float(e) - (float(num_emitters - 1) / 2.0)) * 0.15
 		var sweep = sin(_time_passed * 0.35 + float(e) * 0.8) * 0.65
 		var current_angle = base_angle + sweep + PI / 2.0
@@ -415,12 +479,10 @@ func _on_draw_laser_beams() -> void:
 		var dir = Vector2.from_angle(current_angle)
 		var perp = Vector2(-dir.y, dir.x) * (beam_width / 2.0)
 		
-		var p1 = origin - perp
-		var p2 = origin + perp
-		var p3 = origin + dir * beam_len + perp * 6.5
-		var p4 = origin + dir * beam_len - perp * 6.5
-		
-		var laser_poly = PackedVector2Array([p1, p2, p3, p4])
+		_laser_poly_buffer[0] = origin - perp
+		_laser_poly_buffer[1] = origin + perp
+		_laser_poly_buffer[2] = origin + dir * beam_len + perp * 6.5
+		_laser_poly_buffer[3] = origin + dir * beam_len - perp * 6.5
 		
 		var col_idx = (int(_time_passed * 0.5) + e) % _neon_colors.size()
 		var laser_color = _neon_colors[col_idx]
@@ -431,15 +493,14 @@ func _on_draw_laser_beams() -> void:
 		
 		# 1. Lớp viền sáng rộng ngoài cùng (Outer Glow Cone)
 		var outer_col = Color(laser_color.r, laser_color.g, laser_color.b, laser_color.a * 0.45)
-		_laser_beams.draw_polygon(laser_poly, PackedColorArray([outer_col, outer_col, Color(laser_color.r, laser_color.g, laser_color.b, 0.05), Color(laser_color.r, laser_color.g, laser_color.b, 0.05)]))
+		_laser_beams.draw_polygon(_laser_poly_buffer, PackedColorArray([outer_col, outer_col, Color(laser_color.r, laser_color.g, laser_color.b, 0.05), Color(laser_color.r, laser_color.g, laser_color.b, 0.05)]))
 		
 		# 2. Lớp chùm Laser rực rỡ bên trong (Inner Beam Cone)
-		var inner_p1 = origin - perp * 0.5
-		var inner_p2 = origin + perp * 0.5
-		var inner_p3 = origin + dir * beam_len + perp * 3.2
-		var inner_p4 = origin + dir * beam_len - perp * 3.2
-		var inner_poly = PackedVector2Array([inner_p1, inner_p2, inner_p3, inner_p4])
-		_laser_beams.draw_polygon(inner_poly, PackedColorArray([laser_color, laser_color, Color(laser_color.r, laser_color.g, laser_color.b, 0.15), Color(laser_color.r, laser_color.g, laser_color.b, 0.15)]))
+		_inner_poly_buffer[0] = origin - perp * 0.5
+		_inner_poly_buffer[1] = origin + perp * 0.5
+		_inner_poly_buffer[2] = origin + dir * beam_len + perp * 3.2
+		_inner_poly_buffer[3] = origin + dir * beam_len - perp * 3.2
+		_laser_beams.draw_polygon(_inner_poly_buffer, PackedColorArray([laser_color, laser_color, Color(laser_color.r, laser_color.g, laser_color.b, 0.15), Color(laser_color.r, laser_color.g, laser_color.b, 0.15)]))
 
 		# 3. Lõi tia Laser trắng rực rỡ sắc nét (Ultra Bright Core)
 		_laser_beams.draw_line(origin, origin + dir * beam_len, Color(1.0, 1.0, 1.0, laser_color.a * 0.95), 5.5)

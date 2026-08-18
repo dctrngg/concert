@@ -84,28 +84,59 @@ func _ready() -> void:
 	add_child(carrying_sprite)
 	
 	_start_camera_intro()
+	_setup_light_occluder()
+
+func _setup_light_occluder() -> void:
+	if has_node("PlayerLightOccluder"):
+		return
+	var occluder = LightOccluder2D.new()
+	occluder.name = "PlayerLightOccluder"
+	var occ_poly = OccluderPolygon2D.new()
+	occ_poly.polygon = PackedVector2Array([
+		Vector2(-7, 6),
+		Vector2(7, 6),
+		Vector2(5, 12),
+		Vector2(-5, 12)
+	])
+	occluder.occluder = occ_poly
+	add_child(occluder)
 
 signal camera_intro_finished
 
 func _start_camera_intro() -> void:
-	is_camera_intro_active = true
+	is_camera_intro_active = false
 	var cam = get_node_or_null("Camera2D") as Camera2D
 	if not cam:
-		is_camera_intro_active = false
 		return
 		
 	cam.enabled = true
 	cam.make_current()
 	cam.zoom = Vector2(intro_zoom_start, intro_zoom_start)
-	
-	var tween = create_tween()
-	tween.tween_interval(intro_zoom_delay)
-	tween.tween_property(cam, "zoom", Vector2(intro_zoom_end, intro_zoom_end), intro_zoom_duration).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	# Mở khóa di chuyển và KÍCH HOẠT PHÁO HOA CẦU VỒNG ngay khi Camera Zoom vừa kết thúc!
-	tween.tween_callback(func():
-		is_camera_intro_active = false
+
+## Kích hoạt hiệu ứng di chuyển Camera về giữa -> Đợi 3 giây -> Thu nhỏ góc nhìn Zoom về 1.0 khi bấm BẮT ĐẦU CHƠI
+func start_play_camera_transition() -> void:
+	var cam = get_node_or_null("Camera2D") as Camera2D
+	if not cam:
+		is_intro_locked = false
 		camera_intro_finished.emit()
-		var stage_node = get_tree().get_first_node_in_group("concert_stage")
+		return
+		
+	var tween = create_tween()
+	# Bước 1: Trượt camera position & offset về lại chính giữa Player (0, 0) trong 0.65s (giữ nguyên zoom 3.0)
+	tween.parallel().tween_property(cam, "position", Vector2.ZERO, 0.65).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	tween.parallel().tween_property(cam, "offset", Vector2.ZERO, 0.65).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	
+	# Bước 2: Dừng giữ nguyên góc nhìn cận cảnh trong 3.0 giây
+	tween.tween_interval(3.0)
+	
+	# Bước 3: Mượt mà thu nhỏ góc nhìn Camera zoom từ 3.0 về 1.0 trong 2.5 giây
+	tween.tween_property(cam, "zoom", Vector2(intro_zoom_end, intro_zoom_end), intro_zoom_duration).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	
+	tween.tween_callback(func():
+		is_intro_locked = false
+		camera_intro_finished.emit()
+		var tree = get_tree()
+		var stage_node = tree.get_first_node_in_group("concert_stage") if tree else null
 		if stage_node and stage_node.has_method("burst_confetti"):
 			stage_node.burst_confetti()
 	)
@@ -156,6 +187,7 @@ func _load_player_character() -> void:
 	animated_sprite.sprite_frames = sf
 	animated_sprite.scale = Vector2(1.35, 1.35)
 
+var is_intro_locked: bool = false
 var is_camera_intro_active: bool = false
 var _camera_zoom_finished: bool = false
 var _dialogue_intro_finished: bool = false
@@ -177,7 +209,7 @@ var last_flip: bool = false
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if is_camera_intro_active:
+	if is_intro_locked or is_camera_intro_active:
 		return
 
 	for action in DIRECTION_MAP.keys():
@@ -259,13 +291,20 @@ func _try_interact() -> void:
 	if candidates.size() == 0:
 		return
 
-	# Kiểm tra nhu cầu lấy đồ từ quầy của các quest đang kích hoạt
+	# Kiểm tra nhu cầu lấy đồ & trạng thái đã có vật phẩm từ các quest đang kích hoạt
 	var needs_chair = false
 	var needs_food = false
 	var needs_merch = false
+	var has_any_picked_up_item = false
+	var has_chair_picked_up = false
+
 	if inventory:
 		for q in inventory.get_active_quests():
-			if not q.is_item_picked_up:
+			if q.is_item_picked_up:
+				has_any_picked_up_item = true
+				if q.quest_type == NPCQuestData.QuestType.SEAT_FINDER:
+					has_chair_picked_up = true
+			else:
 				if q.quest_type == NPCQuestData.QuestType.SEAT_FINDER:
 					needs_chair = true
 				elif q.quest_type == NPCQuestData.QuestType.FOOD_DELIVERY:
@@ -273,28 +312,65 @@ func _try_interact() -> void:
 				elif q.quest_type == NPCQuestData.QuestType.MERCH_SELLING:
 					needs_merch = true
 
+	var calc_bonus = func(node: Node) -> float:
+		# 1. Sự cố ẩu đả luôn ưu tiên khẩn cấp hàng đầu (-180.0)
+		if node.is_in_group("fight_event"):
+			return -180.0
+			
+		# 2. ƯU TIÊN TRẢ NHIỆM VỤ (Quest Turn-In Targets) -> Bonus -140.0
+		if node.is_in_group("npc_interactive"):
+			var is_turn_in_target = false
+			
+			# NPC giao nhiệm vụ đang đợi nhận đồ ăn / ghế (hiển thị "?")
+			if node.get("has_quest") == true and node.get("quest_data") != null:
+				var q_data = node.get("quest_data") as NPCQuestData
+				if q_data and q_data.state == NPCQuestData.QuestState.ACTIVE and q_data.is_item_picked_up:
+					is_turn_in_target = true
+			
+			# Khán giả đang chờ mua Merch (hiển thị "🛍️")
+			if node.get("is_merch_buyer") == true:
+				is_turn_in_target = true
+				
+			# Phụ huynh đang chờ tìm con lạc (hiển thị "👨‍👩‍👧")
+			if node.get("is_parent_npc") == true:
+				is_turn_in_target = true
+				
+			if is_turn_in_target:
+				return -140.0
+
+		# Trả nhiệm vụ đặt ghế tại Khu vực ghế khi đã mang ghế trong tay
+		if node.is_in_group("seat_area") and has_chair_picked_up:
+			return -140.0
+
+		# 3. ƯU TIÊN LẤY ĐỒ (Item Pickup Sources) -> Bonus -90.0
+		if needs_chair and node.is_in_group("chair_source"):
+			return -90.0
+		if needs_food and node.is_in_group("food_source"):
+			return -90.0
+		if needs_merch and node.is_in_group("merch_stall"):
+			return -90.0
+
+		# 4. NPC MỜI NHẬN QUEST MỚI (New Quest Offer "!")
+		if node.is_in_group("npc_interactive"):
+			if node.get("has_quest") == true and node.get("quest_data") != null:
+				var q_data = node.get("quest_data") as NPCQuestData
+				if q_data and q_data.state == NPCQuestData.QuestState.OFFERED:
+					if inventory and not inventory.has_free_slot():
+						return 50.0 # Túi đầy: hạ thấp ưu tiên để tránh vô tình bấm nhầm
+					elif has_any_picked_up_item:
+						return -10.0 # Đang đi trả đồ: giảm ưu tiên nhận quest mới
+					else:
+						return -30.0 # Trạng thái rảnh rỗi
+
+		# 5. Các đối tượng tương tác thông thường khác
+		if node.is_in_group("npc_interactive"):
+			return -15.0
+			
+		return 0.0
+
 	candidates.sort_custom(func(a, b):
-		var bonus_a = 0.0
-		var bonus_b = 0.0
-		var node_a = a["node"]
-		var node_b = b["node"]
-		
-		# Sự cố ẩu đả luôn luôn được ưu tiên tuyệt đối (-180.0)
-		if node_a.is_in_group("fight_event"): bonus_a -= 180.0
-		if node_b.is_in_group("fight_event"): bonus_b -= 180.0
-		
-		if needs_chair and node_a.is_in_group("chair_source"): bonus_a -= 90.0
-		if needs_chair and node_b.is_in_group("chair_source"): bonus_b -= 90.0
-		
-		if needs_food and node_a.is_in_group("food_source"): bonus_a -= 90.0
-		if needs_food and node_b.is_in_group("food_source"): bonus_b -= 90.0
-		
-		if needs_merch and node_a.is_in_group("merch_stall"): bonus_a -= 90.0
-		if needs_merch and node_b.is_in_group("merch_stall"): bonus_b -= 90.0
-		
-		if bonus_a == 0.0 and node_a.is_in_group("npc_interactive"): bonus_a -= 30.0
-		if bonus_b == 0.0 and node_b.is_in_group("npc_interactive"): bonus_b -= 30.0
-		
+		var bonus_a = calc_bonus.call(a["node"])
+		var bonus_b = calc_bonus.call(b["node"])
 		return (a["dist"] + bonus_a) < (b["dist"] + bonus_b)
 	)
 
@@ -314,36 +390,59 @@ func apply_camera_shake(intensity: float = 8.0) -> void:
 func _process(delta: float) -> void:
 	_update_camera_shake(delta)
 
+var _stage_node: Node = null
+
+func _get_stage_node() -> Node:
+	if not is_instance_valid(_stage_node):
+		var tree = get_tree()
+		if tree:
+			_stage_node = tree.get_first_node_in_group("concert_stage")
+	return _stage_node
+
 func _update_camera_shake(delta: float) -> void:
 	var cam = get_node_or_null("Camera2D") as Camera2D
 	if not cam:
 		return
 		
-	var stage_node = get_tree().get_first_node_in_group("concert_stage")
-	var is_climax = (stage_node != null and "is_climax_active" in stage_node and stage_node.is_climax_active)
+	var stage_node = _get_stage_node()
+	var climax_w: float = 0.0
+	if stage_node and "climax_weight" in stage_node:
+		climax_w = float(stage_node.get("climax_weight"))
+	elif stage_node and "is_climax_active" in stage_node and stage_node.is_climax_active:
+		climax_w = 1.0
 
-	if is_climax:
-		_shake_time += delta * 24.0
-		# Rung nhún nhảy giật sôi động theo nhịp Bass khi cao trào đêm nhạc
-		var bass_shake = sin(_shake_time) * 2.2
-		var random_shake = Vector2(randf_range(-1.6, 1.6), randf_range(-1.6, 1.6))
-		cam.offset = random_shake + Vector2(0, bass_shake)
-	elif shake_amount > 0.0:
-		shake_amount = lerp(shake_amount, 0.0, delta * 10.0)
-		cam.offset = Vector2(
+	# Lực rung dồn nén tức thời từ shake_amount (bắn pháo hoa hoặc tương tác)
+	var extra_shake = Vector2.ZERO
+	if shake_amount > 0.0:
+		shake_amount = lerp(shake_amount, 0.0, delta * 8.0)
+		extra_shake = Vector2(
 			randf_range(-shake_amount, shake_amount),
 			randf_range(-shake_amount, shake_amount)
 		)
+
+	if climax_w > 0.01:
+		_shake_time += delta * lerp(12.0, 28.0, climax_w)
+		# Rung nhún nhảy bùng nổ tăng/giảm mượt mà theo climax_weight (0.0 -> 1.0)
+		var bass_shake = sin(_shake_time) * lerp(0.0, 6.5, climax_w)
+		var random_shake = Vector2(
+			randf_range(-4.5 * climax_w, 4.5 * climax_w),
+			randf_range(-4.5 * climax_w, 4.5 * climax_w)
+		)
+		cam.offset = random_shake + Vector2(0, bass_shake) + extra_shake
+	elif shake_amount > 0.0:
+		cam.offset = extra_shake
 	else:
-		cam.offset = lerp(cam.offset, Vector2.ZERO, delta * 10.0)
+		cam.offset = lerp(cam.offset, Vector2.ZERO, delta * 8.0)
 
 var mobile_input_vector: Vector2 = Vector2.ZERO
 
 func _physics_process(_delta: float) -> void:
-	if is_camera_intro_active:
+	if is_intro_locked or is_camera_intro_active or (stats and stats.is_fainted):
 		velocity = Vector2.ZERO
 		move_and_slide()
 		_update_animation(Vector2.ZERO, false)
+		if stats and stats.is_fainted:
+			apply_camera_shake(1.5)
 		return
 
 	var input_vector := Vector2.ZERO
@@ -381,7 +480,18 @@ func _physics_process(_delta: float) -> void:
 	var contact_mult := _next_frame_contact_mult
 	_next_frame_contact_mult = 1.0
 
-	velocity = input_vector * speed * crowd_mult * contact_mult
+	# 3) Chậm mượt mà khi sân khấu Cao Trào (Concert Stage Climax Slowdown)
+	var climax_mult := 1.0
+	var stage_node = _get_stage_node()
+	if stage_node:
+		var climax_w = 0.0
+		if "climax_weight" in stage_node:
+			climax_w = float(stage_node.get("climax_weight"))
+		elif "is_climax_active" in stage_node and stage_node.is_climax_active:
+			climax_w = 1.0
+		climax_mult = lerp(1.0, 0.62, climax_w)
+
+	velocity = input_vector * speed * crowd_mult * contact_mult * climax_mult
 	move_and_slide()
 
 	# Khi va vào NPC promoted: KHÔNG đẩy NPC bay, chỉ báo nó "nhường nhẹ" +

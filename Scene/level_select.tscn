@@ -1,23 +1,22 @@
 [gd_scene load_steps=5 format=3 uid="uid://d3yq8v8x1b7n4"]
 
 [ext_resource type="Script" path="res://Scripts/level_select.gd" id="1_select_script"]
-[ext_resource type="Texture2D" path="res://Sprites/UI_Flat_Banner02a.png" id="2_banner_tex"]
-
+[ext_resource type="Texture2D" path="res://Spritesheets/DEMO_Cozy_UI_Pack_doboui/Containers/Containers/ContainerAdvanced4.png" id="2_banner_tex"]
 [ext_resource type="FontFile" path="res://0307-LNTH-TwistyPixel.ttf" id="3_pixel_font"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_banner"]
 texture = ExtResource("2_banner_tex")
-texture_margin_left = 16.0
-texture_margin_top = 8.0
-texture_margin_right = 16.0
-texture_margin_bottom = 8.0
+texture_margin_left = 24.0
+texture_margin_top = 16.0
+texture_margin_right = 24.0
+texture_margin_bottom = 16.0
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 1
 
 [sub_resource type="LabelSettings" id="LabelSettings_title"]
 font = ExtResource("3_pixel_font")
-font_size = 22
-font_color = Color(1, 0.92, 0.5, 1)
-outline_size = 4
-outline_color = Color(0, 0, 0, 1)
+font_size = 24
+font_color = Color(0.28, 0.16, 0.08, 1)
 
 [node name="LevelSelect" type="Control"]
 layout_mode = 3
@@ -35,7 +34,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.1, 0.09, 0.08, 1)
+color = Color(0.08, 0.07, 0.12, 1)
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -64,14 +63,18 @@ theme_override_styles/panel = SubResource("StyleBoxTexture_banner")
 
 [node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer/Header/BannerPanel"]
 layout_mode = 2
-text = "DANH SÁCH MÀN CHƠI (LEVELS)"
+text = "🗺️ DANH SÁCH MÀN CHƠI (LEVELS)"
 label_settings = SubResource("LabelSettings_title")
 horizontal_alignment = 1
 
 [node name="BackButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
-custom_minimum_size = Vector2(100, 36)
+custom_minimum_size = Vector2(130, 48)
 layout_mode = 2
-text = "🏠 Vòng 1"
+theme_override_colors/font_color = Color(0.28, 0.16, 0.08, 1)
+theme_override_colors/font_hover_color = Color(0.48, 0.28, 0.1, 1)
+theme_override_fonts/font = ExtResource("3_pixel_font")
+theme_override_font_sizes/font_size = 18
+text = "🏠 TRANG CHỦ"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2

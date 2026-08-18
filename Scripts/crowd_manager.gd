@@ -154,6 +154,7 @@ func _ready() -> void:
 	wall_layer = get_node_or_null("../Wall")
 	_build_object_tile_rects()
 	_create_merged_tilemap_collisions()
+	_update_cached_zones()
 	add_to_group("crowd_manager")
 	wander_area = get_audience_area()
 	# 1. Setup 2 MultiMeshInstance2D (back/front) — xem giải thích ở khai báo var
@@ -220,6 +221,12 @@ func _ready() -> void:
 	var vip_boxes = get_vip_boxes()
 	var num_vip_boxes = max(1, vip_boxes.size())
 	
+	var stall_nodes = get_tree().get_nodes_in_group("chair_source") + get_tree().get_nodes_in_group("food_source") + get_tree().get_nodes_in_group("merch_stall")
+	var stall_positions: Array[Vector2] = []
+	for stall in stall_nodes:
+		if is_instance_valid(stall):
+			stall_positions.append(to_local(stall.global_position))
+
 	for i in range(npc_count):
 		var is_vip_npc = (i < effective_vip_count)
 		if is_vip_npc:
@@ -272,12 +279,10 @@ func _ready() -> void:
 					
 			# Vùng an toàn xung quanh các Quầy (Kho Ghế, Quầy Đồ Ăn, Quầy Merch): KHÔNG giao quest cho NPC ở đây
 			var near_stall = false
-			var stall_nodes = get_tree().get_nodes_in_group("chair_source") + get_tree().get_nodes_in_group("food_source") + get_tree().get_nodes_in_group("merch_stall")
-			for stall in stall_nodes:
-				if is_instance_valid(stall):
-					if positions[i].distance_to(to_local(stall.global_position)) < 220.0:
-						near_stall = true
-						break
+			for s_pos in stall_positions:
+				if positions[i].distance_to(s_pos) < 220.0:
+					near_stall = true
+					break
 
 			var has_q = (not near_stall) and (randf() < quest_probability)
 			has_quests[i] = 1 if has_q else 0
@@ -316,14 +321,33 @@ func _ready() -> void:
 
 
 var _crowd_bubble_timer: float = 0.0
+var _cached_stage_node: Node = null
 
 func _process(delta: float) -> void:
-	_update_cached_zones()
 	_time_accum += delta
-	var stage_node = get_tree().get_first_node_in_group("concert_stage")
-	var is_stage_climax: bool = (stage_node != null and "is_climax_active" in stage_node and stage_node.is_climax_active)
+	if not is_instance_valid(_cached_stage_node):
+		var tree = get_tree()
+		if tree:
+			_cached_stage_node = tree.get_first_node_in_group("concert_stage")
+	var is_stage_climax: bool = (_cached_stage_node != null and "is_climax_active" in _cached_stage_node and _cached_stage_node.is_climax_active)
 	var view_rect = _get_camera_view_rect()
 	var player = get_node_or_null("../Player") as Node2D
+
+	# Cập nhật uniform Lightstick Climax Wave cho shader MultiMesh
+	var climax_w: float = 0.0
+	var beat_t: float = _time_accum
+	if _cached_stage_node:
+		if "climax_weight" in _cached_stage_node:
+			climax_w = float(_cached_stage_node.get("climax_weight"))
+		elif is_stage_climax:
+			climax_w = 1.0
+		if "_time_passed" in _cached_stage_node:
+			beat_t = float(_cached_stage_node.get("_time_passed"))
+
+	if mm_back and mm_back.material is ShaderMaterial:
+		var mat = mm_back.material as ShaderMaterial
+		mat.set_shader_parameter("climax_weight", climax_w)
+		mat.set_shader_parameter("beat_time", beat_t)
 
 	# Y của điểm CHÂN (Feet) Player trong local space của CrowdManager
 	var player_local_y: float = INF
@@ -334,12 +358,44 @@ func _process(delta: float) -> void:
 			player_feet_global += player_col.position
 		player_local_y = to_local(player_feet_global).y
 
-	# Quản lý tự động hiện bong bóng cảm xúc ngẫu nhiên trên đầu khán giả đám đông (Overhead Emoji Speech Bubbles)
+	# Quản lý tự động hiện bong bóng cảm xúc ngẫu nhiên trên đầu khán giả đám đông
 	_crowd_bubble_timer += delta
 	var bubble_interval = 1.2 if is_stage_climax else 3.2
 	if _crowd_bubble_timer >= bubble_interval:
 		_crowd_bubble_timer = 0.0
 		_trigger_random_crowd_speech_bubble(view_rect, is_stage_climax)
+
+	# Cập nhật vị trí bám sát đầu NPC và độ mờ của các bong bóng chat
+	for i in range(_active_chat_bubbles.size() - 1, -1, -1):
+		var b = _active_chat_bubbles[i]
+		b["timer"] += delta
+		var container: PanelContainer = b["node"]
+		var npc_idx: int = b["npc_idx"]
+		var lifetime: float = b["lifetime"]
+
+		if not is_instance_valid(container) or b["timer"] >= lifetime:
+			if is_instance_valid(container):
+				container.queue_free()
+			_active_chat_bubbles.remove_at(i)
+			continue
+
+		# Dynamic position tracking over target NPC head in Screen UI Space
+		if npc_idx >= 0 and npc_idx < npc_count:
+			var npc_global_pos = to_global(positions[npc_idx])
+			var screen_pos = get_canvas_transform() * npc_global_pos
+			var bobbing = sin(b["timer"] * 5.0) * 3.0
+			var c_size = container.size
+			if c_size.x < 10:
+				c_size = Vector2(160, 36)
+			container.position = screen_pos - Vector2(c_size.x * 0.5, c_size.y + 45.0 - bobbing)
+
+		# Fade animation
+		if b["timer"] >= lifetime - 0.35:
+			container.modulate.a = max(0.0, (lifetime - b["timer"]) / 0.35)
+		elif b["timer"] <= 0.15:
+			container.modulate.a = min(1.0, b["timer"] / 0.15)
+		else:
+			container.modulate.a = 1.0
 
 	var hidden_xform := Transform2D(0.0, Vector2(-999999.0, -999999.0))
 
@@ -461,11 +517,8 @@ func _process(delta: float) -> void:
 			continue
 			
 		var render_pos = positions[i]
-		if is_stage_climax:
-			var jump_offset = -abs(sin((_time_accum * 6.5) + float(i) * 0.15)) * 6.0
-			render_pos.y += jump_offset
 
-		var state_changed = is_stage_climax or (positions[i] != prev_positions[i]) \
+		var state_changed = (positions[i] != prev_positions[i]) \
 			or (directions[i] != prev_directions[i]) \
 			or (is_walking[i] != prev_is_walking[i]) \
 			or (front_flag != prev_buffer_front[i])
@@ -599,6 +652,10 @@ func _apply_separations(player_local_pos: Vector2) -> void:
 					_handle_vip_obstacle(i)
 
 	_last_crowd_density = density
+
+	# Tối ưu: Chỉ chạy NPC ↔ NPC spatial grid 1 lần mỗi 3 frame để giảm 70% CPU overhead
+	if Engine.get_process_frames() % 3 != 0:
+		return
 
 	# --- 2. O(1) Spatial Hash Grid: NPC ↔ NPC Giãn cách mượt mà không bị rung bouncing ---
 	var cell_size: float = 24.0 # Kích thước ô lưới cá nhân
@@ -961,7 +1018,8 @@ func spawn_lost_child_event() -> void:
 	if not child_scene:
 		return
 		
-	var player = get_tree().get_first_node_in_group("player") as Node2D
+	var tree1 = get_tree()
+	var player = tree1.get_first_node_in_group("player") as Node2D if tree1 else null
 	var spawn_pos = get_random_position_in_zone(0)
 	if player:
 		var p_local = to_local(player.global_position)
@@ -991,7 +1049,8 @@ func assign_merch_buyers(quest: NPCQuestData, count: int) -> void:
 	merch_buyers_map.clear()
 	var left_candidates: Array[int] = []
 	var right_candidates: Array[int] = []
-	var player = get_tree().get_first_node_in_group("player") as Node2D
+	var tree2 = get_tree()
+	var player = tree2.get_first_node_in_group("player") as Node2D if tree2 else null
 	var player_local_pos = to_local(player.global_position) if player else Vector2.ZERO
 	
 	for i in range(npc_count):
@@ -1167,6 +1226,7 @@ func _init_debug_overlay() -> void:
 	settings.outline_size = 4
 	settings.outline_color = Color.BLACK
 	debug_label.label_settings = settings
+	debug_label.visible = true
 
 # ─── FIGHT EVENT INTEGRATION ───────────────────────────────────────────────────
 
@@ -1711,61 +1771,96 @@ func _get_zone_rect(node: Node) -> Rect2:
 		return Rect2(lpos - Vector2(100, 100), Vector2(200, 200))
 	return default_vip_box_left
 
-# ─── OVERHEAD EMOJI SPEECH BUBBLES SYSTEM ───────────────────────────────────
+# ─── OVERHEAD COZY CHAT BUBBLES SYSTEM ───────────────────────────────────
 
-func _trigger_random_crowd_speech_bubble(view_rect: Rect2, is_climax: bool) -> void:
+const CROWD_MONOLOGUES := [
+	"Ca sĩ hát hay quá! 🔥",
+	"Cháy hết mình! 🎉",
+	"Lightstick đẹp quá! ✨",
+	"Khát nước quá... 🥤",
+	"Chân mỏi sắp rụng 😅",
+	"Hát bài tủ đi ạ! 🎶",
+	"Show quá đỉnh! ❤️",
+	"Quẩy tiếp thôi nào! 🤘",
+	"Chụp tấm hình với! 📸",
+	"Vào nhịp quẩy lên! 🎸",
+	"Nước ngọt đâu nhỉ? 🥤",
+	"Nhạc cuốn quá trời! 💃",
+	"Concert cháy quá! 💥",
+	"Sân khấu đẹp vãi! 🌟"
+]
+
+var _active_chat_bubbles: Array[Dictionary] = []
+
+func _trigger_random_crowd_speech_bubble(view_rect: Rect2, _is_climax: bool) -> void:
+	if _active_chat_bubbles.size() >= 3:
+		return
+		
 	var visible_indices: Array[int] = []
 	for i in range(npc_count):
-		if is_promoted[i] == 0 and view_rect.has_point(positions[i]):
+		if view_rect.has_point(positions[i]):
 			visible_indices.append(i)
 			
 	if visible_indices.size() == 0:
 		return
 		
 	var idx = visible_indices[randi() % visible_indices.size()]
-	var emojis = ["🎵", "🔥", "🤘", "🎉", "✨", "❤️"] if is_climax else ["🎵", "🍿", "🥤", "💬", "✨"]
-	var emoji = emojis[randi() % emojis.size()]
+	var monologue = CROWD_MONOLOGUES[randi() % CROWD_MONOLOGUES.size()]
 	
-	_spawn_floating_emoji_bubble(positions[idx] + Vector2(0, -28), emoji)
+	_spawn_following_cozy_chat_bubble(idx, monologue)
 
-func _spawn_floating_emoji_bubble(local_pos: Vector2, emoji: String) -> void:
+var _bubble_canvas: CanvasLayer = null
+
+func _get_bubble_canvas() -> CanvasLayer:
+	if not is_instance_valid(_bubble_canvas):
+		_bubble_canvas = CanvasLayer.new()
+		_bubble_canvas.name = "BubbleCanvas"
+		_bubble_canvas.layer = 11
+		add_child(_bubble_canvas)
+	return _bubble_canvas
+
+func _spawn_following_cozy_chat_bubble(idx: int, text: String) -> void:
 	var container = PanelContainer.new()
-	container.position = local_pos - Vector2(14, 18)
-	container.z_index = 20
 	
 	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.1, 0.1, 0.14, 0.85)
-	style.corner_radius_top_left = 6
-	style.corner_radius_top_right = 6
-	style.corner_radius_bottom_left = 6
-	style.corner_radius_bottom_right = 6
-	style.content_margin_left = 4
-	style.content_margin_right = 4
-	style.content_margin_top = 2
-	style.content_margin_bottom = 2
-	style.border_width_left = 1
-	style.border_width_top = 1
-	style.border_width_right = 1
-	style.border_width_bottom = 1
-	style.border_color = Color(1.0, 0.85, 0.3, 0.9)
+	style.bg_color = Color(0.99, 0.97, 0.94, 0.98) # Warm cream
+	style.border_width_left = 2
+	style.border_width_top = 2
+	style.border_width_right = 2
+	style.border_width_bottom = 2
+	style.border_color = Color(0.48, 0.28, 0.12, 1) # Cozy wooden border
+	style.corner_radius_top_left = 10
+	style.corner_radius_top_right = 10
+	style.corner_radius_bottom_left = 10
+	style.corner_radius_bottom_right = 10
+	style.content_margin_left = 9
+	style.content_margin_right = 9
+	style.content_margin_top = 4
+	style.content_margin_bottom = 4
+	style.shadow_color = Color(0.18, 0.1, 0.04, 0.35)
+	style.shadow_size = 4
+	style.shadow_offset = Vector2(0, 2)
 	container.add_theme_stylebox_override("panel", style)
 	
-	var bubble = Label.new()
-	bubble.text = emoji
-	bubble.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	bubble.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	var label = Label.new()
+	label.text = text
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	
-	var settings = LabelSettings.new()
-	settings.font_size = 18
-	settings.outline_size = 2
-	settings.outline_color = Color.BLACK
-	bubble.label_settings = settings
+	var font_res = load("res://0307-LNTH-TwistyPixel.ttf") as Font
+	if font_res:
+		label.add_theme_font_override("font", font_res)
+	label.add_theme_font_size_override("font_size", 22) # Crisp 1080p screen space font size
+	label.add_theme_color_override("font_color", Color(0.25, 0.12, 0.04, 1)) # Dark mahogany
 	
-	container.add_child(bubble)
-	add_child(container)
+	container.add_child(label)
+	_get_bubble_canvas().add_child(container)
 	
-	var tween = create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(container, "position:y", local_pos.y - 45.0, 2.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
-	tween.tween_property(container, "modulate:a", 0.0, 2.2).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
-	tween.finished.connect(func(): if is_instance_valid(container): container.queue_free())
+	container.modulate.a = 0.0
+	
+	_active_chat_bubbles.append({
+		"node": container,
+		"npc_idx": idx,
+		"timer": 0.0,
+		"lifetime": 2.8
+	})
