@@ -52,19 +52,49 @@ func _ready() -> void:
 		control_root.visible = false
 	
 	_apply_styles()
+	
+	var gm = get_node_or_null("/root/GameManager")
+	if gm and gm.has_signal("level_started"):
+		if not gm.level_started.is_connected(_on_level_started):
+			gm.level_started.connect(_on_level_started)
+			
+	var tree = get_tree()
+	if tree:
+		tree.node_added.connect(_on_node_added)
+
 	call_deferred("_check_level_start_dialog")
 	call_deferred("_connect_quest_signals")
+
+func _on_level_started(_level_info: Dictionary) -> void:
+	if control_root:
+		control_root.visible = false
+	call_deferred("_check_level_start_dialog")
+	call_deferred("_connect_quest_signals")
+
+func _on_node_added(node: Node) -> void:
+	if node.is_in_group("player"):
+		call_deferred("_connect_quest_signals")
+	elif node.is_in_group("level_start_dialog"):
+		call_deferred("_check_level_start_dialog")
 
 func _check_level_start_dialog() -> void:
 	var tree = get_tree()
 	if not tree:
-		_start_auto_dialogue()
 		return
+		
+	# Nếu đang ở Main Menu thì ẩn DialogueBox
+	if tree.current_scene and tree.current_scene.scene_file_path.contains("main_menu"):
+		if control_root:
+			control_root.visible = false
+		return
+
 	var start_dialog = tree.get_first_node_in_group("level_start_dialog")
 	if not start_dialog and tree.root:
 		start_dialog = tree.root.find_child("LevelStartDialog", true, false)
 		
 	if start_dialog:
+		if control_root:
+			control_root.visible = false
 		if not start_dialog.play_pressed.is_connected(_start_auto_dialogue):
 			start_dialog.play_pressed.connect(_start_auto_dialogue)
 	else:

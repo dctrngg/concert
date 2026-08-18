@@ -21,6 +21,7 @@ GameManager="*res://Scripts/game_manager.gd"
 QuestManager="*res://Scripts/quest_manager.gd"
 SoundManager="*res://Scene/sound_manager.tscn"
 DialogueBox="*res://Scene/dialogue_box.tscn"
+PlayerChatInput="*res://Scene/player_chat_input.tscn"
 
 [display]
 

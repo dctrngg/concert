@@ -189,6 +189,7 @@ func _load_player_character() -> void:
 
 var is_intro_locked: bool = false
 var is_camera_intro_active: bool = false
+var is_chat_typing: bool = false
 var _camera_zoom_finished: bool = false
 var _dialogue_intro_finished: bool = false
 
@@ -209,7 +210,7 @@ var last_flip: bool = false
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if is_intro_locked or is_camera_intro_active:
+	if is_intro_locked or is_camera_intro_active or is_chat_typing:
 		return
 
 	for action in DIRECTION_MAP.keys():
@@ -435,9 +436,10 @@ func _update_camera_shake(delta: float) -> void:
 		cam.offset = lerp(cam.offset, Vector2.ZERO, delta * 8.0)
 
 var mobile_input_vector: Vector2 = Vector2.ZERO
+var is_chat_typing: bool = false
 
 func _physics_process(_delta: float) -> void:
-	if is_intro_locked or is_camera_intro_active or (stats and stats.is_fainted):
+	if is_intro_locked or is_camera_intro_active or is_chat_typing or (stats and stats.is_fainted):
 		velocity = Vector2.ZERO
 		move_and_slide()
 		_update_animation(Vector2.ZERO, false)
@@ -572,3 +574,67 @@ func update_carrying_visuals() -> void:
 	var carrying_node = get_node_or_null("CarryingVisual") as Sprite2D
 	if carrying_node:
 		carrying_node.visible = false
+
+## Hiển thị Bong Bóng Chat (Speech Bubble) trên đầu Player
+func say(text: String) -> void:
+	var clean = text.strip_edges()
+	if clean.is_empty():
+		return
+		
+	var old_bubble = get_node_or_null("OverheadPlayerChatBubble")
+	if old_bubble:
+		old_bubble.queue_free()
+		
+	var container = PanelContainer.new()
+	container.name = "OverheadPlayerChatBubble"
+	
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.98, 0.96, 0.92, 0.98)
+	style.border_width_left = 2
+	style.border_width_top = 2
+	style.border_width_right = 2
+	style.border_width_bottom = 2
+	style.border_color = Color(0.15, 0.55, 0.95, 1) # Blue vibrancy
+	style.corner_radius_top_left = 12
+	style.corner_radius_top_right = 12
+	style.corner_radius_bottom_left = 12
+	style.corner_radius_bottom_right = 12
+	style.content_margin_left = 12
+	style.content_margin_right = 12
+	style.content_margin_top = 6
+	style.content_margin_bottom = 6
+	style.shadow_color = Color(0.0, 0.0, 0.0, 0.25)
+	style.shadow_size = 6
+	style.shadow_offset = Vector2(0, 3)
+	container.add_theme_stylebox_override("panel", style)
+	
+	var label = Label.new()
+	label.text = clean
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	
+	var font_res = load("res://0307-LNTH-TwistyPixel.ttf") as Font
+	if font_res:
+		label.add_theme_font_override("font", font_res)
+	label.add_theme_font_size_override("font_size", 20)
+	label.add_theme_color_override("font_color", Color(0.1, 0.15, 0.35, 1))
+	
+	container.add_child(label)
+	container.position = Vector2(-60, -58)
+	container.z_index = 100
+	
+	add_child(container)
+	
+	container.scale = Vector2(0.6, 0.6)
+	container.pivot_offset = Vector2(60, 30)
+	var tween = create_tween().set_parallel(true)
+	tween.tween_property(container, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(container, "modulate:a", 1.0, 0.2)
+	
+	var fade_tween = create_tween()
+	fade_tween.tween_interval(4.0)
+	fade_tween.tween_property(container, "modulate:a", 0.0, 0.5)
+	fade_tween.finished.connect(func():
+		if is_instance_valid(container):
+			container.queue_free()
+	)

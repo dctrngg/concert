@@ -1,0 +1,151 @@
+[gd_scene load_steps=7 format=3 uid="uid://playerchatinput1"]
+
+[ext_resource type="Script" path="res://Scripts/player_chat_input.gd" id="1_chat_script"]
+[ext_resource type="FontFile" path="res://0307-LNTH-TwistyPixel.ttf" id="2_pixel_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_chat_panel"]
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 10.0
+bg_color = Color(0.98, 0.96, 0.92, 0.96)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.48, 0.28, 0.12, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_left = 14
+corner_radius_bottom_right = 14
+shadow_color = Color(0.18, 0.1, 0.04, 0.3)
+shadow_size = 6
+shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_input_box"]
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+bg_color = Color(1, 1, 1, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.68, 0.48, 0.32, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_send_btn"]
+content_margin_left = 16.0
+content_margin_top = 6.0
+content_margin_right = 16.0
+content_margin_bottom = 6.0
+bg_color = Color(0.43, 0.25, 0.1, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.29, 0.15, 0.04, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_toggle_btn"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.98, 0.96, 0.92, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.48, 0.28, 0.12, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_left = 10
+corner_radius_bottom_right = 10
+shadow_color = Color(0, 0, 0, 0.25)
+shadow_size = 4
+
+[node name="PlayerChatInput" type="CanvasLayer"]
+layer = 16
+script = ExtResource("1_chat_script")
+
+[node name="ChatToggleButton" type="Button" parent="."]
+custom_minimum_size = Vector2(48, 48)
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_top = -76.0
+offset_right = 96.0
+offset_bottom = -20.0
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_toggle_btn")
+text = "💬 Chat"
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Control"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -320.0
+offset_top = -140.0
+offset_right = 320.0
+offset_bottom = -70.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="PanelContainer" type="PanelContainer" parent="Control/MarginContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_chat_panel")
+
+[node name="HBox" type="HBoxContainer" parent="Control/MarginContainer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PrefixLabel" type="Label" parent="Control/MarginContainer/PanelContainer/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.43, 0.25, 0.1, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 22
+text = "💬 [Player]:"
+vertical_alignment = 1
+
+[node name="LineEdit" type="LineEdit" parent="Control/MarginContainer/PanelContainer/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.18, 0.1, 0.04, 1)
+theme_override_colors/font_placeholder_color = Color(0.6, 0.5, 0.4, 0.8)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_input_box")
+placeholder_text = "Nhập tin nhắn... (Ấn Enter để gửi)"
+max_length = 80
+context_menu_enabled = false
+
+[node name="SendButton" type="Button" parent="Control/MarginContainer/PanelContainer/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.96, 0.92, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_send_btn")
+text = "Gửi"
