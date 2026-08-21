@@ -13,6 +13,7 @@ var _joystick_radius: float = 60.0
 var _output_vector: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
+	add_to_group("mobile_controls")
 	layer = 12
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	
@@ -24,8 +25,42 @@ func _ready() -> void:
 		sprint_btn.button_down.connect(_on_sprint_down)
 		sprint_btn.button_up.connect(_on_sprint_up)
 
-	# Mặc định tắt Touch UI trừ khi người dùng bấm nút 📱 Touch UI trên HUD
-	visible = false
+	call_deferred("_init_default_off")
+
+func _init_default_off() -> void:
+	set_controls_visible(false)
+
+func is_mobile_device() -> bool:
+	if DisplayServer.has_feature(DisplayServer.FEATURE_TOUCHSCREEN):
+		return true
+	if OS.has_feature("mobile") or OS.has_feature("android") or OS.has_feature("ios"):
+		return true
+	if OS.has_feature("web"):
+		if JavaScriptBridge.eval("/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)") == true:
+			return true
+		if JavaScriptBridge.eval("navigator.maxTouchPoints && navigator.maxTouchPoints > 0") == true:
+			return true
+	return false
+
+func set_controls_visible(should_be_visible: bool) -> void:
+	visible = should_be_visible
+	_update_minimap_visibility()
+
+func toggle_mobile_controls() -> void:
+	set_controls_visible(not visible)
+
+func _update_minimap_visibility() -> void:
+	var tree = get_tree()
+	if not tree:
+		return
+	var minimap = tree.get_first_node_in_group("minimap")
+	if not minimap:
+		var hud = tree.get_first_node_in_group("hud")
+		if hud:
+			minimap = hud.find_child("Minimap", true, false)
+	if minimap:
+		# Khi bật Touch UI trên điện thoại -> Tự động ẨN Minimap để thoáng màn hình
+		minimap.visible = not visible
 
 func _input(event: InputEvent) -> void:
 	if not visible:
@@ -106,5 +141,4 @@ func _on_sprint_up() -> void:
 	event.pressed = false
 	Input.parse_input_event(event)
 
-func toggle_mobile_controls() -> void:
-	visible = not visible
+# toggle_mobile_controls is already defined above with minimap update

@@ -380,7 +380,7 @@ position = Vector2(0, 10)
 shape = SubResource("CapsuleShape2D_player")
 
 [node name="OverheadItemBar" parent="." instance=ExtResource("4_bar_scene")]
-position = Vector2(-30, -26)
+position = Vector2(0, -22)
 
 
 

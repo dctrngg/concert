@@ -460,6 +460,8 @@ const LASER_EMITTERS: Array[Vector2] = [
 
 var _laser_poly_buffer: PackedVector2Array = PackedVector2Array([Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
 var _inner_poly_buffer: PackedVector2Array = PackedVector2Array([Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
+var _outer_color_buffer: PackedColorArray = PackedColorArray([Color.BLACK, Color.BLACK, Color.BLACK, Color.BLACK])
+var _inner_color_buffer: PackedColorArray = PackedColorArray([Color.BLACK, Color.BLACK, Color.BLACK, Color.BLACK])
 
 ## Vẽ 10 luồng đèn Laser & Spotlight rực rỡ chiếu cực sáng toàn bộ bản đồ
 func _on_draw_laser_beams() -> void:
@@ -493,14 +495,24 @@ func _on_draw_laser_beams() -> void:
 		
 		# 1. Lớp viền sáng rộng ngoài cùng (Outer Glow Cone)
 		var outer_col = Color(laser_color.r, laser_color.g, laser_color.b, laser_color.a * 0.45)
-		_laser_beams.draw_polygon(_laser_poly_buffer, PackedColorArray([outer_col, outer_col, Color(laser_color.r, laser_color.g, laser_color.b, 0.05), Color(laser_color.r, laser_color.g, laser_color.b, 0.05)]))
+		var fade_col = Color(laser_color.r, laser_color.g, laser_color.b, 0.05)
+		_outer_color_buffer[0] = outer_col
+		_outer_color_buffer[1] = outer_col
+		_outer_color_buffer[2] = fade_col
+		_outer_color_buffer[3] = fade_col
+		_laser_beams.draw_polygon(_laser_poly_buffer, _outer_color_buffer)
 		
 		# 2. Lớp chùm Laser rực rỡ bên trong (Inner Beam Cone)
 		_inner_poly_buffer[0] = origin - perp * 0.5
 		_inner_poly_buffer[1] = origin + perp * 0.5
 		_inner_poly_buffer[2] = origin + dir * beam_len + perp * 3.2
 		_inner_poly_buffer[3] = origin + dir * beam_len - perp * 3.2
-		_laser_beams.draw_polygon(_inner_poly_buffer, PackedColorArray([laser_color, laser_color, Color(laser_color.r, laser_color.g, laser_color.b, 0.15), Color(laser_color.r, laser_color.g, laser_color.b, 0.15)]))
+		var inner_fade = Color(laser_color.r, laser_color.g, laser_color.b, 0.15)
+		_inner_color_buffer[0] = laser_color
+		_inner_color_buffer[1] = laser_color
+		_inner_color_buffer[2] = inner_fade
+		_inner_color_buffer[3] = inner_fade
+		_laser_beams.draw_polygon(_inner_poly_buffer, _inner_color_buffer)
 
 		# 3. Lõi tia Laser trắng rực rỡ sắc nét (Ultra Bright Core)
 		_laser_beams.draw_line(origin, origin + dir * beam_len, Color(1.0, 1.0, 1.0, laser_color.a * 0.95), 5.5)

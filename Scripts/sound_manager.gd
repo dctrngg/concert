@@ -97,8 +97,34 @@ func _connect_quest_manager() -> void:
 		if not quest_mgr.quest_failed.is_connected(_on_quest_failed):
 			quest_mgr.quest_failed.connect(_on_quest_failed)
 
-## Tự động quét tìm tất cả file .mp3, .ogg, .wav trong thư mục auto_scan_folder
+const MUSIC_CACHE_PATH = "user://music_cache.cfg"
+
+## Tự động quét tìm tất cả file .mp3, .ogg, .wav trong thư mục auto_scan_folder (hỗ trợ Cache)
 func _auto_scan_music_files() -> void:
+	var config = ConfigFile.new()
+	if FileAccess.file_exists(MUSIC_CACHE_PATH):
+		var err = config.load(MUSIC_CACHE_PATH)
+		if err == OK:
+			var cached_paths: Array = config.get_value("music", "playlist_paths", [])
+			if not cached_paths.is_empty():
+				var all_valid = true
+				var loaded_streams: Array[AudioStream] = []
+				for file_path in cached_paths:
+					if ResourceLoader.exists(file_path):
+						var stream = load(file_path) as AudioStream
+						if stream:
+							loaded_streams.append(stream)
+						else:
+							all_valid = false
+							break
+					else:
+						all_valid = false
+						break
+				if all_valid and not loaded_streams.is_empty():
+					music_playlist = loaded_streams
+					print("[SoundManager] ⚡ Nạp nhanh %d bài nhạc BGM từ cache %s!" % [music_playlist.size(), MUSIC_CACHE_PATH])
+					return
+
 	var folders_to_check = [auto_scan_folder, "res://sound/", "res://music/", "res://Audio/", "res://Sound/", "res://"]
 	var sfx_keywords = ["pick", "done", "job", "accept", "complete", "fail", "sell", "coin"]
 	for folder in folders_to_check:
@@ -128,6 +154,30 @@ func _auto_scan_music_files() -> void:
 				dir.list_dir_end()
 		if not music_playlist.is_empty():
 			break
+
+	if music_playlist.is_empty():
+		var static_bgm_paths = [
+			"res://sound/1.mp3",
+			"res://sound/2.mp3",
+			"res://sound/3.mp3",
+			"res://sound/4.mp3",
+			"res://sound/5.mp3"
+		]
+		for p in static_bgm_paths:
+			if ResourceLoader.exists(p):
+				var stream = load(p) as AudioStream
+				if stream:
+					music_playlist.append(stream)
+					print("[SoundManager] 🎵 Static fallback nạp BGM: ", p)
+
+	# Save scanned paths to cache
+	var valid_paths: Array = []
+	for stream in music_playlist:
+		if stream and stream.resource_path != "":
+			valid_paths.append(stream.resource_path)
+	if not valid_paths.is_empty():
+		config.set_value("music", "playlist_paths", valid_paths)
+		config.save(MUSIC_CACHE_PATH)
 
 ## Bắt đầu phát danh sách nhạc nền từ bài đầu tiên (hoặc bài chỉ định)
 func play_playlist(start_index: int = 0) -> void:
@@ -352,6 +402,15 @@ func _auto_scan_sfx_files() -> void:
 								print("[SoundManager] 🔊 Đã nạp tự động merch_sell_sfx: ", file_name)
 			file_name = dir.get_next()
 		dir.list_dir_end()
+
+	if quest_accept_sfx == null and ResourceLoader.exists("res://sound/job.mp3"):
+		quest_accept_sfx = load("res://sound/job.mp3") as AudioStream
+	if quest_complete_sfx == null and ResourceLoader.exists("res://sound/done.mp3"):
+		quest_complete_sfx = load("res://sound/done.mp3") as AudioStream
+	if food_pickup_sfx == null and ResourceLoader.exists("res://sound/pick.mp3"):
+		food_pickup_sfx = load("res://sound/pick.mp3") as AudioStream
+	if chair_pickup_sfx == null and ResourceLoader.exists("res://sound/pick.mp3"):
+		chair_pickup_sfx = load("res://sound/pick.mp3") as AudioStream
 
 func _matches_any(filename: String, patterns: Array) -> bool:
 	for p in patterns:

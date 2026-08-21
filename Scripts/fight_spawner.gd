@@ -4,11 +4,15 @@ class_name FightSpawner
 @export var initial_delay: float = 15.0 # Lần đầu xuất hiện sau 15 giây khởi chạy
 @export var min_spawn_interval: float = 35.0 # Khoảng thời gian ngẫu nhiên 35-65s
 @export var max_spawn_interval: float = 65.0
+@export var enable_fights: bool = false # Tạm thời ẩn các vụ ẩu đả
 
 var fight_scene: PackedScene = preload("res://Scene/fight_event.tscn")
 var timer: Timer = null
 
 func _ready() -> void:
+	if not enable_fights:
+		return
+
 	timer = Timer.new()
 	timer.one_shot = true
 	timer.timeout.connect(_on_timer_timeout)
@@ -19,6 +23,8 @@ func _ready() -> void:
 	print("[FightSpawner] Khởi chạy! Vụ ẩu đả đầu tiên sẽ xuất hiện sau %.1fs." % initial_delay)
 
 func _on_timer_timeout() -> void:
+	if not enable_fights:
+		return
 	_try_spawn_fight()
 	
 	# Hẹn giờ ngẫu nhiên cho vụ ẩu đả tiếp theo

@@ -9,7 +9,12 @@ class_name HUD
 @onready var score_label: Label = find_child("ScoreLabel", true, false) as Label
 @onready var top_center_panel: PanelContainer = find_child("TopCenterPanel", true, false) as PanelContainer
 @onready var stats_panel: PanelContainer = find_child("StatsPanel", true, false) as PanelContainer
+@onready var star_1: TextureRect = find_child("Star1", true, false) as TextureRect
+@onready var star_2: TextureRect = find_child("Star2", true, false) as TextureRect
+@onready var star_3: TextureRect = find_child("Star3", true, false) as TextureRect
 
+var _star_gold_tex: Texture2D = preload("res://Sprites/star_gold.png")
+var _star_gray_tex: Texture2D = preload("res://Sprites/star_gray.png")
 var _quest_item_scene: PackedScene = preload("res://Scene/quest_hud_item.tscn")
 var _active_hud_items: Dictionary = {}  # quest_id -> QuestHudItem node
 
@@ -67,12 +72,14 @@ func _ready() -> void:
 					main_control.visible = true
 				if gm and gm.has_method("start_gameplay"):
 					gm.start_gameplay()
+				_check_and_spawn_tutorial_walkthrough()
 			)
 	else:
 		if main_control:
 			main_control.visible = true
 		if gm and gm.has_method("start_gameplay"):
 			gm.start_gameplay()
+		_check_and_spawn_tutorial_walkthrough()
 
 	# Kết nối inventory_changed để cập nhật trạng thái mang vác
 	if player and player.get("inventory"):
@@ -119,18 +126,23 @@ func _on_level_timer_updated(time_left: float, _limit: float) -> void:
 	if timer_label:
 		var mins = int(time_left) / 60
 		var secs = int(time_left) % 60
-		timer_label.text = "⏱️ %02d:%02d" % [mins, secs]
+		timer_label.text = "%02d:%02d" % [mins, secs]
 
 func _on_score_changed(current: int, thresholds: Array) -> void:
 	if score_label:
-		var stars_str = "☆☆☆"
-		if current >= thresholds[2]:
-			stars_str = "★★★"
-		elif current >= thresholds[1]:
-			stars_str = "★★☆"
-		elif current >= thresholds[0]:
-			stars_str = "★☆☆"
-		score_label.text = "🏆 Điểm: %d (%s)" % [current, stars_str]
+		score_label.text = "Điểm: %d " % current
+		
+	var stars_count = 0
+	if current >= thresholds[2]:
+		stars_count = 3
+	elif current >= thresholds[1]:
+		stars_count = 2
+	elif current >= thresholds[0]:
+		stars_count = 1
+		
+	if star_1: star_1.texture = _star_gold_tex if stars_count >= 1 else _star_gray_tex
+	if star_2: star_2.texture = _star_gold_tex if stars_count >= 2 else _star_gray_tex
+	if star_3: star_3.texture = _star_gold_tex if stars_count >= 3 else _star_gray_tex
 
 # ─── Quest HUD Stack ─────────────────────────────────────────────────────────
 
@@ -167,3 +179,16 @@ func _on_inventory_changed() -> void:
 		var item = _active_hud_items.get(quest.quest_id, null)
 		if item:
 			item.update_status(quest.is_item_picked_up)
+
+func _check_and_spawn_tutorial_walkthrough() -> void:
+	if get_node_or_null("TutorialWalkthrough"):
+		return
+	var gm = get_node_or_null("/root/GameManager")
+	if gm and ("tutorial_completed" in gm) and not gm.tutorial_completed:
+		var current_lvl = gm.get_current_level_data()
+		if current_lvl and current_lvl.get("level_id", 1) == 1:
+			var walkthrough_scene = load("res://Scene/tutorial_walkthrough.tscn")
+			if walkthrough_scene:
+				var walkthrough_inst = walkthrough_scene.instantiate()
+				walkthrough_inst.name = "TutorialWalkthrough"
+				add_child(walkthrough_inst)

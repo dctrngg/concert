@@ -12,7 +12,7 @@ config_version=5
 
 config/name="concert"
 run/main_scene="res://Scene/main_menu.tscn"
-config/features=PackedStringArray("4.7", "Forward Plus")
+config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [autoload]
@@ -21,7 +21,6 @@ GameManager="*res://Scripts/game_manager.gd"
 QuestManager="*res://Scripts/quest_manager.gd"
 SoundManager="*res://Scene/sound_manager.tscn"
 DialogueBox="*res://Scene/dialogue_box.tscn"
-PlayerChatInput="*res://Scene/player_chat_input.tscn"
 
 [display]
 
@@ -30,6 +29,8 @@ window/size/viewport_height=1080
 window/size/window_width_override=1920
 window/size/window_height_override=1080
 window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
 mouse_cursor/custom_image="res://Spritesheets/DEMO_Cozy_UI_Pack_doboui/Cursors/Cursors_Crosshairs/Cursors_32px/Cursor2_42px.png"
 
 [gui]
@@ -76,3 +77,4 @@ pointing/emulate_touch_from_mouse=true
 
 textures/canvas_textures/default_texture_filter=0
 rendering_device/driver.windows="d3d12"
+renderer/rendering_method="gl_compatibility"

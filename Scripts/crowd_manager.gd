@@ -1,7 +1,7 @@
 extends Node2D
 
 @export var shader: Shader = preload("res://Scene/crowd_npc.gdshader")
-@export var npc_count: int = 500
+@export var npc_count: int = 1000
 @export var quest_probability: float = 0.04
 @export var promote_radius: float = 200.0
 @export var demote_radius: float = 250.0
@@ -113,6 +113,17 @@ var prev_positions: PackedVector2Array = PackedVector2Array()
 var prev_directions: PackedFloat32Array = PackedFloat32Array()
 var prev_is_walking: PackedByteArray = PackedByteArray()
 var prev_buffer_front: PackedByteArray = PackedByteArray()
+var prev_wave_factors: PackedFloat32Array = PackedFloat32Array()
+
+# --- Crowd Wave State (Mexican Wave) ---
+var wave_active: bool = false
+var wave_origin: Vector2 = Vector2.ZERO
+var wave_start_time: float = 0.0
+var wave_speed: float = 400.0        # px/s - tốc độ lan sóng
+var wave_arm_duration: float = 0.6   # thời gian NPC giơ tay (giây)
+var wave_max_radius: float = 2000.0  # bán kính tối đa sóng lan tới
+var wave_cooldown_remaining: float = 0.0
+const WAVE_COOLDOWN: float = 35.0    # giới hạn tần suất trigger (giây)
 
 # Zone Rect Cache (loại bỏ lag khi va chạm đám đông đông đúc)
 var _cached_audience_zones: Array[Rect2] = []
@@ -128,11 +139,14 @@ var merch_buyers_map: Dictionary = {}
 var lost_child_parents_map: Dictionary = {}
 var _lost_child_spawn_timer: float = 0.0
 @export var lost_child_interval: float = 45.0
+@export var enable_lost_child: bool = false # Tạm thời ẩn sự kiện Trẻ Lạc
 
 # Object pool of interactive NPCs
 var npc_pool: Array[CharacterBody2D] = []
 # Map of npc_index -> NPCInteractive node currently active
 var promoted_nodes: Dictionary = {}
+var _last_promote_demote_time: Dictionary = {}
+const PROMOTE_DEMOTE_COOLDOWN: float = 1.5
 
 # Debug Overlay
 var debug_label: Label
@@ -149,6 +163,8 @@ var blocked_grid_cells: Dictionary = {}
 var _time_accum: float = 0.0
 
 func _ready() -> void:
+	print("[CrowdManager] 🟢 Khởi tạo đám đông NPC Count = %d!" % npc_count)
+
 	barrier_layer = get_node_or_null("../barrier")
 	object_layer = get_node_or_null("../Object")
 	wall_layer = get_node_or_null("../Wall")
@@ -215,6 +231,8 @@ func _ready() -> void:
 	prev_is_walking.resize(npc_count)
 	prev_buffer_front.resize(npc_count)
 	prev_buffer_front.fill(255)
+	prev_wave_factors.resize(npc_count)
+	prev_wave_factors.fill(-1.0)
 	
 	# 3. Initialize background NPCs (VIP & General Admission)
 	var effective_vip_count = min(vip_npc_count, npc_count) if enable_vip_area else 0
@@ -329,6 +347,20 @@ func _process(delta: float) -> void:
 		var tree = get_tree()
 		if tree:
 			_cached_stage_node = tree.get_first_node_in_group("concert_stage")
+			if _cached_stage_node and _cached_stage_node.has_signal("climax_started"):
+				if not _cached_stage_node.climax_started.is_connected(_on_stage_climax_started):
+					_cached_stage_node.climax_started.connect(_on_stage_climax_started)
+
+	# Cooldown & auto-finish logic for Crowd Wave (Mexican Wave)
+	if wave_cooldown_remaining > 0.0:
+		wave_cooldown_remaining -= delta
+
+	if wave_active:
+		var cur_t = Time.get_ticks_msec() / 1000.0
+		var wave_elapsed = cur_t - wave_start_time
+		if wave_elapsed > (wave_max_radius / wave_speed + wave_arm_duration):
+			wave_active = false
+			print("[CrowdManager] 🌊 Crowd Wave finished")
 	var is_stage_climax: bool = (_cached_stage_node != null and "is_climax_active" in _cached_stage_node and _cached_stage_node.is_climax_active)
 	var view_rect = _get_camera_view_rect()
 	var player = get_node_or_null("../Player") as Node2D
@@ -381,7 +413,7 @@ func _process(delta: float) -> void:
 
 		# Dynamic position tracking over target NPC head in Screen UI Space
 		if npc_idx >= 0 and npc_idx < npc_count:
-			var npc_global_pos = to_global(positions[npc_idx])
+			var npc_global_pos = to_global(positions[npc_idx]) 
 			var screen_pos = get_canvas_transform() * npc_global_pos
 			var bobbing = sin(b["timer"] * 5.0) * 3.0
 			var c_size = container.size
@@ -518,20 +550,31 @@ func _process(delta: float) -> void:
 			
 		var render_pos = positions[i]
 
+		var wave_factor: float = 0.0
+		if wave_active:
+			var cur_t = Time.get_ticks_msec() / 1000.0
+			var wave_elapsed = cur_t - wave_start_time
+			var dist = positions[i].distance_to(wave_origin)
+			var wave_progress = wave_elapsed - (dist / wave_speed)
+			if wave_progress > 0.0 and wave_progress < wave_arm_duration:
+				wave_factor = wave_progress / wave_arm_duration
+
 		var state_changed = (positions[i] != prev_positions[i]) \
 			or (directions[i] != prev_directions[i]) \
 			or (is_walking[i] != prev_is_walking[i]) \
-			or (front_flag != prev_buffer_front[i])
+			or (front_flag != prev_buffer_front[i]) \
+			or (abs(wave_factor - prev_wave_factors[i]) > 0.02)
 			
 		if state_changed:
 			prev_positions[i] = positions[i]
 			prev_directions[i] = directions[i]
 			prev_is_walking[i] = is_walking[i]
 			prev_buffer_front[i] = front_flag
+			prev_wave_factors[i] = wave_factor
 			
 			var xform := Transform2D(0.0, render_pos)
 			var custom_data := Color(outfit_ids[i], float(is_walking[i]), directions[i], time_offsets[i])
-			var inst_color := Color(flip_hs[i], 1.0, 1.0, 1.0)
+			var inst_color := Color(flip_hs[i], wave_factor, 1.0, 1.0)
 
 			if use_front_buffer:
 				mm_front.multimesh.set_instance_transform_2d(i, xform)
@@ -544,12 +587,13 @@ func _process(delta: float) -> void:
 				mm_back.multimesh.set_instance_color(i, inst_color)
 				mm_front.multimesh.set_instance_transform_2d(i, hidden_xform)
 
-	# Tự động xuất hiện Trẻ Lạc ngẫu nhiên định kỳ (45s)
-	_lost_child_spawn_timer += delta
-	if _lost_child_spawn_timer >= lost_child_interval:
-		_lost_child_spawn_timer = 0.0
-		if get_tree().get_nodes_in_group("lost_child_npc").is_empty():
-			spawn_lost_child_event()
+	# Tự động xuất hiện Trẻ Lạc ngẫu nhiên định kỳ (45s) nếu được bật
+	if enable_lost_child:
+		_lost_child_spawn_timer += delta
+		if _lost_child_spawn_timer >= lost_child_interval:
+			_lost_child_spawn_timer = 0.0
+			if get_tree().get_nodes_in_group("lost_child_npc").is_empty():
+				spawn_lost_child_event()
 
 	# Run promotion/demotion logic if the player is active
 	if player:
@@ -584,23 +628,14 @@ func _assign_quest(npc_idx: int) -> void:
 	var quest = NPCQuestData.new()
 	quest.quest_id = "quest_%d" % npc_idx
 	
-	var quest_roll = randf()
-	if quest_roll < 0.50:
-		# Quest 1: Food Delivery (50%)
-		var food_info: Dictionary = PIXEL_MART_FOODS[randi() % PIXEL_MART_FOODS.size()]
-		quest.quest_type = NPCQuestData.QuestType.FOOD_DELIVERY
-		quest.is_item_picked_up = false
-		quest.title = "Giao %s" % food_info["name"]
-		quest.description = "Lấy giúp tôi 1 phần %s từ quầy phục vụ trước khi nguội!" % food_info["name"]
-		quest.item_icon_path = food_info["icon"]
-		quest.time_limit = randf_range(30.0, 45.0)
-	else:
-		# Quest 2: Chair Carry (50%)
-		quest.quest_type = NPCQuestData.QuestType.SEAT_FINDER
-		quest.is_item_picked_up = false
-		quest.title = "Cần 1 chiếc ghế #%d" % npc_idx
-		quest.description = "Tôi bị mỏi chân quá, hãy chạy qua Kho Ghế lấy 1 chiếc ghế mang tới đây giúp tôi!"
-		quest.time_limit = randf_range(30.0, 45.0)
+	# Chỉ tạo nhiệm vụ Giao Đồ Ăn (Food Delivery) khi vừa vào game
+	var food_info: Dictionary = PIXEL_MART_FOODS[randi() % PIXEL_MART_FOODS.size()]
+	quest.quest_type = NPCQuestData.QuestType.FOOD_DELIVERY
+	quest.is_item_picked_up = false
+	quest.title = "Giao %s" % food_info["name"]
+	quest.description = "Lấy giúp tôi 1 phần %s từ quầy phục vụ trước khi nguội!" % food_info["name"]
+	quest.item_icon_path = food_info["icon"]
+	quest.time_limit = randf_range(30.0, 45.0)
 		
 	quest_data_map[npc_idx] = quest
 
@@ -630,17 +665,24 @@ func _apply_separations(player_local_pos: Vector2) -> void:
 	var dt := get_process_delta_time()
 	var density := 0
 
-	# --- 1. Player → NPC: nhường nhẹ mượt mà + đo mật độ ---
+	# --- 1. Player → NPC: nhường nhẹ mượt mà + đo mật độ (Tối ưu AABB Pre-filter O(1)) ---
+	var res_rad := crowd_resistance_radius
 	for i in range(npc_count):
 		if is_promoted[i] == 1:
 			continue
-		var diff: Vector2 = positions[i] - player_local_pos
-		var dist: float = diff.length()
-		if dist < crowd_resistance_radius and dist > 0.5:
+		var dx := positions[i].x - player_local_pos.x
+		if abs(dx) >= res_rad:
+			continue
+		var dy := positions[i].y - player_local_pos.y
+		if abs(dy) >= res_rad:
+			continue
+
+		var dist := sqrt(dx * dx + dy * dy)
+		if dist < res_rad and dist > 0.5:
 			density += 1
-			var nudge: float = min((1.0 - dist / crowd_resistance_radius) * npc_yield_strength * dt, 1.2)
-			var push_dir = diff / dist
-			var new_pos = positions[i] + push_dir * nudge
+			var nudge: float = min((1.0 - dist / res_rad) * npc_yield_strength * dt, 1.2)
+			var push_dir := Vector2(dx, dy) / dist
+			var new_pos := positions[i] + push_dir * nudge
 			
 			if is_vip[i] == 1:
 				positions[i] = new_pos
@@ -653,8 +695,9 @@ func _apply_separations(player_local_pos: Vector2) -> void:
 
 	_last_crowd_density = density
 
-	# Tối ưu: Chỉ chạy NPC ↔ NPC spatial grid 1 lần mỗi 3 frame để giảm 70% CPU overhead
-	if Engine.get_process_frames() % 3 != 0:
+	# Tối ưu: Chỉ chạy NPC ↔ NPC spatial grid định kỳ để giảm CPU overhead
+	var frame_interval := 5 if OS.has_feature("web") else 3
+	if Engine.get_process_frames() % frame_interval != 0:
 		return
 
 	# --- 2. O(1) Spatial Hash Grid: NPC ↔ NPC Giãn cách mượt mà không bị rung bouncing ---
@@ -779,6 +822,31 @@ func _get_camera_view_rect() -> Rect2:
 	return Rect2(top_left, bottom_right - top_left).grow(200.0)
 
 
+const KNOWN_CHARACTER_PATHS: Array[String] = [
+	"res://Sprites/RPG Top Down Characters/Blonde Kid Girl/blonde_kid_girl.png",
+	"res://Sprites/RPG Top Down Characters/Blonde Man/blonde_man.png",
+	"res://Sprites/RPG Top Down Characters/Blonde Woman/blonde_woman.png",
+	"res://Sprites/RPG Top Down Characters/Blue Haired Kid Girl/blue_haired_kid_girl.png",
+	"res://Sprites/RPG Top Down Characters/Blue Haired Woman/blue_haired_woman.png",
+	"res://Sprites/RPG Top Down Characters/Bride/bride.png",
+	"res://Sprites/RPG Top Down Characters/Businessman/businessman.png",
+	"res://Sprites/RPG Top Down Characters/Chef/chef.png",
+	"res://Sprites/RPG Top Down Characters/Dracula/dracula.png",
+	"res://Sprites/RPG Top Down Characters/Farmer/farmer.png",
+	"res://Sprites/RPG Top Down Characters/Firefighter/firefighter.png",
+	"res://Sprites/RPG Top Down Characters/Joker/joker.png",
+	"res://Sprites/RPG Top Down Characters/Ninja/ninja.png",
+	"res://Sprites/RPG Top Down Characters/Nun/nun.png",
+	"res://Sprites/RPG Top Down Characters/Old Man/old_man.png",
+	"res://Sprites/RPG Top Down Characters/Old Woman/old_woman.png",
+	"res://Sprites/RPG Top Down Characters/Policeman/policeman.png",
+	"res://Sprites/RPG Top Down Characters/Punk Kid Boy/punk_kid_boy.png",
+	"res://Sprites/RPG Top Down Characters/Punk Man/punk_men.png",
+	"res://Sprites/RPG Top Down Characters/Punk Woman/punk_woman.png",
+	"res://Sprites/RPG Top Down Characters/Soldier/soldier.png",
+	"res://Sprites/RPG Top Down Characters/main_cha.png"
+]
+
 func _get_character_texture_paths() -> Array[String]:
 	var paths: Array[String] = []
 	var base_dir = "res://Sprites/RPG Top Down Characters"
@@ -810,6 +878,11 @@ func _get_character_texture_paths() -> Array[String]:
 			sub_name = dir.get_next()
 		dir.list_dir_end()
 			
+	if paths.is_empty():
+		for p in KNOWN_CHARACTER_PATHS:
+			if ResourceLoader.exists(p):
+				paths.append(p)
+
 	paths.sort()
 	return paths
 
@@ -896,7 +969,8 @@ func _create_dynamic_atlas() -> Texture2D:
 
 
 func _init_pool() -> void:
-	for i in range(pool_size):
+	var dynamic_size = max(pool_size, int(npc_count * 0.08))
+	for i in range(dynamic_size):
 		var npc = interactive_npc_scene.instantiate()
 		add_child(npc)
 		
@@ -912,11 +986,14 @@ func _get_node_from_pool() -> CharacterBody2D:
 	for npc in npc_pool:
 		if npc.process_mode == Node.PROCESS_MODE_DISABLED:
 			return npc
-	# Expand pool dynamically if full
-	var npc = interactive_npc_scene.instantiate()
-	add_child(npc)
-	npc_pool.append(npc)
-	return npc
+	var max_capacity = max(pool_size * 2, int(npc_count * 0.12))
+	if npc_pool.size() < max_capacity:
+		var npc = interactive_npc_scene.instantiate()
+		add_child(npc)
+		npc_pool.append(npc)
+		print("[CrowdManager] Dynamic pool expansion to %d nodes" % npc_pool.size())
+		return npc
+	return null
 
 
 func _return_node_to_pool(npc: CharacterBody2D) -> void:
@@ -1011,6 +1088,8 @@ func setup_parents_for_child(child: Node2D) -> void:
 		print("[CrowdManager] Đã gắn Ba Mẹ ở phía đối diện sân khấu tại vị trí: ", child.get("parent_global_pos"))
 
 func spawn_lost_child_event() -> void:
+	if not enable_lost_child:
+		return
 	if get_tree().get_nodes_in_group("lost_child_npc").size() > 0:
 		return
 
@@ -1089,23 +1168,71 @@ func clear_merch_buyer(npc_idx: int) -> void:
 
 func _check_promote_demote(player: Node2D) -> void:
 	var player_local_pos = to_local(player.global_position)
+	var current_time = Time.get_ticks_msec() / 1000.0
 	
-	# 1. Promote NPCs with quests OR marked as merch buyers OR parents of lost child close to the player
-	for i in range(npc_count):
-		if (has_quests[i] == 1 or merch_buyers_map.has(i) or lost_child_parents_map.has(i)) and is_promoted[i] == 0:
-			var dist = positions[i].distance_to(player_local_pos)
-			if dist < promote_radius:
-				_promote_npc(i)
-				
-	# 2. Demote promoted NPCs that are far from the player (and not yet interacted with)
+	# 1. Demote promoted NPCs that are far from the player (and not yet interacted/locked with quest)
 	var promoted_indices = promoted_nodes.keys()
 	for i in promoted_indices:
 		var npc_node = promoted_nodes[i]
 		if is_instance_valid(npc_node):
 			var dist = npc_node.position.distance_to(player_local_pos)
 			if dist > demote_radius:
-				if not npc_node.is_interacted and not npc_node.is_merch_buyer and not npc_node.is_parent_npc:
+				# Cooldown hysteresis check (2.6)
+				var last_trans = _last_promote_demote_time.get(i, 0.0)
+				if (current_time - last_trans) < PROMOTE_DEMOTE_COOLDOWN and dist < (demote_radius + 50.0):
+					continue
+					
+				# Quest lock & state safeguard check (2.2)
+				var is_locked = npc_node.is_interacted or npc_node.is_merch_buyer or npc_node.is_parent_npc
+				if npc_node.get("is_locked_by_quest") == true or (npc_node.get("lock_timer") != null and npc_node.lock_timer > 0.0):
+					is_locked = true
+				if not is_locked:
 					_demote_npc(i)
+
+	# 2. Collect & sort promote candidates by distance to player (closest first)
+	var candidates: Array = []
+	for i in range(npc_count):
+		if (has_quests[i] == 1 or merch_buyers_map.has(i) or lost_child_parents_map.has(i)) and is_promoted[i] == 0:
+			var dist = positions[i].distance_to(player_local_pos)
+			if dist < promote_radius:
+				# Cooldown hysteresis check (2.6)
+				var last_trans = _last_promote_demote_time.get(i, 0.0)
+				if (current_time - last_trans) < PROMOTE_DEMOTE_COOLDOWN and dist > 60.0:
+					continue
+				candidates.append({"index": i, "dist": dist})
+				
+	# Sort candidates by distance ascending
+	candidates.sort_custom(func(a, b): return a["dist"] < b["dist"])
+	
+	# 3. Promote candidate NPCs with pool exhaustion fallback slot swapping (2.1)
+	for cand in candidates:
+		var i: int = cand["index"]
+		var cand_dist: float = cand["dist"]
+		
+		# Attempt to get node from pool
+		var npc_node = _get_node_from_pool()
+		if npc_node == null:
+			# Pool capacity reached: try to find an unlocked promoted NPC furthest from player to free a slot
+			var furthest_idx: int = -1
+			var max_dist: float = cand_dist
+			for p_idx in promoted_nodes.keys():
+				var p_node = promoted_nodes[p_idx]
+				if is_instance_valid(p_node):
+					var p_locked = p_node.is_interacted or p_node.is_merch_buyer or p_node.is_parent_npc \
+						or (p_node.get("is_locked_by_quest") == true) or (p_node.get("lock_timer") != null and p_node.lock_timer > 0.0)
+					if not p_locked:
+						var p_dist = p_node.position.distance_to(player_local_pos)
+						if p_dist > max_dist:
+							max_dist = p_dist
+							furthest_idx = p_idx
+			if furthest_idx != -1:
+				_demote_npc(furthest_idx)
+				npc_node = _get_node_from_pool()
+				
+		if npc_node != null:
+			_promote_npc(i)
+		else:
+			push_warning("[CrowdManager] Pool exhausted (capacity=%d)! Queueing promote for NPC %d at dist %.1f" % [npc_pool.size(), i, cand_dist])
 
 
 func _promote_npc(i: int) -> void:
@@ -1159,6 +1286,7 @@ func _promote_npc(i: int) -> void:
 	
 	promoted_nodes[i] = npc_node
 	is_promoted[i] = 1
+	_last_promote_demote_time[i] = Time.get_ticks_msec() / 1000.0
 	
 	# Hide from background multimesh by moving instance far off screen (cả 2 buffer)
 	mm_back.multimesh.set_instance_transform_2d(i, Transform2D(0.0, Vector2(-999999.0, -999999.0)))
@@ -1180,6 +1308,7 @@ func _demote_npc(i: int) -> void:
 		_return_node_to_pool(npc_node)
 		promoted_nodes.erase(i)
 		is_promoted[i] = 0
+		_last_promote_demote_time[i] = Time.get_ticks_msec() / 1000.0
 		
 		# Hiện lại NPC ngay vào đúng buffer (trước/sau Player) — không chờ
 		# frame _process() tiếp theo mới phân lại, tránh nhấp nháy 1 frame.
@@ -1226,7 +1355,18 @@ func _init_debug_overlay() -> void:
 	settings.outline_size = 4
 	settings.outline_color = Color.BLACK
 	debug_label.label_settings = settings
-	debug_label.visible = true
+	
+	var gm = get_node_or_null("/root/GameManager")
+	if gm:
+		if gm.has_signal("fps_toggled") and not gm.fps_toggled.is_connected(_on_fps_toggled):
+			gm.fps_toggled.connect(_on_fps_toggled)
+		debug_label.visible = bool(gm.get("show_fps"))
+	else:
+		debug_label.visible = false
+
+func _on_fps_toggled(enabled: bool) -> void:
+	if debug_label:
+		debug_label.visible = enabled
 
 # ─── FIGHT EVENT INTEGRATION ───────────────────────────────────────────────────
 
@@ -1862,5 +2002,51 @@ func _spawn_following_cozy_chat_bubble(idx: int, text: String) -> void:
 		"node": container,
 		"npc_idx": idx,
 		"timer": 0.0,
-		"lifetime": 2.8
+		"lifetime": randf_range(2.8, 3.8),
+		"offset_y": randf_range(-34.0, -24.0)
 	})
+
+
+# --- Crowd Wave (Mexican Wave) Public API & Signals ---
+
+func trigger_crowd_wave(origin: Vector2 = Vector2.ZERO, speed: float = 400.0) -> bool:
+	if wave_active or wave_cooldown_remaining > 0.0:
+		return false
+
+	if origin == Vector2.ZERO and is_instance_valid(_cached_stage_node):
+		origin = to_local(_cached_stage_node.global_position)
+
+	wave_active = true
+	wave_origin = origin
+	wave_speed = speed
+	wave_start_time = Time.get_ticks_msec() / 1000.0
+	wave_max_radius = _get_max_distance_from(origin) + 200.0
+	wave_cooldown_remaining = WAVE_COOLDOWN
+	print("[CrowdManager] 🌊 Crowd Wave (Mexican Wave) triggered from ", origin)
+
+	# Trigger camera wide zoom & player participation
+	var tree = get_tree()
+	var player = tree.get_first_node_in_group("player") if tree else null
+	if player and player.has_method("on_crowd_wave_started"):
+		player.on_crowd_wave_started(to_global(origin), speed)
+
+	var sound_mgr = get_node_or_null("/root/SoundManager")
+	if not sound_mgr and tree:
+		sound_mgr = tree.get_first_node_in_group("sound_manager")
+	if sound_mgr and sound_mgr.has_method("play_merch_sell_sfx"):
+		sound_mgr.play_merch_sell_sfx()
+
+	return true
+
+func _get_max_distance_from(origin: Vector2) -> float:
+	var max_dist: float = 0.0
+	for i in range(npc_count):
+		var d = origin.distance_to(positions[i])
+		if d > max_dist:
+			max_dist = d
+	return max_dist
+
+func _on_stage_climax_started() -> void:
+	if is_instance_valid(_cached_stage_node):
+		var stage_local_pos = to_local(_cached_stage_node.global_position)
+		trigger_crowd_wave(stage_local_pos)

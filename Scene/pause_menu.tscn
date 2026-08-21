@@ -294,6 +294,18 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_btn_wood_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_wood")
 text = "📱 Touch UI: TẮT"
 
+[node name="FPSButton" type="Button" parent="CenterContainer/MainCard/VBox/SettingsVBox"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_wood")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_wood_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_wood")
+text = "📊 Hiển thị FPS: TẮT"
+
 [node name="BackButton" type="Button" parent="CenterContainer/MainCard/VBox/SettingsVBox"]
 custom_minimum_size = Vector2(0, 46)
 layout_mode = 2

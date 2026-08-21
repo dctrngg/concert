@@ -11,6 +11,9 @@
 [ext_resource type="PackedScene" path="res://Scene/pause_menu.tscn" id="9_pause_menu"]
 [ext_resource type="PackedScene" path="res://Scene/level_start_dialog.tscn" id="10_start_dialog"]
 [ext_resource type="PackedScene" path="res://Scene/weather_manager.tscn" id="11_weather_mgr"]
+[ext_resource type="PackedScene" path="res://Scene/minimap.tscn" id="12_minimap_scene"]
+[ext_resource type="Texture2D" path="res://Sprites/star_gold.png" id="13_star_gold"]
+[ext_resource type="Texture2D" path="res://Sprites/star_gray.png" id="14_star_gray"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stats_panel"]
 content_margin_left = 16.0
@@ -219,12 +222,41 @@ label_settings = SubResource("LabelSettings_timer")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ScoreLabel" type="Label" parent="Control/TopCenterPanel/VBox"]
+[node name="ScoreHBox" type="HBoxContainer" parent="Control/TopCenterPanel/VBox"]
 layout_mode = 2
-text = "🏆 Điểm: 0 (☆☆☆)"
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="ScoreLabel" type="Label" parent="Control/TopCenterPanel/VBox/ScoreHBox"]
+layout_mode = 2
+text = "Điểm: 0 "
 label_settings = SubResource("LabelSettings_score")
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="Star1" type="TextureRect" parent="Control/TopCenterPanel/VBox/ScoreHBox"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("14_star_gray")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Star2" type="TextureRect" parent="Control/TopCenterPanel/VBox/ScoreHBox"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("14_star_gray")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Star3" type="TextureRect" parent="Control/TopCenterPanel/VBox/ScoreHBox"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("14_star_gray")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="QuestListContainer" type="VBoxContainer" parent="Control"]
 layout_mode = 0
@@ -250,6 +282,8 @@ theme_override_styles/normal = SubResource("StyleBoxTexture_btn_wood")
 theme_override_styles/hover = SubResource("StyleBoxTexture_btn_wood")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_wood")
 text = "📱 Touch UI"
+
+[node name="Minimap" parent="Control" instance=ExtResource("12_minimap_scene")]
 
 [node name="MobileControls" parent="." instance=ExtResource("7_mobile_controls")]
 

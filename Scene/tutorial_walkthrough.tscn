@@ -1,0 +1,150 @@
+[gd_scene format=3 uid="uid://bdhlb5howmmwc"]
+
+[ext_resource type="Script" path="res://Scripts/tutorial_walkthrough.gd" id="1_walkthrough_script"]
+[ext_resource type="FontFile" path="res://0307-LNTH-TwistyPixel.ttf" id="2_pixel_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_walkthrough_card"]
+content_margin_left = 20.0
+content_margin_top = 16.0
+content_margin_right = 20.0
+content_margin_bottom = 16.0
+bg_color = Color(0.12, 0.1, 0.16, 0.92)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.95, 0.75, 0.25, 0.95)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_left = 16
+corner_radius_bottom_right = 16
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 8
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header_box"]
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+bg_color = Color(0.48, 0.28, 0.12, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.85, 0.4, 0.9)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_left = 10
+corner_radius_bottom_right = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_skip_btn"]
+content_margin_left = 10.0
+content_margin_top = 4.0
+content_margin_right = 10.0
+content_margin_bottom = 4.0
+bg_color = Color(0.35, 0.15, 0.15, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.8, 0.4, 0.4, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+
+[node name="TutorialWalkthrough" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_walkthrough_script")
+
+[node name="MainCard" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -280.0
+offset_top = 75.0
+offset_right = 280.0
+offset_bottom = 275.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_walkthrough_card")
+
+[node name="VBox" type="VBoxContainer" parent="MainCard"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HeaderHBox" type="HBoxContainer" parent="MainCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="HeaderPanel" type="PanelContainer" parent="MainCard/VBox/HeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_header_box")
+
+[node name="TitleLabel" type="Label" parent="MainCard/VBox/HeaderHBox/HeaderPanel"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 0.95, 0.7, 1)
+text = "📖 HƯỚNG DẪN BẢO VỆ MỚI (WALKTHROUGH)"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SkipButton" type="Button" parent="MainCard/VBox/HeaderHBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(1, 0.8, 0.8, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_skip_btn")
+text = "⏩ Bỏ Qua"
+
+[node name="StepsVBox" type="VBoxContainer" parent="MainCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Step1Label" type="Label" parent="MainCard/VBox/StepsVBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(1, 0.9, 0.2, 1)
+text = " ➔ Bước 1: Di chuyển nhân vật [W-A-S-D / Joystick]"
+
+[node name="Step2Label" type="Label" parent="MainCard/VBox/StepsVBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.65, 0.65, 0.65, 0.7)
+text = " ⚪ Bước 2: Gặp Khán Giả có dấu ❗️ và nhấn [E]"
+
+[node name="Step3Label" type="Label" parent="MainCard/VBox/StepsVBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.65, 0.65, 0.65, 0.7)
+text = " ⚪ Bước 3: Đi theo Mũi Tên Hướng Dẫn lấy Đồ"
+
+[node name="Step4Label" type="Label" parent="MainCard/VBox/StepsVBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.65, 0.65, 0.65, 0.7)
+text = " ⚪ Bước 4: Quay lại Khán Giả nhấn [E] để Giao Đồ"
+
+[node name="HSeparator" type="HSeparator" parent="MainCard/VBox"]
+layout_mode = 2
+
+[node name="HintLabel" type="Label" parent="MainCard/VBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.4, 0.95, 1.0, 1.0)
+text = "💡 Hãy bấm các phím W-A-S-D hoặc dùng Cần xoay Touch để di chuyển nhân vật!"
+autowrap_mode = 2

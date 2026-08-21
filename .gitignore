@@ -3,3 +3,19 @@
 /android/
 *.tmp
 
+# Build and export artifacts
+build/
+demo/
+*.zip
+concert.html
+concert.js
+concert.wasm
+concert.pck
+concert.audio.worklet.js
+concert.audio.position.worklet.js
+concert*.png
+concert*.png.import
+__pycache__/
+scratch/
+
+

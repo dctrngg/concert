@@ -2,20 +2,20 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://tstihxp31oxx"
-path="res://.godot/imported/0307-LNTH-TwistyPixel.ttf-a65e7190a382e407511d413ac7f5ed6c.fontdata"
+uid="uid://dcvcrdk8xddk2"
+path="res://.godot/imported/NotoEmoji-Regular.ttf-797a70c3e299c9b0af806aea51b0d86a.fontdata"
 
 [deps]
 
-source_file="res://0307-LNTH-TwistyPixel.ttf"
-dest_files=["res://.godot/imported/0307-LNTH-TwistyPixel.ttf-a65e7190a382e407511d413ac7f5ed6c.fontdata"]
+source_file="res://Fonts/NotoEmoji-Regular.ttf"
+dest_files=["res://.godot/imported/NotoEmoji-Regular.ttf-797a70c3e299c9b0af806aea51b0d86a.fontdata"]
 
 [params]
 
 Rendering=null
 antialiasing=1
 generate_mipmaps=false
-disable_embedded_bitmaps=true
+disable_embedded_bitmaps=false
 multichannel_signed_distance_field=false
 msdf_pixel_range=8
 msdf_size=48
@@ -27,7 +27,7 @@ subpixel_positioning=4
 keep_rounding_remainders=true
 oversampling=0.0
 Fallbacks=null
-fallbacks=["res://Fonts/NotoEmoji-Regular.ttf"]
+fallbacks=[]
 Compress=null
 compress=true
 preload=[]

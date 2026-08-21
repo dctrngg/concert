@@ -9,11 +9,11 @@ signal line_advanced(line_index: int)
 @onready var speaker_name_label: Label = find_child("SpeakerNameLabel", true, false) as Label
 @onready var text_label: Label = find_child("TextLabel", true, false) as Label
 
-@export var player_name: String = "dctrng"
+@export var player_name: String = "Thành viên Hùng Vương Concert"
 
 @export_group("1. Dynamic Guided Tutorial Lines")
-@export var tutorial_welcome_text: String = "Chào mừng bạn đến với Đêm Đại Nhạc Hội! Tôi là Bảo Vệ chịu trách nhiệm an ninh và hỗ trợ khán giả hôm nay."
-@export var tutorial_greeting_text: String = "Sử dụng các phím A-W-S-D để di chuyển. Hãy lại gần vị khán giả có dấu (!) gần nhất để nhận nhiệm vụ nhé!"
+@export var tutorial_welcome_text: String = "Chào mừng bạn đến với Hùng Vương Concert! Tôi là thành viên của Ban Nhân sự chịu trách nhiệm an ninh và hỗ trợ khán giả hôm nay."
+@export var tutorial_greeting_text: String = "Sử dụng các phím A-W-S-D để di chuyển. Giữ Shift để chạy nhanh. Hãy lại gần vị khán giả có dấu (!) gần nhất để nhận nhiệm vụ nhé!"
 @export var tutorial_accepted_text: String = "Rất tốt! Hãy đi theo Mũi Tên Chỉ Đường đến quầy tương ứng để lấy món đồ khán giả cần nhé!"
 @export var tutorial_item_text: String = "Món đồ đã có trong túi! Hãy quay lại gặp vị khán giả đó và nhấn [E] / Click chuột để giao đồ nhé!"
 @export var tutorial_done_text: String = "Hoàn hảo! Bạn đã nắm vững cách làm Bảo Vệ. Đêm đại nhạc hội bùng nổ chính thức bắt đầu!"
@@ -21,10 +21,11 @@ signal line_advanced(line_index: int)
 @export_group("2. Gameplay Dialogue (Random Loop)")
 ## Danh sách các câu thoại lặp lại NGẪU NHIÊN khi ĐANG CHƠI GAME
 @export var gameplay_dialogue_list: Array[String] = [
-	"Tôi là Bảo Vệ đêm nhạc. Tôi sẽ hỗ trợ khán giả và giữ gìn an ninh!",
+	"Nhiêm vụ của mình hôm nay là đảm bảo cho chương trìn diễn ra thuận lợi nhất có thể",
 	"Khu vực sân khấu đang rất đông vui, hãy chú ý di chuyển trật tự nhé.",
 	"Nếu khán giả nào cần đồ ăn hoặc ghế ngồi, tôi sẽ đến hỗ trợ ngay!",
-	"Đêm hòa nhạc hôm nay thật bùng nổ và cuồng nhiệt!"
+	"Đêm hòa nhạc hôm nay thật bùng nổ và cuồng nhiệt!",
+	"Hùng Vương Concert không chỉ là một đêm nhạc, còn là cơ hội để chúng mình giúp đỡ các hoàn cảnh khó khăn"
 ]
 
 ## Tốc độ gõ chữ (ký tự / giây)

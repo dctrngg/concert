@@ -38,10 +38,11 @@ func _setup_intro_camera_and_level_data() -> void:
 	if game_mgr and game_mgr.has_method("get_current_level_data"):
 		var lvl_data = game_mgr.get_current_level_data()
 		if lvl_data:
-			if level_title_label and "level_name" in lvl_data:
-				level_title_label.text = "🎮 " + str(lvl_data["level_name"]).to_upper()
-			elif level_title_label and "level_id" in lvl_data:
-				level_title_label.text = "🎮 MÀN %d: ĐÊM ĐẠI NHẠC HỘI" % lvl_data["level_id"]
+			if level_title_label:
+				if "title" in lvl_data and str(lvl_data["title"]) != "":
+					level_title_label.text = "🎮 " + str(lvl_data["title"])
+				elif "level_name" in lvl_data and str(lvl_data["level_name"]) != "":
+					level_title_label.text = "🎮 " + str(lvl_data["level_name"])
 				
 			if time_label and "time_limit" in lvl_data:
 				var mins = int(lvl_data["time_limit"]) / 60

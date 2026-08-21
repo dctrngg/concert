@@ -10,6 +10,9 @@ extends CharacterBody2D
 ## di chuyển đang được giữ -> hướng nhìn = phím vừa bấm gần nhất còn đang giữ. Ví dụ: đang giữ
 ## "phải", bấm thêm "lên" -> quay mặt lên (vẫn di chuyển chéo); thả "lên" ra -> quay lại "phải".
 
+const FIGHT_EVENT_SCRIPT = preload("res://Scripts/fight_event.gd")
+const PLAYER_FONT: Font = preload("res://0307-LNTH-TwistyPixel.ttf")
+
 @export var walk_speed: float = 200.0
 @export var run_speed: float = 300.0
 ## Tốc độ còn lại (tỉ lệ) khi player đang ép vào 1 NPC promoted — KHÔNG đẩy
@@ -239,10 +242,9 @@ func _try_interact() -> void:
 	_last_interact_msec = now_msec
 
 	# Nếu đang trong mini-game fight_event thì không kích hoạt thêm tương tác mới
-	var fight_event_script = load("res://Scripts/fight_event.gd")
-	if fight_event_script and fight_event_script.get("active_minigame") != null:
-		var active_fight = fight_event_script.active_minigame
-		if is_instance_valid(active_fight) and active_fight.get("minigame_active"):
+	if FIGHT_EVENT_SCRIPT and FIGHT_EVENT_SCRIPT.active_minigame != null:
+		var active_fight = FIGHT_EVENT_SCRIPT.active_minigame
+		if is_instance_valid(active_fight) and active_fight.minigame_active:
 			return
 
 	var candidates: Array[Dictionary] = []
@@ -388,6 +390,34 @@ var _shake_time: float = 0.0
 func apply_camera_shake(intensity: float = 8.0) -> void:
 	shake_amount = max(shake_amount, intensity)
 
+func on_crowd_wave_started(origin: Vector2, speed: float = 400.0) -> void:
+	var dist = global_position.distance_to(origin)
+	var hit_delay = dist / speed
+
+	# Player Arms Bounce when wave reaches player's position
+	var tween = create_tween()
+	tween.tween_interval(max(0.0, hit_delay))
+	tween.tween_callback(func():
+		apply_camera_shake(5.0)
+		_bounce_player_arms()
+	)
+
+	# Camera Wide Pull-back Zoom Effect to show overall wave
+	var cam = get_node_or_null("Camera2D") as Camera2D
+	if cam:
+		var orig_zoom = cam.zoom
+		var wide_zoom = orig_zoom * 0.88
+		var z_tween = create_tween()
+		z_tween.tween_property(cam, "zoom", wide_zoom, 1.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		z_tween.tween_interval(1.6)
+		z_tween.tween_property(cam, "zoom", orig_zoom, 1.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+
+func _bounce_player_arms() -> void:
+	if animated_sprite:
+		var b_tween = create_tween()
+		b_tween.tween_property(animated_sprite, "position:y", -10.0, 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		b_tween.tween_property(animated_sprite, "position:y", 0.0, 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
 func _process(delta: float) -> void:
 	_update_camera_shake(delta)
 
@@ -436,7 +466,6 @@ func _update_camera_shake(delta: float) -> void:
 		cam.offset = lerp(cam.offset, Vector2.ZERO, delta * 8.0)
 
 var mobile_input_vector: Vector2 = Vector2.ZERO
-var is_chat_typing: bool = false
 
 func _physics_process(_delta: float) -> void:
 	if is_intro_locked or is_camera_intro_active or is_chat_typing or (stats and stats.is_fainted):
@@ -553,7 +582,7 @@ func _update_animation(input_vector: Vector2, is_running: bool) -> void:
 		direction = data["anim"]
 		flip = data["flip"]
 	else:
-		# Fallback hiếm khi xảy ra (ví dụ input từ joystick analog không qua action
+			# Fallback hiếm khi xảy ra (ví dụ input từ joystick analog không qua action
 		# press/release rõ ràng) -> dùng logic theo độ lớn trục như cũ
 		if abs(input_vector.x) > abs(input_vector.y):
 			direction = "right" if input_vector.x > 0 else "left"
@@ -613,9 +642,8 @@ func say(text: String) -> void:
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	
-	var font_res = load("res://0307-LNTH-TwistyPixel.ttf") as Font
-	if font_res:
-		label.add_theme_font_override("font", font_res)
+	if PLAYER_FONT:
+		label.add_theme_font_override("font", PLAYER_FONT)
 	label.add_theme_font_size_override("font_size", 20)
 	label.add_theme_color_override("font_color", Color(0.1, 0.15, 0.35, 1))
 	

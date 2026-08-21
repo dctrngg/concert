@@ -20,6 +20,8 @@ class_name MainMenu
 
 @onready var close_settings_btn: Button = find_child("CloseSettingsBtn", true, false) as Button
 @onready var test_sfx_btn: Button = find_child("TestSFXBtn", true, false) as Button
+@onready var reset_tutorial_btn: Button = find_child("ResetTutorialBtn", true, false) as Button
+@onready var fps_button: Button = find_child("FPSButton", true, false) as Button
 
 var _anim_time: float = 0.0
 
@@ -48,6 +50,8 @@ func _ready() -> void:
 	if quit_button: quit_button.pressed.connect(_on_quit_pressed)
 	if close_settings_btn: close_settings_btn.pressed.connect(_on_close_settings_pressed)
 	if test_sfx_btn: test_sfx_btn.pressed.connect(_on_test_sfx_pressed)
+	if reset_tutorial_btn: reset_tutorial_btn.pressed.connect(_on_reset_tutorial_pressed)
+	if fps_button: fps_button.pressed.connect(_on_fps_toggled)
 
 	if bgm_minus_btn: bgm_minus_btn.pressed.connect(_on_bgm_minus_pressed)
 	if bgm_plus_btn: bgm_plus_btn.pressed.connect(_on_bgm_plus_pressed)
@@ -159,6 +163,18 @@ func _update_labels() -> void:
 		var pct = _db_to_pct(sfx_slider.value, sfx_slider.min_value, sfx_slider.max_value)
 		sfx_label.text = "🔔 Hiệu Ứng: " + (str(pct) + "%" if pct > 0 else "TẮT")
 
+	var gm = get_node_or_null("/root/GameManager")
+	if fps_button:
+		var enabled = bool(gm.get("show_fps")) if gm else false
+		fps_button.text = "📊 Hiển thị FPS: " + ("BẬT" if enabled else "TẮT")
+
+func _on_fps_toggled() -> void:
+	_play_click_sfx()
+	var gm = get_node_or_null("/root/GameManager")
+	if gm and gm.has_method("toggle_fps"):
+		gm.toggle_fps()
+	_update_labels()
+
 func _on_bgm_volume_changed(val: float) -> void:
 	var sound_mgr = get_node_or_null("/root/SoundManager")
 	if sound_mgr:
@@ -193,3 +209,17 @@ func _on_test_sfx_pressed() -> void:
 	var sound_mgr = get_node_or_null("/root/SoundManager")
 	if sound_mgr and sound_mgr.has_method("play_food_pickup_sfx"):
 		sound_mgr.play_food_pickup_sfx()
+
+func _on_reset_tutorial_pressed() -> void:
+	_play_click_sfx()
+	var gm = get_node_or_null("/root/GameManager")
+	if gm and gm.has_method("reset_tutorial"):
+		gm.reset_tutorial()
+		if reset_tutorial_btn:
+			reset_tutorial_btn.text = "✅ ĐÃ BẬT HƯỚNG DẪN!"
+			var tween = create_tween()
+			tween.tween_interval(1.5)
+			tween.tween_callback(func():
+				if reset_tutorial_btn:
+					reset_tutorial_btn.text = "📖 BẬT LẠI HƯỚNG DẪN"
+			)

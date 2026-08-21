@@ -22,12 +22,21 @@ class_name OverheadItemBar
 var inventory: PlayerInventory = null
 
 func _ready() -> void:
+	z_index = 100
+	z_as_relative = false
 	await get_tree().process_frame
 	var player = get_parent()
 	if player and player.get("inventory"):
 		inventory = player.inventory
 		inventory.inventory_changed.connect(update_bar)
 		update_bar()
+
+func _center_hbox() -> void:
+	var hbox = get_node_or_null("HBox") as Control
+	if hbox:
+		hbox.reset_size()
+		var min_size = hbox.get_combined_minimum_size()
+		hbox.position = -min_size / 2.0
 
 func update_bar() -> void:
 	if not inventory:
@@ -55,8 +64,12 @@ func update_bar() -> void:
 			active_count += 1
 			frame_node.visible = true
 			
-			var alpha_val = 1.0 if quest.is_item_picked_up else 0.35
-			frame_node.modulate = Color(1, 1, 1, alpha_val)
+			# Nếu đã cầm đồ (is_item_picked_up = true) -> Highlight sáng rực rỡ!
+			# Nếu chưa cầm đồ -> Mờ nhẹ (35% opacity)
+			if quest.is_item_picked_up:
+				frame_node.modulate = Color(1.35, 1.35, 1.15, 1.0) # Highlight rực sáng rực rỡ
+			else:
+				frame_node.modulate = Color(1.0, 1.0, 1.0, 0.35) # Mờ nhẹ khi chưa lấy đồ
 			
 			match quest.quest_type:
 				NPCQuestData.QuestType.SEAT_FINDER:
@@ -85,6 +98,8 @@ func update_bar() -> void:
 						icon_node.visible = false
 
 	visible = (active_count > 0)
+	if visible:
+		_center_hbox()
 
 func _get_quest_icon_path(quest: NPCQuestData) -> String:
 	if quest.item_icon_path != "":

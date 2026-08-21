@@ -1,0 +1,131 @@
+[gd_scene format=3 uid="uid://minimapscene"]
+
+[ext_resource type="Script" uid="uid://dtct4cm1dau2e" path="res://Scripts/minimap.gd" id="1_minimap_script"]
+[ext_resource type="FontFile" uid="uid://tstihxp31oxx" path="res://0307-LNTH-TwistyPixel.ttf" id="2_pixel_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_phone_frame"]
+content_margin_left = 8.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
+bg_color = Color(0.08, 0.1, 0.14, 0.96)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
+border_color = Color(0.72, 0.78, 0.85, 0.95)
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_right = 24
+corner_radius_bottom_left = 24
+shadow_color = Color(0, 0, 0, 0.65)
+shadow_size = 14
+shadow_offset = Vector2(0, 6)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_notch"]
+bg_color = Color(0.04, 0.05, 0.07, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_search_bar"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0.16, 0.2, 0.28, 0.9)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_home_bar"]
+bg_color = Color(0.85, 0.9, 0.95, 0.85)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[node name="Minimap" type="Control" unique_id=2077030983]
+layout_mode = 3
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -270.0
+offset_top = -395.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("1_minimap_script")
+
+[node name="MainCard" type="PanelContainer" parent="." unique_id=2140000048]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_phone_frame")
+
+[node name="VBox" type="VBoxContainer" parent="MainCard" unique_id=780980947]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="StatusBarHBox" type="HBoxContainer" parent="MainCard/VBox" unique_id=1885671968]
+layout_mode = 2
+alignment = 1
+
+[node name="TimeLabel" type="Label" parent="MainCard/VBox/StatusBarHBox" unique_id=1216358594]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 15
+text = "20:00"
+
+[node name="Notch" type="Panel" parent="MainCard/VBox/StatusBarHBox" unique_id=1043054956]
+custom_minimum_size = Vector2(48, 12)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_notch")
+
+[node name="IconsLabel" type="Label" parent="MainCard/VBox/StatusBarHBox" unique_id=486147735]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 14
+text = "📶 🔋98%"
+horizontal_alignment = 2
+
+[node name="SearchBarPanel" type="PanelContainer" parent="MainCard/VBox" unique_id=1181544305]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_search_bar")
+
+[node name="SearchLabel" type="Label" parent="MainCard/VBox/SearchBarPanel" unique_id=1178189994]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.92, 1, 1)
+theme_override_fonts/font = ExtResource("2_pixel_font")
+theme_override_font_sizes/font_size = 16
+text = "🔍 Concert   🟢 LIVE"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MinimapCanvas" type="Control" parent="MainCard/VBox" unique_id=1365165777]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="HomeBarContainer" type="CenterContainer" parent="MainCard/VBox" unique_id=1004138843]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="HomeBar" type="Panel" parent="MainCard/VBox/HomeBarContainer" unique_id=1607840030]
+custom_minimum_size = Vector2(70, 5)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_home_bar")

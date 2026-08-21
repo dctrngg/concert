@@ -35,13 +35,13 @@
 size = Vector2(441.6667, 67)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_vip2"]
-size = Vector2(229.04167, 105.70836)
+size = Vector2(229.04167, 103.041695)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_vip3"]
-size = Vector2(229.04167, 104.91669)
+size = Vector2(229.04167, 102.91669)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_aud1"]
-size = Vector2(462.33347, 157.10425)
+size = Vector2(461.3335, 141.43756)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_aud2"]
 size = Vector2(370.43732, 138.88547)
@@ -8995,7 +8995,7 @@ intro_zoom_delay = 3.0
 y_sort_enabled = true
 scale = Vector2(3, 3)
 script = ExtResource("2_crowd")
-npc_count = 1200
+npc_count = 1000
 npc_speed = 40.0
 min_wander_time = 2.0
 tree_trunk_width_ratio = 1.0
@@ -9021,21 +9021,21 @@ shape = SubResource("RectangleShape2D_vip1")
 position = Vector2(200, -10)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CrowdManager/VIPZone2" unique_id=1370107453]
-position = Vector2(4.5833282, 68.52084)
+position = Vector2(4.5833282, 69.85416)
 shape = SubResource("RectangleShape2D_vip2")
 
 [node name="VIPZone3" type="Area2D" parent="CrowdManager" unique_id=1593785134]
 position = Vector2(40, -10)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CrowdManager/VIPZone3" unique_id=1370107454]
-position = Vector2(-171.33331, 66.79166)
+position = Vector2(-171.33331, 67.79166)
 shape = SubResource("RectangleShape2D_vip3")
 
 [node name="AudienceZone1" type="Area2D" parent="CrowdManager" unique_id=410579897]
 position = Vector2(30, 45)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CrowdManager/AudienceZone1" unique_id=438258844]
-position = Vector2(-260.50006, 176.4479)
+position = Vector2(-261.00006, 168.6146)
 shape = SubResource("RectangleShape2D_aud1")
 
 [node name="AudienceZone2" type="Area2D" parent="CrowdManager" unique_id=410579898]

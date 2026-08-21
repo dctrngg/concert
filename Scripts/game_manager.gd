@@ -6,12 +6,15 @@ signal level_completed(score: int, stars_earned: int, is_passed: bool)
 signal level_started(level_info: Dictionary)
 signal chaos_changed(current_chaos: float, max_chaos: float)
 signal game_over(reason: String)
+signal fps_toggled(enabled: bool)
+
+var show_fps: bool = false
 
 # Cấu hình Cấp độ / Map
 const LEVEL_CONFIGS: Array[Dictionary] = [
 	{
 		"level_id": 1,
-		"title": "Cấp độ 1: Đêm Diễn Khởi Đầu",
+		"title": "MÀN 1: Hùng Vương Concert: UNFOLD",
 		"description": "Làm quen với không khí concert. Phục vụ khán giả và đảm bảo an ninh!",
 		"scene_path": "res://Scene/world.tscn",
 		"time_limit": 300.0, # 5 phút
@@ -19,7 +22,7 @@ const LEVEL_CONFIGS: Array[Dictionary] = [
 	},
 	{
 		"level_id": 2,
-		"title": "Cấp độ 2: Sức Nóng Đỉnh Điểm",
+		"title": "MÀN 2: Sức Nóng Đỉnh Điểm",
 		"description": "Đám đông cuồng nhiệt hơn, nhiều sự cố ẩu đả phát sinh!",
 		"scene_path": "res://Scene/world.tscn",
 		"time_limit": 300.0, # 5 phút
@@ -27,7 +30,7 @@ const LEVEL_CONFIGS: Array[Dictionary] = [
 	},
 	{
 		"level_id": 3,
-		"title": "Cấp độ 3: Đêm Đại Ca Nhạc",
+		"title": "MÀN 3: Đêm Đại Ca Nhạc",
 		"description": "Thử thách lớn nhất! Đòi hỏi khả năng xử lý tình huống cực kỳ nhanh nhạy.",
 		"scene_path": "res://Scene/world.tscn",
 		"time_limit": 300.0, # 5 phút
@@ -48,13 +51,23 @@ var is_paused: bool = false
 var unlocked_levels: Array = [1] # Mặc định level 1 đã mở khóa
 var level_stars: Dictionary = {}      # level_id -> stars (int 0..3)
 var level_high_scores: Dictionary = {}# level_id -> score (int)
+var tutorial_completed: bool = false  # Trạng thái đã hoàn thành hướng dẫn hay chưa
 
 const SAVE_PATH = "user://save_game.cfg"
 
 func _ready() -> void:
+	_setup_font_fallbacks()
 	load_progress()
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_setup_custom_mouse_cursor()
+
+func _setup_font_fallbacks() -> void:
+	var base_font = load("res://0307-LNTH-TwistyPixel.ttf") as FontFile
+	var fallback_font = load("res://Fonts/NotoEmoji-Regular.ttf") as FontFile
+	if base_font and fallback_font:
+		base_font.fallbacks = [fallback_font]
+		ThemeDB.fallback_font = fallback_font
+		print("[GameManager] ✅ Đã cấu hình NotoEmoji-Regular làm Fallback Font toàn cục!")
 
 func _setup_custom_mouse_cursor() -> void:
 	var cursor_normal = load("res://Spritesheets/DEMO_Cozy_UI_Pack_doboui/Cursors/Cursors_Crosshairs/Cursors_32px/Cursor2_42px.png")
@@ -203,6 +216,12 @@ func has_next_level() -> bool:
 			return true
 	return false
 
+func toggle_fps() -> bool:
+	show_fps = not show_fps
+	save_progress()
+	fps_toggled.emit(show_fps)
+	return show_fps
+
 # ─── SAVE / LOAD ─────────────────────────────────────────────────────────────
 
 func save_progress() -> void:
@@ -210,6 +229,8 @@ func save_progress() -> void:
 	config.set_value("progress", "unlocked_levels", unlocked_levels)
 	config.set_value("progress", "level_stars", level_stars)
 	config.set_value("progress", "level_high_scores", level_high_scores)
+	config.set_value("progress", "tutorial_completed", tutorial_completed)
+	config.set_value("progress", "show_fps", show_fps)
 	config.save(SAVE_PATH)
 
 func load_progress() -> void:
@@ -219,3 +240,15 @@ func load_progress() -> void:
 		unlocked_levels = config.get_value("progress", "unlocked_levels", [1])
 		level_stars = config.get_value("progress", "level_stars", {})
 		level_high_scores = config.get_value("progress", "level_high_scores", {})
+		tutorial_completed = config.get_value("progress", "tutorial_completed", false)
+		show_fps = config.get_value("progress", "show_fps", false)
+
+func mark_tutorial_completed() -> void:
+	tutorial_completed = true
+	save_progress()
+	print("[GameManager] 🎓 Đã lưu trạng thái hoàn thành Hướng Dẫn!")
+
+func reset_tutorial() -> void:
+	tutorial_completed = false
+	save_progress()
+	print("[GameManager] 🔄 Đã đặt lại trạng thái Hướng Dẫn!")

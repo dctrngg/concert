@@ -11,6 +11,8 @@ var has_quest: bool = false
 var quest_data: NPCQuestData = null
 var is_interacted: bool = false
 var is_player_nearby: bool = false
+var is_locked_by_quest: bool = false
+var lock_timer: float = 0.0
 
 ## --- Nhường nhẹ khi player chen vào (thay cho push_velocity cũ) ---
 ## NPC KHÔNG bị đẩy bay nữa; chỉ lệch RẤT NHẸ rồi tự về vị trí gốc, giống
@@ -34,6 +36,9 @@ func _ready() -> void:
 			if player_sprite and player_sprite.sprite_frames:
 				animated_sprite.sprite_frames = player_sprite.sprite_frames
 			player_instance.queue_free()
+	if quest_indicator:
+		quest_indicator.z_index = 100
+		quest_indicator.z_as_relative = false
 	update_quest_indicator()
 	
 	var quest_manager = get_node_or_null("/root/QuestManager")
@@ -47,14 +52,18 @@ func _ready() -> void:
 func _on_quest_ended(p_quest_data: NPCQuestData) -> void:
 	if p_quest_data == quest_data:
 		has_quest = false
+		is_locked_by_quest = false
+		lock_timer = 0.0
 		update_quest_indicator()
 
 var _indicator_time: float = 0.0
 
 func _physics_process(delta: float) -> void:
 	_indicator_time += delta
+	if lock_timer > 0.0:
+		lock_timer -= delta
 	if quest_indicator and quest_indicator.visible:
-		quest_indicator.position.y = -26.0 + sin(_indicator_time * 6.0) * 3.0
+		quest_indicator.position.y = -36.0 + sin(_indicator_time * 6.0) * 4.0
 
 	if _being_pressed:
 		_yield_offset = (_yield_offset + _press_dir * yield_speed * delta).limit_length(yield_max_offset)
@@ -89,6 +98,8 @@ func setup(p_npc_index: int, p_outfit_id: int, p_has_quest: bool, p_quest_data: 
 	has_quest = p_has_quest
 	quest_data = p_quest_data
 	is_interacted = (p_quest_data != null and p_quest_data.state == NPCQuestData.QuestState.ACTIVE)
+	is_locked_by_quest = is_interacted
+	lock_timer = 0.5 if is_locked_by_quest else 0.0
 	is_player_nearby = false
 	is_merch_buyer = false
 	is_parent_npc = false
@@ -137,6 +148,8 @@ static func _get_fallback_sprite_frames() -> SpriteFrames:
 
 func update_quest_indicator() -> void:
 	if quest_indicator:
+		quest_indicator.z_index = 100
+		quest_indicator.z_as_relative = false
 		if is_parent_npc:
 			quest_indicator.text = "👨‍👩‍👧"
 			quest_indicator.visible = true
@@ -216,6 +229,8 @@ func interact() -> void:
 					var success = quest_manager.accept_quest(quest_data)
 					if success:
 						is_interacted = true
+						is_locked_by_quest = true
+						lock_timer = 0.8
 						print("[Quest] Accepted: ", quest_data.title)
 						update_quest_indicator()
 				else:
